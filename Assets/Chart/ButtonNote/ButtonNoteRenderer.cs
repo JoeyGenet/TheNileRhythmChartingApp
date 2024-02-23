@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using Oculus.Interaction.Input;
 using UnityEngine;
 
 public class ButtonNoteRenderer : NoteRenderer
@@ -11,21 +10,16 @@ public class ButtonNoteRenderer : NoteRenderer
     [SerializeField] GameObject rightNote;
     [SerializeField] LineRenderer line;
     [SerializeField] private GameObject hitParticles;
-    [SerializeField] AK.Wwise.Event buttonHitEvent;
-    [SerializeField] AK.Wwise.Event buttonMissEvent;
 
-    public override void OnNoteHit(Note note, JudgementGrade grade, int points)
-    {
-        if (note != Note) return;
-        print("ButtonNoteRenderer OnNoteHit() signal!!");
-        Instantiate(hitParticles, transform.position, transform.rotation);
+    // public override void OnNoteHit(Note note, JudgementGrade grade, int points)
+    // {
+    //     if (note != Note) return;
+    //     print("ButtonNoteRenderer OnNoteHit() signal!!");
+    //     Instantiate(hitParticles, transform.position, transform.rotation);
 
-        if (grade.IsBad()) buttonMissEvent.Post(gameObject);
-        else buttonHitEvent.Post(gameObject);
-
-        //despawn note
-        gameObject.SetActive(false);
-    }
+    //     //despawn note
+    //     gameObject.SetActive(false);
+    // }
 
     public override void OnNoteMissed(Note note)
     {

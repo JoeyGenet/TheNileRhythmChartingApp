@@ -6,10 +6,10 @@ public class NoteRenderer : MonoBehaviour
 {
     // public Note Note;
 
-    public virtual void OnNoteHit(Note note, JudgementGrade grade, int points)
-    {
+    // public virtual void OnNoteHit(Note note, JudgementGrade grade, int points)
+    // {
 
-    }
+    // }
 
     public virtual void OnNoteMissed(Note note)
     {
@@ -20,16 +20,16 @@ public class NoteRenderer : MonoBehaviour
 
     void Awake()
     {
-        GameManager.OnNoteHit += OnNoteHit;
-        GameManager.OnNoteMissed += OnNoteMissed;
-        GameManager.OnChartEnded += DestroyOnChartEnd;
+        // GameManager.OnNoteHit += OnNoteHit;
+        // GameManager.OnNoteMissed += OnNoteMissed;
+        // GameManager.OnChartEnded += DestroyOnChartEnd;
     }
 
     void OnDestroy()
     {
-        GameManager.OnNoteHit -= OnNoteHit;
-        GameManager.OnNoteMissed -= OnNoteMissed;
-        GameManager.OnChartEnded -= DestroyOnChartEnd;
+        // GameManager.OnNoteHit -= OnNoteHit;
+        // GameManager.OnNoteMissed -= OnNoteMissed;
+        // GameManager.OnChartEnded -= DestroyOnChartEnd;
     }
     
 

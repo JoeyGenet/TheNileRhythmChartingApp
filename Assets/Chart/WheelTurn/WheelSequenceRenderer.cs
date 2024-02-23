@@ -10,21 +10,21 @@ public class WheelSequenceRenderer : NoteRenderer
     [SerializeField] private GameObject wheelTurnParticles;
     private ParticleSystem wheelTurnParticleSystem;
 
-    public override void OnNoteHit(Note note, JudgementGrade grade, int points)
-    {
-        //handle hit for individual turn notes in the sequence
-        if (note.GetType() == typeof(WheelSequence.WheelTurn) && Note.Turns.Contains((WheelSequence.WheelTurn)note)) //note.GetType() == WheelSequence.WheelTurn && ?
-        {
-            print("'WheelNote' OnNoteHit() signal!!");
-            wheelTurnParticleSystem.Play();
-        }
-        //handle hit for sequence as a whole
-        if (note != Note) return;
-        print("WheelSequenceRenderer OnNoteHit() signal!!");
+    // public override void OnNoteHit(Note note, JudgementGrade grade, int points)
+    // {
+    //     //handle hit for individual turn notes in the sequence
+    //     if (note.GetType() == typeof(WheelSequence.WheelTurn) && Note.Turns.Contains((WheelSequence.WheelTurn)note)) //note.GetType() == WheelSequence.WheelTurn && ?
+    //     {
+    //         print("'WheelNote' OnNoteHit() signal!!");
+    //         wheelTurnParticleSystem.Play();
+    //     }
+    //     //handle hit for sequence as a whole
+    //     if (note != Note) return;
+    //     print("WheelSequenceRenderer OnNoteHit() signal!!");
 
-        //despawn note
-        gameObject.SetActive(false);
-    }
+    //     //despawn note
+    //     gameObject.SetActive(false);
+    // }
 
     public override void OnNoteMissed(Note note)
     {
@@ -70,7 +70,7 @@ public class WheelSequenceRenderer : NoteRenderer
             //if it is past the time this point should hit the end of the track,
             //move the point along the line to the next
             //if the next point up is past the line, remove the first
-            if (nextTime < GameManager.Instance.MillisecondsInChart)
+            if (nextTime < PlaybackManager.Instance.MillisecondsInChart)
             {
                 for (int i=0; i<lineRenderers[0].positionCount-1; i++)
                 {
@@ -78,11 +78,11 @@ public class WheelSequenceRenderer : NoteRenderer
                 }
                 lineRenderers[0].positionCount --;
             }
-            else if (time <= GameManager.Instance.MillisecondsInChart)
+            else if (time <= PlaybackManager.Instance.MillisecondsInChart)
             {
                 Vector3 toNextClosestPoint = nextClosestPoint - closestPoint;
                 float timeDifference = nextTime - time;
-                float ratio = (GameManager.Instance.MillisecondsInChart-time)/(timeDifference);
+                float ratio = (PlaybackManager.Instance.MillisecondsInChart-time)/(timeDifference);
                 Vector3 newPos = (1-ratio)*closestPoint + (ratio)*nextClosestPoint;
                 lineRenderers[0].SetPosition(0, newPos); 
                 // wheelTurnParticleSystem.Play();

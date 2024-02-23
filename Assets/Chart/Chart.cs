@@ -8,6 +8,7 @@ public class Chart
 {
 	private List<Note> notes;
 	public IReadOnlyList<Note> Notes => notes.AsReadOnly();
+	private int WheelTurnJudgementInterval;
 
 	public Chart(List<Note> Notes)
 	{
@@ -89,7 +90,7 @@ public class Chart
 			{
 				ButtonNote buttonNote => buttonNote.IsSingle ? 1 : 2,
 				WheelFlick flick => 1,
-				WheelSequence wheelSequence => (wheelSequence.EndTime - wheelSequence.StartTime - 1) / JudgementManager.Instance.WheelTurnJudgementInterval + 1,
+				WheelSequence wheelSequence => (wheelSequence.EndTime - wheelSequence.StartTime - 1) / WheelTurnJudgementInterval + 1,
 				LeverSequence leverSequence => leverSequence.Notes.Count,
 				_ => throw new Exception($"Note {note} should not be in top level"),
 			};
@@ -210,7 +211,7 @@ public class Chart
 		notes.RemoveAll(note => notesToRemove.Contains(note));
 		foreach (Note note in notesToRemove)
 		{
-			GameManager.Instance.HandleNoteHit(note, JudgementGrade.Perfect);
+			// GameManager.Instance.HandleNoteHit(note, JudgementGrade.Perfect);
 			// GameManager.Instance.HandleNoteCompleted(note);
 		}
 	}

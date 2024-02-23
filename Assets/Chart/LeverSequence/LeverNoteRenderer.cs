@@ -24,45 +24,35 @@ public class LeverNoteRenderer : NoteRenderer
     [SerializeField] private GameObject upParticles;
     [SerializeField] private GameObject downParticles;
     [SerializeField] private GameObject middleParticles;
-
-    [Header("SFX")]
-    [SerializeField] AK.Wwise.Event LeverPushEvent;
-    [SerializeField] AK.Wwise.Event LeverPullEvent;
-    [SerializeField] AK.Wwise.Event LeverSideEvent;
     
-    public override void OnNoteHit(Note note, JudgementGrade grade, int points)
-    {
-        if (note != Note) return;
-        print("LeverNoteRenderer OnNoteHit() signal!!");
-        switch (Note.pos)
-        {
-            case LeverPos.Left:
-                Instantiate(leftParticles, transform.position, transform.rotation);
-                LeverSideEvent.Post(gameObject);
-                break;
-            case LeverPos.Up:
-                Instantiate(upParticles, transform.position, transform.rotation);
-                LeverPushEvent.Post(gameObject);
-                break;
-            case LeverPos.Right:
-                Instantiate(rightParticles, transform.position, transform.rotation);
-                LeverSideEvent.Post(gameObject);
-                break;
-            case LeverPos.Down:
-                Instantiate(downParticles, transform.position, transform.rotation);
-                LeverPullEvent.Post(gameObject);
-                break;
-            case LeverPos.Middle:
-                Instantiate(middleParticles, transform.position, transform.rotation);
-                LeverPullEvent.Post(gameObject);
-                break;
-            default:
-                throw new System.Exception($"Lever direction not supported.");
-        }
+    // public override void OnNoteHit(Note note, JudgementGrade grade, int points)
+    // {
+    //     if (note != Note) return;
+    //     print("LeverNoteRenderer OnNoteHit() signal!!");
+    //     switch (Note.pos)
+    //     {
+    //         case LeverPos.Left:
+    //             Instantiate(leftParticles, transform.position, transform.rotation);
+    //             break;
+    //         case LeverPos.Up:
+    //             Instantiate(upParticles, transform.position, transform.rotation);
+    //             break;
+    //         case LeverPos.Right:
+    //             Instantiate(rightParticles, transform.position, transform.rotation);
+    //             break;
+    //         case LeverPos.Down:
+    //             Instantiate(downParticles, transform.position, transform.rotation);
+    //             break;
+    //         case LeverPos.Middle:
+    //             Instantiate(middleParticles, transform.position, transform.rotation);
+    //             break;
+    //         default:
+    //             throw new System.Exception($"Lever direction not supported.");
+    //     }
 
-        //despawn note
-        gameObject.SetActive(false);
-    }
+    //     //despawn note
+    //     gameObject.SetActive(false);
+    // }
 
     public override void OnNoteMissed(Note note)
     {
@@ -107,6 +97,6 @@ public class LeverNoteRenderer : NoteRenderer
     // Update is called once per frame
     void Update()
     {
-        transform.position = RenderingManager.Instance.LeverTrackToWorldPosition(Dir, Note.StartTime);
+        // transform.position = RenderingManager.Instance.LeverTrackToWorldPosition(Dir, Note.StartTime);
     }
 }

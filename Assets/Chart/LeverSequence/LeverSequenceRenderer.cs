@@ -9,14 +9,14 @@ public class LeverSequenceRenderer : NoteRenderer
 
     [SerializeField] LineRenderer line;
 
-    public override void OnNoteHit(Note note, JudgementGrade grade, int points)
-    {
-        if (note != Note) return;
-        print("LeverSequenceRenderer OnNoteHit() signal!!");
+    // public override void OnNoteHit(Note note, JudgementGrade grade, int points)
+    // {
+    //     if (note != Note) return;
+    //     print("LeverSequenceRenderer OnNoteHit() signal!!");
 
-        //despawn note
-        gameObject.SetActive(false);
-    }
+    //     //despawn note
+    //     gameObject.SetActive(false);
+    // }
 
     public override void OnNoteMissed(Note note)
     {
