@@ -17,6 +17,7 @@ public class SaveManager : MonoBehaviour
     public static SaveManager Instance;
 
     Chart chart = new();
+    IReadOnlyChart Chart => chart;
     public string ChartPath { get; private set; } = null;
     public string ChartDir => ChartPath == null ? null : Path.GetDirectoryName(ChartPath);
 
