@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
-using UnityEngine;
 using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
@@ -20,7 +19,7 @@ public class UIManager : MonoBehaviour
     [Header("BPM")]
     [SerializeField] private int defaultBPM;
     [SerializeField] TMP_Text BPMText;
-	[SerializeField] TMPro.TMP_InputField BPMInputField;
+	[SerializeField] TMP_InputField BPMInputField;
 	public int BPM { get; private set; }
 
     [Header("Offset")]
@@ -28,6 +27,9 @@ public class UIManager : MonoBehaviour
     [SerializeField] TMP_Text offsetText;
 	[SerializeField] TMPro.TMP_InputField offsetInputField;
 	public int Offset { get; private set; }
+
+    [Header("Alert Dialog")]
+    [SerializeField] AlertDialog alertDialogPrefab;
 
     void Awake()
     {
@@ -85,4 +87,12 @@ public class UIManager : MonoBehaviour
         int milliseconds = intTimestamp%1000;
         timestampText.text = $"{minutes}:{seconds}.{milliseconds}";
 	}
+
+    public AlertDialog ShowAlert(string title, string message)
+    {
+        var alert = Instantiate(alertDialogPrefab, transform);
+        alert.Title = title;
+        alert.Message = message;
+        return alert;
+    }
 }

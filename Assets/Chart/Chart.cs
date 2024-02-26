@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
@@ -18,44 +19,71 @@ public class Chart
 
 	public Chart() : this(new List<Note>()) { }
 
+	public static Chart ParseChart(string filePath)
+	{
+		List<Note> notes = new();
+		Note.ResetNoteIds();
+
+		StreamReader reader = new(filePath);
+		int lineNum = 0;
+		while (reader.ReadLine() is string line)
+		{
+			lineNum++;
+			if (ParseLine(line, lineNum) is Note note)
+			{
+				notes.Add(note);
+			}
+		}
+		reader.Close();
+
+		notes.Sort();
+		return new Chart(notes);
+	}
+
 	public static Chart ParseChart(TextAsset textAsset)
 	{
 		List<Note> notes = new();
 		Note.ResetNoteIds();
-		// StreamReader reader = new StreamReader(filePath);
-		// string line;
-		// while ((line = reader.ReadLine()) != null)
+		
 		int lineNum = 0;
-		foreach (string lineUntrimmed in textAsset.text.Split("\n"))
+		foreach (string line in textAsset.text.Split("\n"))
 		{
 			lineNum++;
-			string line = lineUntrimmed.Trim();
-			if (line == "") continue;
-			string[] args = Regex.Split(line, " +");
-			try
+			if (ParseLine(line, lineNum) is Note note)
 			{
-				if (args[0].Length != 1)
-				{
-					throw new ArgumentException("Invalid note type: \"" + args[0] + "\"");
-				}
-				Func<string[], Note> noteParser = char.ToUpper(args[0][0]) switch
-				{
-					'0' or 'B' => ParseButton,
-					'1' or 'F' => ParseWheelFlick,
-					'2' or 'W' => ParseWheelSequence,
-					'3' or 'L' => ParseLeverSequence,
-					_ => throw new ArgumentException("Invalid note type: \"" + args[0][0] + "\""),
-				};
-				notes.Add(noteParser(args));
-			}
-			catch (Exception e)
-			{
-				throw new ArgumentException("Exception caused by line " + lineNum + " of chart. Error message: " + e.Message);
+				notes.Add(note);
 			}
 		}
-		// reader.Close();
+
 		notes.Sort();
 		return new Chart(notes);
+	}
+
+	private static Note ParseLine(string line, int lineNum) {
+		line = line.Trim();
+		if (line == "") return null;
+
+		string[] args = Regex.Split(line, " +");
+		try
+		{
+			if (args[0].Length != 1)
+			{
+				throw new ArgumentException("Invalid note type: \"" + args[0] + "\"");
+			}
+			Func<string[], Note> noteParser = char.ToUpper(args[0][0]) switch
+			{
+				'0' or 'B' => ParseButton,
+				'1' or 'F' => ParseWheelFlick,
+				'2' or 'W' => ParseWheelSequence,
+				'3' or 'L' => ParseLeverSequence,
+				_ => throw new ArgumentException("Invalid note type: \"" + args[0][0] + "\""),
+			};
+			return noteParser(args);
+		}
+		catch (Exception e)
+		{
+			throw new ArgumentException("Exception caused by line " + lineNum + " of chart. Error message: " + e.Message);
+		}
 	}
 	
 	private static ButtonNote ParseButton(string[] args)
