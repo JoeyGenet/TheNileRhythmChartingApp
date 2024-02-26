@@ -7,8 +7,10 @@ public class PlaybackManager : MonoBehaviour
     public static PlaybackManager Instance;
 
     //TODO: track time into playback
-    public float MillisecondsInChart;
+    public int MillisecondsInChart;
     public int CurrentTimestamp => 0;
+
+    public uint ViewSize = 5000; // Number of milliseconds the view contains
 
     void Awake()
     {
@@ -28,5 +30,11 @@ public class PlaybackManager : MonoBehaviour
     void Update()
     {
         
+    }
+
+    // Converts track position to a vector2 between 0,0 and 1,1
+    public Vector2 TrackToUIPosition(int position, int time)
+    {
+        return new Vector2(position / 100f, (time - MillisecondsInChart) / (float)ViewSize);
     }
 }
