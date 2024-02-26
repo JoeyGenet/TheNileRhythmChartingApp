@@ -17,8 +17,6 @@ public class SaveUIController : MonoBehaviour
     void Awake()
     {
         defaultChartPathText = chartPathText.text;
-
-        SaveManager.OnChartPathChanged += SetChartPath;
     }
 
     void Start()
@@ -26,23 +24,18 @@ public class SaveUIController : MonoBehaviour
         loadButton.onClick.AddListener(() => SaveManager.Instance.LoadChart());
         saveButton.onClick.AddListener(() => SaveManager.Instance.SaveChart());
         saveAsButton.onClick.AddListener(() => SaveManager.Instance.SaveChartAs());
+        clearButton.interactable = false; // Not implemented yet. This button will reset the editor to a blank state
         // clearButton.onClick.AddListener(SaveManager.Instance.ClearChart);
-    }
-
-    void OnDestroy()
-    {
-        SaveManager.OnChartPathChanged -= SetChartPath;
-    }
-
-    void SetChartPath(string path)
-    {
-        chartPathText.text = string.IsNullOrEmpty(path) ? defaultChartPathText : path;
     }
 
     void Update()
     {
+        // Update path text
         string path = SaveManager.Instance.ChartPath;
-        if (string.IsNullOrEmpty(path)) chartPathText.text = defaultChartPathText;
+        bool hasPath = !string.IsNullOrEmpty(path);
+        if (!hasPath) chartPathText.text = defaultChartPathText;
         else chartPathText.text = path + (SaveManager.Instance.HasChanges ? "*" : "");
+
+        saveButton.interactable = hasPath;
     }
 }
