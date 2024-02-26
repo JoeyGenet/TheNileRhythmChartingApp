@@ -21,9 +21,9 @@ public class BPMOffsetUIController : MonoBehaviour
 
     void SetBPM(string newBPM)
 	{   
-        if (uint.TryParse(newBPM, out uint bpmInt))
+        if (int.TryParse(newBPM, out int bpmInt))
         {
-            SaveManager.Instance.Chart.BPM = bpmInt;
+            SaveManager.Instance.BPM = (uint) (bpmInt < 1 ? 1 : bpmInt);
         }
 	}
 
@@ -31,13 +31,13 @@ public class BPMOffsetUIController : MonoBehaviour
 	{
         if (int.TryParse(newOffset, out int offsetInt))
         {
-            SaveManager.Instance.Chart.Offset = offsetInt;
+            SaveManager.Instance.Offset = offsetInt;
         }
 	}
 
     void Update()
     {
-        offsetInputField.text = $"{SaveManager.Instance.Chart.Offset}";
-        bpmInputField.text = $"{SaveManager.Instance.Chart.BPM}";
+        if (!bpmInputField.isFocused) bpmInputField.text = $"{SaveManager.Instance.BPM}";
+        if (!offsetInputField.isFocused) offsetInputField.text = $"{SaveManager.Instance.Offset}";
     }
 }

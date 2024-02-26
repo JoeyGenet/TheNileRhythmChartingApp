@@ -7,7 +7,7 @@ using UnityEngine;
 
 public class ChartParser
 {
-	uint bpm = 100;
+	uint bpm = 120;
 	int offset = 0;
 	readonly List<Note> notes = new();
 

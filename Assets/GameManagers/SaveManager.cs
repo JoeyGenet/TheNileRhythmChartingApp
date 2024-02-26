@@ -1,12 +1,14 @@
+// Handles loading and saving the chart
+
 using System;
 using System.IO;
-using System.Windows.Forms;
+using System.Linq;
 using SFB;
 using UnityEngine;
 
 public class SaveManager : MonoBehaviour
 {
-    public delegate void ChartLoadedEvent(Chart chart, string path);
+    public delegate void ChartLoadedEvent(string path);
     public delegate void ChartPathChangedEvent(string newPath);
 
     public static event ChartLoadedEvent OnChartLoaded;
@@ -14,9 +16,31 @@ public class SaveManager : MonoBehaviour
 
     public static SaveManager Instance;
 
-    public Chart Chart { get; private set; } = new Chart();
+    Chart chart = new();
     public string ChartPath { get; private set; } = null;
     public string ChartDir => ChartPath == null ? null : Path.GetDirectoryName(ChartPath);
+
+    public bool HasChanges { get; private set; } = true;
+
+    public uint BPM
+    {
+        get => chart.BPM;
+        set
+        {
+            HasChanges = true;
+            chart.BPM = value;
+        }
+    }
+
+    public int Offset
+    {
+        get => chart.Offset;
+        set
+        {
+            HasChanges = true;
+            chart.Offset = value;
+        }
+    }
 
     void Awake()
     {
@@ -32,10 +56,11 @@ public class SaveManager : MonoBehaviour
             try 
             {
                 string path = paths[0];
-                Chart = new ChartParser(path).Run();
+                chart = new ChartParser(path).Run();
                 ChartPath = path;
+                HasChanges = false;
                 OnChartPathChanged?.Invoke(path);
-                OnChartLoaded?.Invoke(Chart, path);
+                OnChartLoaded?.Invoke(path);
             }
             catch (Exception e)
             {
@@ -50,7 +75,7 @@ public class SaveManager : MonoBehaviour
         if (ChartPath == null) throw new Exception("Cannot save chart. No path is selected.");
 
         WriteChart(ChartPath);
-        Debug.Log($"Saved to {ChartPath}");
+        HasChanges = false;
     }
 
     public void SaveChartAs()
@@ -61,28 +86,51 @@ public class SaveManager : MonoBehaviour
             if (string.IsNullOrEmpty(path)) return;
             WriteChart(path);
             ChartPath = path;
+            HasChanges = false;
             OnChartPathChanged?.Invoke(path);
         });
-
-        // NativeFilePicker.ExportFile(path, success =>
-        // {
-        //     if (success) Debug.Log("File successfully exported");
-        //     else Debug.Log("File export failed");
-        // });
-
-        // // Write the string array to a new file named "WriteLines.txt".
-        // using (StreamWriter outputFile = new(path))
-        // {
-        //     outputFile.WriteLine("Hello world");
-        // }
-        // Debug.Log($"Saved to {path}");
     }
 
     void WriteChart(string path)
     {
-        using (StreamWriter outputFile = new(path))
+        using StreamWriter writer = new(path);
+
+        writer.WriteLine("# Metadata");
+        writer.WriteLine($"BPM {chart.BPM}");
+        writer.WriteLine($"Offset {chart.Offset}");
+        writer.WriteLine();
+
+        writer.WriteLine("# Notes");
+
+        static char lrToString(LeftRight lr) => lr switch
         {
-            outputFile.WriteLine("Hello world");
+            LeftRight.Left => 'L',
+            LeftRight.Right => 'R',
+            _ => throw new Exception($"Unable to serialize LeftRight {lr}"),
+        };
+        static char leverPosToString(LeverPos pos) => pos switch
+        {
+            LeverPos.Left => '<',
+            LeverPos.Up => '^',
+            LeverPos.Right => '>',
+            LeverPos.Down => 'V',
+            LeverPos.Middle => '.',
+            _ => throw new Exception($"Unable to serialize LeverPos {pos}"),
+        };
+
+        foreach (Note note in chart.Notes)
+        {
+            string line = note switch
+            {
+                ButtonNote b => $"B {b.StartTime} {b.LeftPos}" + (b.RightPos == null ? "" : $" {b.RightPos}"),
+                WheelFlick f => $"F {f.StartTime} {lrToString(f.Dir)}",
+                WheelSequence w => $"W {w.StartTime} {w.Pos}" +
+                    w.Turns.Aggregate("", (s, t) => s + $" {t.deltaAngle} {t.EndTime}"),
+                LeverSequence l => $"L {lrToString(l.Dir)}" +
+                    l.Notes.Aggregate("", (s, n) => s + $" {n.StartTime} {leverPosToString(n.pos)}"),
+                _ => throw new Exception($"Unable to serialize note {note}"),
+            };
+            writer.WriteLine(line);
         }
     }
 }

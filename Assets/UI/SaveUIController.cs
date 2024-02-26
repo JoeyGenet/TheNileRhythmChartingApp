@@ -39,9 +39,10 @@ public class SaveUIController : MonoBehaviour
         chartPathText.text = string.IsNullOrEmpty(path) ? defaultChartPathText : path;
     }
 
-    // Update is called once per frame
     void Update()
     {
-        
+        string path = SaveManager.Instance.ChartPath;
+        if (string.IsNullOrEmpty(path)) chartPathText.text = defaultChartPathText;
+        else chartPathText.text = path + (SaveManager.Instance.HasChanges ? "*" : "");
     }
 }
