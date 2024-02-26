@@ -7,6 +7,8 @@ using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
+    public static UIManager Instance;
+
     [Header("Playback")]
     [SerializeField] private int defaultSongLength;
     [SerializeField] int defaultTimestamp = 0; // in m/s
@@ -25,19 +27,22 @@ public class UIManager : MonoBehaviour
     [SerializeField] private int defaultOffset;
     [SerializeField] TMP_Text offsetText;
 	[SerializeField] TMPro.TMP_InputField offsetInputField;
-	public int offset { get; private set; }
+	public int Offset { get; private set; }
 
-    // Start is called before the first frame update
+    void Awake()
+    {
+        Instance = this;
+
+        songLength = defaultSongLength;
+    }
+
     void Start()
     {
         BPMInputField.onValueChanged.AddListener(SetBPM);
         offsetInputField.onValueChanged.AddListener(SetOffset);
         timestampSlider.onValueChanged.AddListener(SetTimestamp);
-
-        songLength = defaultSongLength;
     }
 
-    // Update is called once per frame
     void Update()
     {
         timestampSlider.maxValue = songLength;
@@ -63,11 +68,11 @@ public class UIManager : MonoBehaviour
         bool success = int.TryParse(newOffset, out newInt);
         if (success)
         {
-            offset = newInt;
+            Offset = newInt;
         }
         else
         {
-            offsetInputField.text = offset.ToString();
+            offsetInputField.text = Offset.ToString();
         }
 	}
 

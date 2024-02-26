@@ -6,29 +6,21 @@ using UnityEngine;
 
 public class Chart
 {
-	private List<Note> notes;
-	public IReadOnlyList<Note> Notes => notes.AsReadOnly();
-	private int WheelTurnJudgementInterval;
+	public uint BPM = 100;
+	public int Offset = 0;
+	public List<Note> Notes;
 
-	public Chart(List<Note> Notes)
+	public Chart(List<Note> notes)
 	{
-		this.notes = Notes;
-		Debug.Log("notes in chart: " + notes.Count);
-		Debug.Log("Computed notes in chart: " + GetNoteCount());
+		Notes = notes;
+		Debug.Log("notes in chart (not including notes inside sequences): " + Notes.Count);
 	}
-	public Chart()
-	{
-		notes = new List<Note>();
-	}
-	[DoesNotReturn]
-	private static void ThrowChartException(int lineNum, Exception e)
-	{
-		throw new ArgumentException("Exception caused by line " + lineNum + " of chart. Error message: " + e.Message);
-	}
+
+	public Chart() : this(new List<Note>()) { }
+
 	public static Chart ParseChart(TextAsset textAsset)
 	{
-		// TODO: error catching/throwing
-		List<Note> notes = new List<Note>();
+		List<Note> notes = new();
 		Note.ResetNoteIds();
 		// StreamReader reader = new StreamReader(filePath);
 		// string line;
@@ -46,57 +38,26 @@ public class Chart
 				{
 					throw new ArgumentException("Invalid note type: \"" + args[0] + "\"");
 				}
-				switch (args[0][0])
+				Func<string[], Note> noteParser = char.ToUpper(args[0][0]) switch
 				{
-					case '0':
-					case 'B':
-					case 'b':
-						notes.Add(ParseButton(args));
-						break;
-					case '1':
-					case 'F':
-					case 'f':
-						notes.Add(ParseWheelFlick(args));
-						break;
-					case '2':
-					case 'W':
-					case 'w':
-						notes.Add(ParseWheelSequence(args));
-						break;
-					case '3':
-					case 'L':
-					case 'l':
-						notes.Add(ParseLeverSequence(args));
-						break;
-					default:
-						throw new ArgumentException("Invalid note type: \"" + args[0][0] + "\"");
-				}
+					'0' or 'B' => ParseButton,
+					'1' or 'F' => ParseWheelFlick,
+					'2' or 'W' => ParseWheelSequence,
+					'3' or 'L' => ParseLeverSequence,
+					_ => throw new ArgumentException("Invalid note type: \"" + args[0][0] + "\""),
+				};
+				notes.Add(noteParser(args));
 			}
 			catch (Exception e)
 			{
-				ThrowChartException(lineNum, e);
+				throw new ArgumentException("Exception caused by line " + lineNum + " of chart. Error message: " + e.Message);
 			}
 		}
 		// reader.Close();
 		notes.Sort();
 		return new Chart(notes);
 	}
-	int GetNoteCount()
-	{
-		int count = 0;
-		foreach (Note note in notes)
-		{
-			count += note switch
-			{
-				ButtonNote buttonNote => buttonNote.IsSingle ? 1 : 2,
-				WheelFlick flick => 1,
-				WheelSequence wheelSequence => (wheelSequence.EndTime - wheelSequence.StartTime - 1) / WheelTurnJudgementInterval + 1,
-				LeverSequence leverSequence => leverSequence.Notes.Count,
-				_ => throw new Exception($"Note {note} should not be in top level"),
-			};
-		}
-		return count;
-	}
+	
 	private static ButtonNote ParseButton(string[] args)
 	{
 		if (args.Length < 3 || args.Length > 4)
@@ -128,16 +89,13 @@ public class Chart
 		{
 			throw new ArgumentException("Invalid left/right argument: \"" + arg + "\"");
 		}
-		switch (char.ToUpper(arg[0]))
-		{
-			case 'L':
-				return LeftRight.Left;
-			case 'R':
-				return LeftRight.Right;
-			default:
-				throw new ArgumentException("Invalid left/right argument: \"" + arg[0] + "\"");
-		}
-	}
+        return char.ToUpper(arg[0]) switch
+        {
+            'L' => LeftRight.Left,
+            'R' => LeftRight.Right,
+            _ => throw new ArgumentException("Invalid left/right argument: \"" + arg[0] + "\""),
+        };
+    }
 	private static WheelSequence ParseWheelSequence(string[] args)
 	{
 		if (args.Length < 5 || args.Length % 2 == 0)
@@ -178,41 +136,14 @@ public class Chart
 		{
 			throw new ArgumentException("Invalid lever position: \"" + arg + "\"");
 		}
-		switch (arg[0])
-		{
-			case '<':
-			case 'L':
-			case 'l':
-				return LeverPos.Left;
-			case '^':
-			case 'U':
-			case 'u':
-				return LeverPos.Up;
-			case '>':
-			case 'R':
-			case 'r':
-				return LeverPos.Right;
-			case 'v':
-			case 'V':
-			case 'D':
-			case 'd':
-				return LeverPos.Down;
-			case '.':
-			case 'm':
-			case 'M':
-				return LeverPos.Middle;
-			default:
-				throw new ArgumentException("Invalid lever position: \"" + arg[0] + "\"");
-		}
-	}
-
-	public void RemoveNotes(ISet<Note> notesToRemove)
-	{
-		notes.RemoveAll(note => notesToRemove.Contains(note));
-		foreach (Note note in notesToRemove)
-		{
-			// GameManager.Instance.HandleNoteHit(note, JudgementGrade.Perfect);
-			// GameManager.Instance.HandleNoteCompleted(note);
-		}
-	}
+        return char.ToUpper(arg[0]) switch
+        {
+            '<' or 'L' => LeverPos.Left,
+            '^' or 'U' => LeverPos.Up,
+            '>' or 'R' => LeverPos.Right,
+            'V' or 'D' => LeverPos.Down,
+            '.' or 'M' => LeverPos.Middle,
+            _ => throw new ArgumentException("Invalid lever position: \"" + arg[0] + "\""),
+        };
+    }
 }
