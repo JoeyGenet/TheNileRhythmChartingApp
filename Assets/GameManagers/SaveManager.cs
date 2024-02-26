@@ -32,7 +32,7 @@ public class SaveManager : MonoBehaviour
             try 
             {
                 string path = paths[0];
-                Chart = Chart.ParseChart(path);
+                Chart = new ChartParser(path).Run();
                 ChartPath = path;
                 OnChartPathChanged?.Invoke(path);
                 OnChartLoaded?.Invoke(Chart, path);
