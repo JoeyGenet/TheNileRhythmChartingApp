@@ -3244,6 +3244,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1602099853}
+  - component: {fileID: 1602099855}
   - component: {fileID: 1602099854}
   m_Layer: 5
   m_Name: BPM Offset
@@ -3299,6 +3300,22 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &1602099855
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1602099852}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f981a5e9da2b2461591302c9efcf14ef, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bpmText: {fileID: 739359355}
+  bpmInputField: {fileID: 664516198}
+  offsetText: {fileID: 238344321}
+  offsetInputField: {fileID: 347426587}
 --- !u!1 &1690236376
 GameObject:
   m_ObjectHideFlags: 0

@@ -16,18 +16,6 @@ public class UIManager : MonoBehaviour
     public int songLength { get; private set; }
 	public int timestamp { get; private set; }
 
-    [Header("BPM")]
-    [SerializeField] private int defaultBPM;
-    [SerializeField] TMP_Text BPMText;
-	[SerializeField] TMP_InputField BPMInputField;
-	public int BPM { get; private set; }
-
-    [Header("Offset")]
-    [SerializeField] private int defaultOffset;
-    [SerializeField] TMP_Text offsetText;
-	[SerializeField] TMPro.TMP_InputField offsetInputField;
-	public int Offset { get; private set; }
-
     [Header("Alert Dialog")]
     [SerializeField] AlertDialog alertDialogPrefab;
 
@@ -40,8 +28,6 @@ public class UIManager : MonoBehaviour
 
     void Start()
     {
-        BPMInputField.onValueChanged.AddListener(SetBPM);
-        offsetInputField.onValueChanged.AddListener(SetOffset);
         timestampSlider.onValueChanged.AddListener(SetTimestamp);
     }
 
@@ -49,34 +35,6 @@ public class UIManager : MonoBehaviour
     {
         timestampSlider.maxValue = songLength;
     }
-
-    public void SetBPM(string newBPM)
-	{
-        int newInt;
-        bool success = int.TryParse(newBPM, out newInt);
-        if (success)
-        {
-            BPM = newInt;
-        }
-        else
-        {
-            BPMInputField.text = BPM.ToString();
-        }
-	}
-
-    public void SetOffset(string newOffset)
-	{
-        int newInt;
-        bool success = int.TryParse(newOffset, out newInt);
-        if (success)
-        {
-            Offset = newInt;
-        }
-        else
-        {
-            offsetInputField.text = Offset.ToString();
-        }
-	}
 
     public void SetTimestamp(float newTimestamp)
 	{
