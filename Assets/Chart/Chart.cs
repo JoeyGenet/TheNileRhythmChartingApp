@@ -19,7 +19,7 @@ public class Chart : IReadOnlyChart
 	public uint BPM { get; set; }
 	public int Offset { get; set; }
 	public IReadOnlyList<Note> Notes => notes;
-	public List<Note> notes;
+	readonly List<Note> notes;
 
 	public Chart(List<Note> notes, uint bpm = 100, int offset = 0)
 	{

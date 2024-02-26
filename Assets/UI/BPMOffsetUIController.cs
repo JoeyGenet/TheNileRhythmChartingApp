@@ -15,8 +15,8 @@ public class BPMOffsetUIController : MonoBehaviour
 
     void Awake()
     {
-        bpmInputField.onValueChanged.AddListener(SetBPM);
-        offsetInputField.onValueChanged.AddListener(SetOffset);
+        bpmInputField.onEndEdit.AddListener(SetBPM);
+        offsetInputField.onEndEdit.AddListener(SetOffset);
     }
 
     void SetBPM(string newBPM)

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
@@ -181,4 +182,47 @@ public class ChartParser
             _ => throw new ArgumentException(errorMsg),
         };
     }
+
+	public static void Write(Chart chart, string path)
+	{
+        using StreamWriter writer = new(path);
+
+		writer.WriteLine("# Metadata");
+		writer.WriteLine($"BPM {chart.BPM}");
+		writer.WriteLine($"Offset {chart.Offset}");
+		writer.WriteLine();
+
+		writer.WriteLine("# Notes");
+
+		static char lrToString(LeftRight lr) => lr switch
+		{
+			LeftRight.Left => 'L',
+			LeftRight.Right => 'R',
+			_ => throw new Exception($"Unable to serialize LeftRight {lr}"),
+		};
+		static char leverPosToString(LeverPos pos) => pos switch
+		{
+			LeverPos.Left => '<',
+			LeverPos.Up => '^',
+			LeverPos.Right => '>',
+			LeverPos.Down => 'V',
+			LeverPos.Middle => '.',
+			_ => throw new Exception($"Unable to serialize LeverPos {pos}"),
+		};
+
+		foreach (Note note in chart.Notes)
+		{
+			string line = note switch
+			{
+				ButtonNote b => $"B {b.StartTime} {b.LeftPos}" + (b.RightPos == null ? "" : $" {b.RightPos}"),
+				WheelFlick f => $"F {f.StartTime} {lrToString(f.Dir)}",
+				WheelSequence w => $"W {w.StartTime} {w.Pos}" +
+					w.Turns.Aggregate("", (s, t) => s + $" {t.deltaAngle} {t.EndTime}"),
+				LeverSequence l => $"L {lrToString(l.Dir)}" +
+					l.Notes.Aggregate("", (s, n) => s + $" {n.StartTime} {leverPosToString(n.pos)}"),
+				_ => throw new Exception($"Unable to serialize note {note}"),
+			};
+			writer.WriteLine(line);
+		}
+	}
 }
