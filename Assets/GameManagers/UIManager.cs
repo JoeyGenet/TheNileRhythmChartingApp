@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 public class UIManager : MonoBehaviour
 {
@@ -14,6 +15,16 @@ public class UIManager : MonoBehaviour
 
     [Header("Alert Dialog")]
     [SerializeField] AlertDialog alertDialogPrefab;
+
+    public static bool IsSelectingInputField
+    {
+        get
+        {
+            GameObject selectedObj = EventSystem.current.currentSelectedGameObject;
+            return selectedObj != null && 
+                (selectedObj.GetComponent<InputField>() != null || selectedObj.GetComponent<TMP_InputField>());
+        }
+    }
 
     void Awake()
     {

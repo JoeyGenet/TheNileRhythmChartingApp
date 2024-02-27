@@ -1,6 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
+using UnityEngine.UIElements;
 
 public class Track : MonoBehaviour
 {
@@ -79,21 +83,28 @@ public class Track : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyUp(KeyCode.Alpha1) || Input.GetKeyUp(KeyCode.B))
+
+        if (!UIManager.IsSelectingInputField) // Only add notes through key presses if not currently typing in input field
         {
-            if (MouseToTrackPosition() is (int pos, int time))
+            Note addedNote = null;
+            if (Input.GetKeyUp(KeyCode.Alpha1) || Input.GetKeyUp(KeyCode.B))
             {
-                SaveManager.Instance.Chart.AddNote(new ButtonNote(time, pos, null));
+                if (MouseToTrackPosition() is (int pos, int time))
+                {
+                    addedNote = new ButtonNote(time, pos, null);
+                    SaveManager.Instance.Chart.AddNote(addedNote);
+                }
             }
-        }
-        else if (Input.GetKeyUp(KeyCode.Alpha2) || Input.GetKeyUp(KeyCode.F))
-        {
-            if (MouseToTrackPosition() is (int pos, int time))
+            if (Input.GetKeyUp(KeyCode.Alpha2) || Input.GetKeyUp(KeyCode.F))
             {
-                SaveManager.Instance.Chart.AddNote(new WheelFlick(time, pos < 50 ? LeftRight.Left : LeftRight.Right));
+                if (MouseToTrackPosition() is (int pos, int time))
+                {
+                    addedNote = new WheelFlick(time, pos < 50 ? LeftRight.Left : LeftRight.Right);
+                    SaveManager.Instance.Chart.AddNote(addedNote);
+                }
             }
+            if (addedNote != null) UIManager.Instance.SelectNote(addedNote);
         }
-        
     }
 
     void AddNote(Note note)

@@ -4,17 +4,15 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class ButtonNoteInspector : MonoBehaviour
+public class ButtonNoteInspector : NoteInspector<ButtonNote>
 {
     [SerializeField] TMP_InputField timeInput;
     [SerializeField] TMP_InputField leftPosInput;
     [SerializeField] TMP_InputField rightPosInput;
 
-    public ButtonNote Note { get; private set; }
-
-    void Awake()
+    protected override void Awake()
     {
-        gameObject.SetActive(false);
+        base.Awake();
 
         timeInput.onValidateInput += (text, _, c) => c == '-' ? '\0' : c;
         timeInput.onValueChanged.AddListener(text =>
@@ -51,40 +49,15 @@ public class ButtonNoteInspector : MonoBehaviour
         rightPosInput.onEndEdit.AddListener(_ =>
         {
             if (Note.RightPos is int rightPos) Note.LeftPos = Mathf.Clamp(Note.LeftPos, 0, rightPos);
-        });
-        
-        UIManager.OnNoteSelected += ShowHide;
+        });   
     }
 
-    void OnDestroy()
+    protected override void Update()
     {
-        UIManager.OnNoteSelected -= ShowHide;
-    }
+        base.Update();
 
-    void ShowHide(Note note)
-    {
-        if (note is ButtonNote buttonNote)
-        {
-            Note = buttonNote;
-            gameObject.SetActive(true);
-        }
-        else
-        {
-            Note = null;
-            gameObject.SetActive(false);
-        }
-    }
-
-    void Update()
-    {
         if (!timeInput.isFocused) timeInput.SetTextWithoutNotify($"{Note.StartTime}");
         if (!leftPosInput.isFocused) leftPosInput.SetTextWithoutNotify($"{Note.LeftPos}");
         if (!rightPosInput.isFocused) rightPosInput.SetTextWithoutNotify($"{Note.RightPos}");
-
-        if ((Input.GetKeyUp(KeyCode.Backspace) || Input.GetKeyUp(KeyCode.Delete)) && Note != null)
-        {
-            SaveManager.Instance.Chart.RemoveNote(Note);
-            ShowHide(null);
-        }
     }
 }

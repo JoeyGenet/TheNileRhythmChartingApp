@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class WheelFlickInspector : MonoBehaviour
+public class WheelFlickInspector : NoteInspector<WheelFlick>
 {
     [SerializeField] TMP_InputField timeInput;
     [SerializeField] Button leftButton;
@@ -16,11 +16,9 @@ public class WheelFlickInspector : MonoBehaviour
     [SerializeField] Color leftButtonHighlight;
     [SerializeField] Color rightButtonHighlight;
 
-    public WheelFlick Note { get; private set; }
-
-    void Awake()
+    protected override void Awake()
     {
-        gameObject.SetActive(false);
+        base.Awake();
 
         timeInput.onValidateInput += (text, _, c) => c == '-' ? '\0' : c;
         timeInput.onValueChanged.AddListener(text =>
@@ -42,40 +40,20 @@ public class WheelFlickInspector : MonoBehaviour
             rightButtonBorder.color = rightButtonHighlight;
             leftButtonBorder.color = Color.black;
         });
-        
-        UIManager.OnNoteSelected += ShowHide;
     }
 
-    void OnDestroy()
+    protected override void OnShow()
     {
-        UIManager.OnNoteSelected -= ShowHide;
+        timeInput.text = $"{Note.StartTime}";
+
+        if (Note.Dir == LeftRight.Left) leftButton.onClick.Invoke();
+        else if (Note.Dir == LeftRight.Right) rightButton.onClick.Invoke();
     }
 
-    void ShowHide(Note note)
+    protected override void Update()
     {
-        if (note is WheelFlick flick)
-        {
-            Note = flick;
-            timeInput.text = $"{Note.StartTime}";
-            if (Note.Dir == LeftRight.Left) leftButton.onClick.Invoke();
-            else if (Note.Dir == LeftRight.Right) rightButton.onClick.Invoke();
-            gameObject.SetActive(true);
-        }
-        else
-        {
-            Note = null;
-            gameObject.SetActive(false);
-        }
-    }
+        base.Update();
 
-    void Update()
-    {
         if (!timeInput.isFocused) timeInput.SetTextWithoutNotify($"{Note.StartTime}");
-
-        if ((Input.GetKeyUp(KeyCode.Backspace) || Input.GetKeyUp(KeyCode.Delete)) && Note != null)
-        {
-            SaveManager.Instance.Chart.RemoveNote(Note);
-            ShowHide(null);
-        }
     }
 }
