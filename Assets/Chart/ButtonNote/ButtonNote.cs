@@ -8,8 +8,19 @@ using UnityEngine.Assertions;
 
 public class ButtonNote : Note
 {
-	public readonly int LeftPos;
-	public readonly int? RightPos;
+	int leftPos;
+	public int LeftPos
+	{
+		get => leftPos;
+		set => SaveManager.RegisterChange(ref leftPos, value);
+	}
+
+	int? rightPos;
+	public int? RightPos
+	{
+		get => rightPos;
+		set => SaveManager.RegisterChange(ref rightPos, value);
+	}
 
 	private readonly Dictionary<LeftRight, bool> isHit = new Dictionary<LeftRight, bool>
 	{
@@ -37,13 +48,13 @@ public class ButtonNote : Note
 		// If 2 different positions given, set the left and right positions
 		if ((pos2 is int pos2NotNull) && pos1 != pos2)
 		{
-			LeftPos = Mathf.Min(pos1, pos2NotNull);
-			RightPos = Mathf.Max(pos1, pos2NotNull);
+			leftPos = Mathf.Min(pos1, pos2NotNull);
+			rightPos = Mathf.Max(pos1, pos2NotNull);
 		}
 		else // if only 1 unique position given, only set LeftPos
 		{
-			LeftPos = pos1;
-			RightPos = null;
+			leftPos = pos1;
+			rightPos = null;
 		}
 	}
 

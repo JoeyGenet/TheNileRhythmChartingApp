@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7124147254748266707}
+  - component: {fileID: 4476355589544395773}
   - component: {fileID: 2038830559317783516}
   m_Layer: 5
   m_Name: ButtonNoteInspector
@@ -40,6 +41,25 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &4476355589544395773
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2309864913943362353}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d13e24f12ee943b98bd2d0998175a92, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  timeInput: {fileID: 6971844756234368896}
+  leftPosInput: {fileID: 6281141912615088613}
+  rightPosInput: {fileID: 7799640170768359861}
+  leftButtonBorder: {fileID: 0}
+  rightButtonBorder: {fileID: 0}
+  leftButtonHighlight: {r: 0, g: 0, b: 0, a: 0}
+  rightButtonHighlight: {r: 0, g: 0, b: 0, a: 0}
 --- !u!114 &2038830559317783516
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -306,7 +326,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7832299371673695025, guid: b5aadd31e6f24475dbee9b198b172641, type: 3}
       propertyPath: m_Name
-      value: Pos2
+      value: RightPos
       objectReference: {fileID: 0}
     - target: {fileID: 8972431392693566634, guid: b5aadd31e6f24475dbee9b198b172641, type: 3}
       propertyPath: m_Text
@@ -322,6 +342,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5744480010456866096, guid: b5aadd31e6f24475dbee9b198b172641, type: 3}
   m_PrefabInstance: {fileID: 1205163397152496927}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &7799640170768359861 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8972431392693566634, guid: b5aadd31e6f24475dbee9b198b172641, type: 3}
+  m_PrefabInstance: {fileID: 1205163397152496927}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2da0c512f12947e489f739169773d7ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &2036908023847635754
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -444,6 +475,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5744480010456866096, guid: b5aadd31e6f24475dbee9b198b172641, type: 3}
   m_PrefabInstance: {fileID: 2036908023847635754}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &6971844756234368896 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8972431392693566634, guid: b5aadd31e6f24475dbee9b198b172641, type: 3}
+  m_PrefabInstance: {fileID: 2036908023847635754}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2da0c512f12947e489f739169773d7ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &3147844178305437007
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -550,7 +592,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7832299371673695025, guid: b5aadd31e6f24475dbee9b198b172641, type: 3}
       propertyPath: m_Name
-      value: Pos1
+      value: LeftPos
       objectReference: {fileID: 0}
     - target: {fileID: 8972431392693566634, guid: b5aadd31e6f24475dbee9b198b172641, type: 3}
       propertyPath: m_Text
@@ -561,6 +603,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b5aadd31e6f24475dbee9b198b172641, type: 3}
+--- !u!114 &6281141912615088613 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8972431392693566634, guid: b5aadd31e6f24475dbee9b198b172641, type: 3}
+  m_PrefabInstance: {fileID: 3147844178305437007}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2da0c512f12947e489f739169773d7ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!224 &7212266006024048767 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 5744480010456866096, guid: b5aadd31e6f24475dbee9b198b172641, type: 3}

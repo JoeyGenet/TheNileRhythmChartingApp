@@ -67,7 +67,7 @@ public class WheelFlickInspector : MonoBehaviour
         }
         else
         {
-            note = null;
+            Note = null;
             gameObject.SetActive(false);
         }
     }
