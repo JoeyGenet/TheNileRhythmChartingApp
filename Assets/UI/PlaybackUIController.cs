@@ -11,7 +11,6 @@ public class PlaybackUIController : MonoBehaviour
 	[SerializeField] TMP_Text timestampText;
 	[SerializeField] Slider timestampSlider;
     public int SongLength { get; private set; }
-	public int Timestamp { get; private set; }
     
     void Awake()
     {
@@ -26,15 +25,17 @@ public class PlaybackUIController : MonoBehaviour
     void Update()
     {
         timestampSlider.maxValue = SongLength;
+
+        int timestamp = PlaybackManager.Instance.MillisecondsInChart;
+        int minutes = timestamp / 60000;
+        int seconds = timestamp%60000 / 1000;
+        int milliseconds = timestamp%1000;
+        timestampText.text = $"{minutes}:{seconds}.{milliseconds}";
+        timestampSlider.SetValueWithoutNotify(timestamp);
     }
 
     public void SetTimestamp(float newTimestamp)
 	{
-        int intTimestamp = (int)newTimestamp;
-        Timestamp = intTimestamp;
-        int minutes = intTimestamp / 60000;
-        int seconds = intTimestamp%60000 / 1000;
-        int milliseconds = intTimestamp%1000;
-        timestampText.text = $"{minutes}:{seconds}.{milliseconds}";
+        PlaybackManager.Instance.MillisecondsInChart = (int) newTimestamp;
 	}
 }
