@@ -18,10 +18,10 @@ public class SaveManager : MonoBehaviour
 
     public Chart Chart = new(new()
     {
-        new WheelFlick(500, LeftRight.Left),
-        new WheelFlick(1000, LeftRight.Right),
-        new ButtonNote(1500, 50, null),
-        new ButtonNote(2000, 25, 75),
+        // new WheelFlick(500, LeftRight.Left),
+        // new WheelFlick(1000, LeftRight.Right),
+        // new ButtonNote(1500, 50, null),
+        // new ButtonNote(2000, 25, 75),
     });
     public string ChartPath { get; private set; } = null;
     public string ChartDir => ChartPath == null ? null : Path.GetDirectoryName(ChartPath);
