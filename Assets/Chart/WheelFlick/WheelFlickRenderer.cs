@@ -1,16 +1,26 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
+[RequireComponent(typeof(RectTransform))]
 public class WheelFlickRenderer : NoteRenderer
 {
     public WheelFlick Note;
 
-    [SerializeField] private LineRenderer lineRenderer;
+    [SerializeField] Image image;
+
+    [SerializeField] Sprite leftSprite;
+    [SerializeField] Sprite rightSprite;
+
     [SerializeField] private Material leftSwipeMaterial;
     [SerializeField] private Material rightSwipeMaterial;
-    [SerializeField] private GameObject rightSwipeHitParticles;
-    [SerializeField] private GameObject leftSwipeHitParticles;
+
+    RectTransform rect;
+
+    // TODO: do particles?
+    // [SerializeField] private GameObject rightSwipeHitParticles;
+    // [SerializeField] private GameObject leftSwipeHitParticles;
 
     // public override void OnNoteHit(Note note, JudgementGrade grade, int points)
     // {
@@ -43,23 +53,29 @@ public class WheelFlickRenderer : NoteRenderer
         gameObject.SetActive(false);
     }
 
-    // Start is called before the first frame update
+    void Awake()
+    {
+        rect = GetComponent<RectTransform>();
+    }
+
     void Start()
     {
         if (Note.Dir == LeftRight.Right)
         {
-            lineRenderer.material = rightSwipeMaterial;
+            image.sprite = rightSprite;
         }
         else
         {
-            lineRenderer.material = leftSwipeMaterial;
+            image.sprite = leftSprite;
         }
     }
 
     // Update is called once per frame
     void Update()
     {
-        transform.position = RenderingManager.Instance.TrackToWorldPosition(50, Note.StartTime);
+        Vector2 uiPos = PlaybackManager.Instance.TrackToUIPosition(50, Note.StartTime);
+        rect.anchorMax = new Vector2(rect.anchorMax.x, uiPos.y);
+        rect.anchorMin = new Vector2(rect.anchorMin.x, uiPos.y);
         // transform.position = RenderingManager.Instance.TrackToWorldPosition(0, Note.StartTime);
     }
 }
