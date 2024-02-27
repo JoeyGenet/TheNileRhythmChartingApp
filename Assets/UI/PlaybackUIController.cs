@@ -11,6 +11,11 @@ public class PlaybackUIController : MonoBehaviour
 	[SerializeField] TMP_Text timestampText;
 	[SerializeField] Slider timestampSlider;
     public int SongLength { get; private set; }
+
+    [Header("View")]
+    [SerializeField] Slider viewSlider;
+    public int MaxViewSize;
+    public int MinViewSize;
     
     void Awake()
     {
@@ -19,7 +24,15 @@ public class PlaybackUIController : MonoBehaviour
 
     void Start()
     {
-        timestampSlider.onValueChanged.AddListener(SetTimestamp);
+        timestampSlider.value = PlaybackManager.Instance.MillisecondsInChart;
+        timestampSlider.onValueChanged.AddListener(time => PlaybackManager.Instance.MillisecondsInChart = (int) time);
+
+        viewSlider.value = PlaybackManager.Instance.ViewSize;
+        viewSlider.onValueChanged.AddListener(v => PlaybackManager.Instance.ViewSize = (uint) (
+            v < 0.5f 
+                ? v*2 * (MaxViewSize-MinViewSize) + MinViewSize
+                : (v-0.5f) * (SongLength - MaxViewSize) + MaxViewSize
+        ));
     }
 
     void Update()
@@ -30,12 +43,7 @@ public class PlaybackUIController : MonoBehaviour
         int minutes = timestamp / 60000;
         int seconds = timestamp%60000 / 1000;
         int milliseconds = timestamp%1000;
-        timestampText.text = $"{minutes}:{seconds}.{milliseconds}";
+        timestampText.text = $"{minutes}:{seconds:00}.{milliseconds:000}";
         timestampSlider.SetValueWithoutNotify(timestamp);
     }
-
-    public void SetTimestamp(float newTimestamp)
-	{
-        PlaybackManager.Instance.MillisecondsInChart = (int) newTimestamp;
-	}
 }
