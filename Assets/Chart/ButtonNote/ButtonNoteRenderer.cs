@@ -1,10 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(RectTransform))]
-public class ButtonNoteRenderer : NoteRenderer
+public class ButtonNoteRenderer : NoteRenderer, IPointerClickHandler
 {
     public ButtonNote Note;
 
@@ -66,5 +67,10 @@ public class ButtonNoteRenderer : NoteRenderer
         //     line.SetPosition(0, transform.position);
         //     line.SetPosition(1, rightNote.transform.position);
         // }
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        UIManager.Instance.SelectNote(Note);
     }
 }

@@ -31,6 +31,7 @@ public class Track : MonoBehaviour
 
     void Start()
     {
+        Debug.Log("Track start");
         ReloadBeatMarkers();
         Reload();
     }
@@ -48,6 +49,10 @@ public class Track : MonoBehaviour
                 case WheelFlick flick:
                     var wheelFlickRenderer = Instantiate(wheelFlickPrefab, mainTrackArea);
                     wheelFlickRenderer.Note = flick;
+                    break;
+                case WheelSequence wheelSeq:
+                    break;
+                case LeverSequence leverSeq:
                     break;
                 default:
                     throw new System.Exception($"Spawning of note {note} not supported");

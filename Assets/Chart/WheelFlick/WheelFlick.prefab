@@ -51,8 +51,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   image: {fileID: 1267541038659169147}
-  leftSprite: {fileID: 21300000, guid: c913dbe7ae9733f469e4b79e1c9ec257, type: 3}
-  rightSprite: {fileID: 21300000, guid: 9efa90ae9af22a24c9f284f36758d307, type: 3}
+  leftSprite: {fileID: 21300000, guid: 9efa90ae9af22a24c9f284f36758d307, type: 3}
+  rightSprite: {fileID: 21300000, guid: c913dbe7ae9733f469e4b79e1c9ec257, type: 3}
   leftSwipeMaterial: {fileID: 0}
   rightSwipeMaterial: {fileID: 0}
 --- !u!114 &1267541038659169147

@@ -16,44 +16,17 @@ public class SaveManager : MonoBehaviour
 
     public static SaveManager Instance;
 
-    Chart chart = new(new()
+    public Chart Chart = new(new()
     {
         new WheelFlick(500, LeftRight.Left),
         new WheelFlick(1000, LeftRight.Right),
         new ButtonNote(1500, 50, null),
         new ButtonNote(2000, 25, 75),
     });
-    public IChart Chart => chart;
     public string ChartPath { get; private set; } = null;
     public string ChartDir => ChartPath == null ? null : Path.GetDirectoryName(ChartPath);
 
-    public bool HasChanges { get; private set; } = true;
-
-    public uint BPM
-    {
-        get => chart.BPM;
-        set
-        {
-            if (value != chart.BPM)
-            {
-                HasChanges = true;
-                chart.BPM = value;
-            }
-        }
-    }
-
-    public int Offset
-    {
-        get => chart.Offset;
-        set
-        {
-            if (value != chart.Offset)
-            {
-                HasChanges = true;
-                chart.Offset = value;
-            }
-        }
-    }
+    public bool HasChanges = true;
 
     void Awake()
     {
@@ -62,17 +35,27 @@ public class SaveManager : MonoBehaviour
 
     public void LoadChart(string path)
     {
-        chart = new ChartParser(path).Run();
+        Chart newChart = new ChartParser(path).Run();
         ChartPath = path;
         HasChanges = false;
+        Chart = newChart;
         OnChartLoaded?.Invoke(path);
     }
 
     public void SaveChart(string path)
     {
-        ChartParser.Write(chart, path);
+        ChartParser.Write(Chart, path);
         ChartPath = path;
         HasChanges = false;
         OnChartLoaded?.Invoke(path);
+    }
+
+    public static void RegisterChange<T>(ref T value, T newValue)
+    {
+        if (!newValue.Equals(value))
+        {
+            value = newValue;
+            if (Instance != null) Instance.HasChanges = true;
+        }
     }
 }

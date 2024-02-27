@@ -6,6 +6,10 @@ using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
+    public delegate void NoteSelectedEvent(Note note);
+    
+    public static event NoteSelectedEvent OnNoteSelected;
+
     public static UIManager Instance;
 
     [Header("Alert Dialog")]
@@ -23,4 +27,6 @@ public class UIManager : MonoBehaviour
         alert.Message = message;
         return alert;
     }
+
+    public void SelectNote(Note note) => OnNoteSelected?.Invoke(note);
 }

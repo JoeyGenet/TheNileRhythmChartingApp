@@ -1,14 +1,20 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
+
 public class WheelFlick : Note
 {
-	public readonly LeftRight Dir;
+	LeftRight dir;
+	public LeftRight Dir
+	{
+		get => dir;
+		set => SaveManager.RegisterChange(ref dir, value);
+	}
 
 	public WheelFlick(int time, int id) : base(time, id) {}
 	
 	public WheelFlick(int time, LeftRight dir) : base(time)
 	{
-		Dir = dir;
+		this.dir = dir;
 	}
 }
