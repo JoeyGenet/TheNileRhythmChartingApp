@@ -3,6 +3,12 @@ using UnityEngine;
 
 public class Chart
 {
+	public delegate void NoteAddedEvent(Note note);
+	public delegate void NoteRemovedEvent(Note note);
+
+	public static event NoteAddedEvent OnNoteAdded;
+	public static event NoteRemovedEvent OnNoteRemoved;
+
 	uint bpm;
     public uint BPM
     {
@@ -31,4 +37,20 @@ public class Chart
 
 	public int BeatToTime(float beat) => (int) (beat * 60000f / BPM);
 	public float TimeToBeat(int time) => time * BPM / 60000f;
+
+	public void AddNote(Note note)
+	{
+		notes.Add(note);
+		SaveManager.Instance.HasChanges = true;
+		OnNoteAdded?.Invoke(note);
+	}
+
+	public void RemoveNote(Note note)
+	{
+		if (notes.Remove(note))
+		{
+			SaveManager.Instance.HasChanges = true;
+			OnNoteRemoved?.Invoke(note);
+		}
+	}
 }

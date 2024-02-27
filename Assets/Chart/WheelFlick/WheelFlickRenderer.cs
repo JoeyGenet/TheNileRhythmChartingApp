@@ -5,9 +5,9 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(RectTransform))]
-public class WheelFlickRenderer : NoteRenderer, IPointerClickHandler
+public class WheelFlickRenderer : NoteRenderer<WheelFlick>, IPointerClickHandler
 {
-    public WheelFlick Note;
+    // public WheelFlick Note;
 
     [SerializeField] Image image;
 
@@ -54,13 +54,11 @@ public class WheelFlickRenderer : NoteRenderer, IPointerClickHandler
         gameObject.SetActive(false);
     }
 
-    void Awake()
+    protected override void Awake()
     {
-        rect = GetComponent<RectTransform>();
-    }
+        base.Awake();
 
-    void Start()
-    {
+        rect = GetComponent<RectTransform>();
     }
 
     // Update is called once per frame

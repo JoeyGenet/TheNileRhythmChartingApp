@@ -22,11 +22,13 @@ public class Track : MonoBehaviour
     void Awake()
     {
         SaveManager.OnChartLoaded += Reload;
+        Chart.OnNoteAdded += AddNote;
     }
 
     void OnDestroy()
     {
         SaveManager.OnChartLoaded -= Reload;
+        Chart.OnNoteAdded -= AddNote;
     }
 
     void Start()
@@ -38,26 +40,7 @@ public class Track : MonoBehaviour
 
     void Reload(string _ = "")
     {
-        foreach (Note note in SaveManager.Instance.Chart.Notes)
-        {
-            switch (note)
-            {
-                case ButtonNote buttonNote:
-                    var buttonNoteRenderer = Instantiate(buttonNotePrefab, mainTrackArea);
-                    buttonNoteRenderer.Note = buttonNote;
-                    break;
-                case WheelFlick flick:
-                    var wheelFlickRenderer = Instantiate(wheelFlickPrefab, mainTrackArea);
-                    wheelFlickRenderer.Note = flick;
-                    break;
-                case WheelSequence wheelSeq:
-                    break;
-                case LeverSequence leverSeq:
-                    break;
-                default:
-                    throw new System.Exception($"Spawning of note {note} not supported");
-            }
-        }
+        foreach (Note note in SaveManager.Instance.Chart.Notes) AddNote(note);
     }
 
     void ReloadBeatMarkers()
@@ -79,6 +62,58 @@ public class Track : MonoBehaviour
             var beatMarker = Instantiate(minorBeatMarkerPrefab, beatMarkers);
             beatMarker.Beat = i%3 * 0.25f + 0.25f + i / 3;
             beatMarker.BeatWrap = 50 / 3;
+        }
+    }
+
+    (int, int)? MouseToTrackPosition()
+    {
+        if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                mainTrackArea, Input.mousePosition, null, out Vector2 mousePos))
+        {
+            Vector2 uiPos = (mousePos - mainTrackArea.rect.position) / mainTrackArea.rect.size;
+            var (pos, time) = PlaybackManager.Instance.UIToTrackPosition(uiPos);
+            return (Mathf.Clamp(pos, 0, 100), Mathf.Clamp(time, 0, int.MaxValue)); // TODO: clamp to song length
+        }
+        return null;
+    }
+
+    void Update()
+    {
+        if (Input.GetKeyUp(KeyCode.Alpha1) || Input.GetKeyUp(KeyCode.B))
+        {
+            if (MouseToTrackPosition() is (int pos, int time))
+            {
+                SaveManager.Instance.Chart.AddNote(new ButtonNote(time, pos, null));
+            }
+        }
+        else if (Input.GetKeyUp(KeyCode.Alpha2) || Input.GetKeyUp(KeyCode.F))
+        {
+            if (MouseToTrackPosition() is (int pos, int time))
+            {
+                SaveManager.Instance.Chart.AddNote(new WheelFlick(time, pos < 50 ? LeftRight.Left : LeftRight.Right));
+            }
+        }
+        
+    }
+
+    void AddNote(Note note)
+    {
+        switch (note)
+        {
+            case ButtonNote buttonNote:
+                var buttonNoteRenderer = Instantiate(buttonNotePrefab, mainTrackArea);
+                buttonNoteRenderer.Note = buttonNote;
+                break;
+            case WheelFlick flick:
+                var wheelFlickRenderer = Instantiate(wheelFlickPrefab, mainTrackArea);
+                wheelFlickRenderer.Note = flick;
+                break;
+            case WheelSequence wheelSeq:
+                break;
+            case LeverSequence leverSeq:
+                break;
+            default:
+                throw new System.Exception($"Spawning of note {note} not supported");
         }
     }
 }

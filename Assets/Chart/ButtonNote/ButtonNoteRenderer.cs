@@ -5,9 +5,9 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(RectTransform))]
-public class ButtonNoteRenderer : NoteRenderer, IPointerClickHandler
+public class ButtonNoteRenderer : NoteRenderer<ButtonNote>, IPointerClickHandler
 {
-    public ButtonNote Note;
+    // public ButtonNote Note;
 
     [SerializeField] RectTransform leftNote;
     [SerializeField] RectTransform rightNote;
@@ -16,8 +16,10 @@ public class ButtonNoteRenderer : NoteRenderer, IPointerClickHandler
 
     RectTransform rect;
 
-    void Awake()
+    protected override void Awake()
     {
+        base.Awake();
+
         rect = GetComponent<RectTransform>();
     }
 

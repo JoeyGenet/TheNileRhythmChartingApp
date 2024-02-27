@@ -38,4 +38,9 @@ public class PlaybackManager : MonoBehaviour
     {
         return new Vector2(position / 100f, (time - MillisecondsInChart) / (float)ViewSize);
     }
+
+    public (int position, int time) UIToTrackPosition(Vector2 uiPosition)
+    {
+        return ((int) (uiPosition.x * 100), (int) (uiPosition.y * ViewSize + MillisecondsInChart));
+    }
 }

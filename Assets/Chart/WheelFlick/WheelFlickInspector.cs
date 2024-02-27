@@ -29,10 +29,6 @@ public class WheelFlickInspector : MonoBehaviour
             {
                 Note.StartTime = time;
             }
-            else
-            {
-                timeInput.SetTextWithoutNotify($"{Note.StartTime}");
-            }
         });
         leftButton.onClick.AddListener(() =>
         {
@@ -69,6 +65,17 @@ public class WheelFlickInspector : MonoBehaviour
         {
             Note = null;
             gameObject.SetActive(false);
+        }
+    }
+
+    void Update()
+    {
+        if (!timeInput.isFocused) timeInput.SetTextWithoutNotify($"{Note.StartTime}");
+
+        if ((Input.GetKeyUp(KeyCode.Backspace) || Input.GetKeyUp(KeyCode.Delete)) && Note != null)
+        {
+            SaveManager.Instance.Chart.RemoveNote(Note);
+            ShowHide(null);
         }
     }
 }

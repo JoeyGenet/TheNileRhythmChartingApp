@@ -80,5 +80,11 @@ public class ButtonNoteInspector : MonoBehaviour
         if (!timeInput.isFocused) timeInput.SetTextWithoutNotify($"{Note.StartTime}");
         if (!leftPosInput.isFocused) leftPosInput.SetTextWithoutNotify($"{Note.LeftPos}");
         if (!rightPosInput.isFocused) rightPosInput.SetTextWithoutNotify($"{Note.RightPos}");
+
+        if ((Input.GetKeyUp(KeyCode.Backspace) || Input.GetKeyUp(KeyCode.Delete)) && Note != null)
+        {
+            SaveManager.Instance.Chart.RemoveNote(Note);
+            ShowHide(null);
+        }
     }
 }
