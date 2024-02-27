@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class LeverSequenceRenderer : NoteRenderer
+public class LeverSequenceRenderer : NoteRenderer<LeverSequence>
 {
-    public LeverSequence Note;
+    // public LeverSequence Note;
 
     [SerializeField] LineRenderer line;
 

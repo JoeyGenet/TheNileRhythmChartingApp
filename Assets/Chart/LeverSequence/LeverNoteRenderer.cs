@@ -2,9 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LeverNoteRenderer : NoteRenderer
+public class LeverNoteRenderer : NoteRenderer<LeverSequence.LeverNote>
 {
-    public LeverSequence.LeverNote Note;
+    // public LeverSequence.LeverNote Note;
     public LeftRight Dir;
 
     [Header("Sprites")]

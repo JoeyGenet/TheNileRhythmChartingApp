@@ -6,14 +6,19 @@ public abstract class Note : IComparable<Note>
 {
 	public virtual bool AffectsScore => true;
 	
-	public readonly int StartTime;
+	int startTime;
+	public int StartTime
+	{
+		get => startTime;
+		set => SaveManager.RegisterChange(ref startTime, value);
+	}
 	public virtual int EndTime => StartTime;
 	public readonly int Id;
 	static private int currentId;
 
 	protected Note(int startTime, int id)
 	{
-		StartTime = startTime;
+		this.startTime = startTime;
 		Id = id;
 	}
 

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class WheelSequenceRenderer : NoteRenderer
+public class WheelSequenceRenderer : NoteRenderer<WheelSequence>
 {
-    public WheelSequence Note;
+    // public WheelSequence Note;
     [SerializeField] public List<LineRenderer> lineRenderers;
     [SerializeField] private GameObject wheelTurnParticles;
     private ParticleSystem wheelTurnParticleSystem;

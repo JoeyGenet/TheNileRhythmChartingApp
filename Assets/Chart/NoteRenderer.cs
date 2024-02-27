@@ -3,22 +3,24 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class NoteRenderer : MonoBehaviour
+public class NoteRenderer<NoteType> : MonoBehaviour where NoteType : Note
 {
-    // public Note Note;
+    public NoteType Note;
 
-    void Awake()
+    protected virtual void Awake()
     {
         // GameManager.OnNoteHit += OnNoteHit;
         // GameManager.OnNoteMissed += OnNoteMissed;
         SaveManager.OnChartLoaded += DestroyOnChartLoaded;
+        Chart.OnNoteRemoved += DestroyOnNoteRemoved;
     }
 
-    void OnDestroy()
+    protected virtual void OnDestroy()
     {
         // GameManager.OnNoteHit -= OnNoteHit;
         // GameManager.OnNoteMissed -= OnNoteMissed;
         SaveManager.OnChartLoaded -= DestroyOnChartLoaded;
+        Chart.OnNoteRemoved -= DestroyOnNoteRemoved;
     }
 
     // public virtual void OnNoteHit(Note note, JudgementGrade grade, int points)
@@ -32,4 +34,9 @@ public class NoteRenderer : MonoBehaviour
     }
 
     void DestroyOnChartLoaded(string _) => Destroy(gameObject);
+
+    void DestroyOnNoteRemoved(Note note)
+    {
+        if (note == Note) Destroy(gameObject);
+    }
 }
