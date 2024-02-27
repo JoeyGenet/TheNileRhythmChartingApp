@@ -8,6 +8,7 @@ public class PlaybackManager : MonoBehaviour
 
     //TODO: track time into playback
     public int MillisecondsInChart;
+    public float BeatsInChart => SaveManager.Instance.Chart.TimeToBeat(MillisecondsInChart);
     public int CurrentTimestamp => 0;
 
     public uint ViewSize = 5000; // Number of milliseconds the view contains

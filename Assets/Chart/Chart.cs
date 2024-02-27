@@ -7,6 +7,9 @@ public interface IChart
 	public uint BPM { get; }
 	public int Offset { get; }
 	public IReadOnlyList<Note> Notes { get; }
+
+	public int BeatToTime(float beat) => (int) (beat * 60000f / BPM);
+	public float TimeToBeat(int time) => time * BPM / 60000f;
 }
 
 public class Chart : IChart

@@ -7,9 +7,16 @@ public class Track : MonoBehaviour
     [Header("Track Areas")]
     [SerializeField] RectTransform mainTrackArea;
     [SerializeField] RectTransform leverTrackArea;
+    [SerializeField] RectTransform beatMarkers;
 
     [Header("Note Prefabs")]
     [SerializeField] WheelFlickRenderer wheelFlickPrefab;
+
+    [Header("Beat Markers")]
+    [SerializeField] BeatMarker mainBeatMarkerPrefab;
+    [SerializeField] BeatMarker minorBeatMarkerPrefab;
+    [SerializeField] int maxMainBeatMarkers = 50;
+    [SerializeField] int maxMinorBeatMarkers = 50;
 
     void Awake()
     {
@@ -23,6 +30,7 @@ public class Track : MonoBehaviour
 
     void Start()
     {
+        ReloadBeatMarkers();
         Reload();
     }
 
@@ -39,6 +47,28 @@ public class Track : MonoBehaviour
                 default:
                     throw new System.Exception($"Spawning of note {note} not supported");
             }
+        }
+    }
+
+    void ReloadBeatMarkers()
+    {
+        foreach (BeatMarker beatMarker in beatMarkers.GetComponentsInChildren<BeatMarker>())
+        {
+            Destroy(beatMarker.gameObject);
+        }
+
+        for (int i = 0; i < maxMainBeatMarkers; i++)
+        {
+            var beatMarker = Instantiate(mainBeatMarkerPrefab, beatMarkers);
+            beatMarker.Beat = i;
+            beatMarker.BeatWrap = 50;
+        }
+
+        for (int i = 0; i < maxMinorBeatMarkers; i++)
+        {
+            var beatMarker = Instantiate(minorBeatMarkerPrefab, beatMarkers);
+            beatMarker.Beat = i%3 * 0.25f + 0.25f + i / 3;
+            beatMarker.BeatWrap = 50 / 3;
         }
     }
 }

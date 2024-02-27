@@ -33,7 +33,7 @@ public class PlaybackUIController : MonoBehaviour
         int intTimestamp = (int)newTimestamp;
         Timestamp = intTimestamp;
         int minutes = intTimestamp / 60000;
-        int seconds = (intTimestamp%60000) / 1000;
+        int seconds = intTimestamp%60000 / 1000;
         int milliseconds = intTimestamp%1000;
         timestampText.text = $"{minutes}:{seconds}.{milliseconds}";
 	}
