@@ -10,6 +10,7 @@ public class Track : MonoBehaviour
     [SerializeField] RectTransform beatMarkers;
 
     [Header("Note Prefabs")]
+    [SerializeField] ButtonNoteRenderer buttonNotePrefab;
     [SerializeField] WheelFlickRenderer wheelFlickPrefab;
 
     [Header("Beat Markers")]
@@ -40,6 +41,10 @@ public class Track : MonoBehaviour
         {
             switch (note)
             {
+                case ButtonNote buttonNote:
+                    var buttonNoteRenderer = Instantiate(buttonNotePrefab, mainTrackArea);
+                    buttonNoteRenderer.Note = buttonNote;
+                    break;
                 case WheelFlick flick:
                     var wheelFlickRenderer = Instantiate(wheelFlickPrefab, mainTrackArea);
                     wheelFlickRenderer.Note = flick;

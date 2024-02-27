@@ -20,6 +20,8 @@ public class SaveManager : MonoBehaviour
     {
         new WheelFlick(500, LeftRight.Left),
         new WheelFlick(1000, LeftRight.Right),
+        new ButtonNote(1500, 50, null),
+        new ButtonNote(2000, 25, 75),
     });
     public IChart Chart => chart;
     public string ChartPath { get; private set; } = null;

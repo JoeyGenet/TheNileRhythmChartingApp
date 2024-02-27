@@ -27,7 +27,10 @@ public class PlaybackUIController : MonoBehaviour
         timestampSlider.value = PlaybackManager.Instance.MillisecondsInChart;
         timestampSlider.onValueChanged.AddListener(time => PlaybackManager.Instance.MillisecondsInChart = (int) time);
 
-        viewSlider.value = PlaybackManager.Instance.ViewSize;
+        uint viewSize = PlaybackManager.Instance.ViewSize;
+        viewSlider.value = viewSize < MaxViewSize 
+            ? (viewSize - MinViewSize) / (float) (MaxViewSize-MinViewSize) / 2f
+            : (viewSize - MaxViewSize) / (float) (SongLength - MaxViewSize) / 2f + 0.5f;
         viewSlider.onValueChanged.AddListener(v => PlaybackManager.Instance.ViewSize = (uint) (
             v < 0.5f 
                 ? v*2 * (MaxViewSize-MinViewSize) + MinViewSize
