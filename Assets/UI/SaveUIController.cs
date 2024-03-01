@@ -56,7 +56,11 @@ public class SaveUIController : MonoBehaviour
             try 
             {
                 SaveManager.Instance.LoadChart(paths[0]);
-                Debug.Log(SaveManager.Instance.HasChanges);
+            }
+            catch (ChartParser.ChartParseException e)
+            {
+                UIManager.Instance.ShowAlert("Error Loading Chart", $"Loading from {paths[0]}.\n{e.Message}");
+                Debug.LogException(e.Cause);
             }
             catch (Exception e)
             {
@@ -83,7 +87,7 @@ public class SaveUIController : MonoBehaviour
     {
         if (string.IsNullOrEmpty(SaveManager.Instance.ChartPath))
         {
-            UIManager.Instance.ShowAlert("Cannot Saving Chart", "Load a chart first before saving it.");
+            UIManager.Instance.ShowAlert("Cannot Save Chart", "Load a chart first before saving it.");
             return;
         }
         TrySaveChart(SaveManager.Instance.ChartPath);

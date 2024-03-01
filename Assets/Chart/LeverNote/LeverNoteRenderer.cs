@@ -1,15 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
-public class LeverNoteRenderer : NoteRenderer<LeverSequence.LeverNote>
+public class LeverNoteRenderer : NoteRenderer<LeverNote>
 {
-    // public LeverSequence.LeverNote Note;
-    public LeftRight Dir;
-
     [Header("Sprites")]
-    [SerializeField] private GameObject arrow;
-    [SerializeField] private SpriteRenderer arrowSpriteRenderer;
+    [SerializeField] private Image arrow;
     [SerializeField] private Sprite arrowSprite;
     [SerializeField] private Sprite neutralSprite;
     [SerializeField] private Color leftColor;
@@ -62,41 +59,44 @@ public class LeverNoteRenderer : NoteRenderer<LeverSequence.LeverNote>
         //despawn note
         gameObject.SetActive(false);
     }
-    
-    // Start is called before the first frame update
-    void Start()
+
+    protected override void Awake()
     {
-        //lever direction
-        switch (Note.pos)
-        {
-            case LeverPos.Left:
-                arrow.transform.Rotate(0, 0, 0);
-                arrowSpriteRenderer.color = leftColor;
-                break;
-            case LeverPos.Up:
-                arrow.transform.Rotate(0, 0, -90);
-                arrowSpriteRenderer.color = upColor;
-                break;
-            case LeverPos.Right:
-                arrow.transform.Rotate(0, 0, 180);
-                arrowSpriteRenderer.color = rightColor;
-                break;
-            case LeverPos.Down:
-                arrow.transform.Rotate(0, 0, 90);
-                arrowSpriteRenderer.color = downColor;
-                break;
-            case LeverPos.Middle:
-                arrowSpriteRenderer.sprite = neutralSprite;
-                arrowSpriteRenderer.color = middleColor;
-                break;
-            default:
-                throw new System.Exception($"Lever direction {Note.pos} not supported.");
-        }
+        base.Awake();
+
+        LeverSequence.OnLeverNoteRemoved += RemoveNote;
     }
 
-    // Update is called once per frame
+    protected override void OnDestroy()
+    {
+        base.OnDestroy();
+
+        LeverSequence.OnLeverNoteRemoved -= RemoveNote;
+    }
+
     void Update()
     {
-        // transform.position = RenderingManager.Instance.LeverTrackToWorldPosition(Dir, Note.StartTime);
+        // Update position
+        Vector2 uiPos = PlaybackManager.Instance.TrackToUIPosition(50, Note.StartTime);
+        rect.anchorMin = new Vector2(rect.anchorMin.x, uiPos.y);
+        rect.anchorMax = new Vector2(rect.anchorMax.x, uiPos.y);
+
+        // update lever direction
+        float angle;
+        (arrow.sprite, angle, arrow.color) = Note.Pos switch
+        {
+            LeverPos.Left => (arrowSprite, 0, leftColor),
+            LeverPos.Up => (arrowSprite, -90, upColor),
+            LeverPos.Right => (arrowSprite, 180, rightColor),
+            LeverPos.Down => (arrowSprite, 90, downColor),
+            LeverPos.Middle => (neutralSprite, 0, middleColor),
+            _ => throw new System.Exception($"Lever direction {Note.Pos} not supported."),
+        };
+        arrow.transform.rotation = Quaternion.Euler(0, 0, angle);
+    }
+
+    void RemoveNote(LeverSequence sequence, LeverNote leverNote)
+    {
+        if (leverNote == Note) Destroy(gameObject);
     }
 }

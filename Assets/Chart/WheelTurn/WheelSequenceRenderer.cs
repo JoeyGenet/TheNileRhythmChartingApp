@@ -29,7 +29,7 @@ public class WheelSequenceRenderer : NoteRenderer<WheelSequence>
     public override void OnNoteMissed(Note note)
     {
         //handle hit for individual turn notes in the sequence
-        if ((note.GetType() == typeof(WheelSequence.WheelTurn) && Note.Turns.Contains((WheelSequence.WheelTurn)note)) || note == Note) //note.GetType() == WheelSequence.WheelTurn && ?
+        if ((note.GetType() == typeof(WheelTurn) && Note.ContainsNote((WheelTurn)note)) || note == Note) //note.GetType() == WheelSequence.WheelTurn && ?
         {
             print("'WheelNote' OnNoteMissed() signal!!");
             wheelTurnParticleSystem.Stop();

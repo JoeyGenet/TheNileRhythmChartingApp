@@ -6,7 +6,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Assertions;
 
-public class ButtonNote : Note
+public class ButtonNote : TimedNote<Chart, Note>
 {
 	int leftPos;
 	public int LeftPos
@@ -43,7 +43,7 @@ public class ButtonNote : Note
 	};
 
 	public ButtonNote(int time, int id) : base(time, id) {}
-	public ButtonNote(int time, int pos1, int? pos2 = null) : base(time)
+	public ButtonNote(Chart chart, int time, int pos1, int? pos2 = null) : base(chart, time)
 	{
 		// If 2 different positions given, set the left and right positions
 		if ((pos2 is int pos2NotNull) && pos1 != pos2)

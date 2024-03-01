@@ -1,0 +1,81 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class LeverNoteInspector : MonoBehaviour
+{
+    public LeverNote Note;
+
+    [SerializeField] TMP_InputField timeInput;
+    [SerializeField] TMP_Dropdown posDropdown;
+    [SerializeField] Button deleteButton;
+
+    [Header("Colors")]
+    [SerializeField] private Color leftColor;
+    [SerializeField] private Color upColor;
+    [SerializeField] private Color rightColor;
+    [SerializeField] private Color downColor;
+    [SerializeField] private Color middleColor;
+    
+    void Awake()
+    {
+        timeInput.onValidateInput += (text, _, c) => c == '-' ? '\0' : c;
+        timeInput.onValueChanged.AddListener(text =>
+        {
+            if (int.TryParse(text, out int time))
+            {
+                Note.StartTime = Mathf.Clamp(time, 0, int.MaxValue); // TODO: clamp to song length
+            }
+        });
+
+        posDropdown.onValueChanged.AddListener(value =>
+        {
+            Note.Pos = (LeverPos) value;
+        });
+
+        deleteButton.onClick.AddListener(() =>
+        {
+            Note.Container.RemoveNote(Note);
+        });
+
+        LeverSequence.OnLeverNoteRemoved += RemoveNote;
+    }
+
+    void OnDestroy()
+    {
+        LeverSequence.OnLeverNoteRemoved -= RemoveNote;
+    }
+
+    void Start()
+    {
+        posDropdown.value = (int) Note.Pos;
+    }
+
+    void Update()
+    {
+        if (!timeInput.isFocused) timeInput.SetTextWithoutNotify($"{Note.StartTime}");
+
+        float angle;
+        (angle, posDropdown.captionImage.color) = Note.Pos switch
+        {
+            LeverPos.Left => (0, leftColor),
+            LeverPos.Up => (-90, upColor),
+            LeverPos.Right => (180, rightColor),
+            LeverPos.Down => (90, downColor),
+            LeverPos.Middle => (0, middleColor),
+            _ => throw new Exception($"Lever direction {Note.Pos} not supported."),
+        };
+        posDropdown.captionImage.rectTransform.rotation = Quaternion.Euler(0, 0, angle);
+    }
+
+    void RemoveNote(LeverSequence sequence, LeverNote note)
+    {
+        if (note == Note)
+        {
+            Destroy(gameObject);
+        }
+    }
+}

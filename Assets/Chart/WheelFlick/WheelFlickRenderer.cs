@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-[RequireComponent(typeof(RectTransform))]
 public class WheelFlickRenderer : NoteRenderer<WheelFlick>, IPointerClickHandler
 {
     // public WheelFlick Note;
@@ -16,8 +15,6 @@ public class WheelFlickRenderer : NoteRenderer<WheelFlick>, IPointerClickHandler
 
     [SerializeField] private Material leftSwipeMaterial;
     [SerializeField] private Material rightSwipeMaterial;
-
-    RectTransform rect;
 
     // TODO: do particles?
     // [SerializeField] private GameObject rightSwipeHitParticles;
@@ -52,13 +49,6 @@ public class WheelFlickRenderer : NoteRenderer<WheelFlick>, IPointerClickHandler
 
         //despawn note
         gameObject.SetActive(false);
-    }
-
-    protected override void Awake()
-    {
-        base.Awake();
-
-        rect = GetComponent<RectTransform>();
     }
 
     // Update is called once per frame

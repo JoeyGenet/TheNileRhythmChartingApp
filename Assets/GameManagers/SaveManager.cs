@@ -16,13 +16,13 @@ public class SaveManager : MonoBehaviour
 
     public static SaveManager Instance;
 
-    public Chart Chart = new(new()
+    public Chart Chart = new()
     {
         // new WheelFlick(500, LeftRight.Left),
         // new WheelFlick(1000, LeftRight.Right),
         // new ButtonNote(1500, 50, null),
         // new ButtonNote(2000, 25, 75),
-    });
+    };
     public string ChartPath { get; private set; } = null;
     public string ChartDir => ChartPath == null ? null : Path.GetDirectoryName(ChartPath);
 
@@ -50,12 +50,14 @@ public class SaveManager : MonoBehaviour
         OnChartLoaded?.Invoke(path);
     }
 
-    public static void RegisterChange<T>(ref T value, T newValue)
+    public static bool RegisterChange<T>(ref T value, T newValue)
     {
         if (!newValue.Equals(value))
         {
             value = newValue;
             if (Instance != null) Instance.HasChanges = true;
+			return true;
         }
+		return false;
     }
 }

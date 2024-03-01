@@ -3,12 +3,17 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
+[RequireComponent(typeof(RectTransform))]
 public class NoteRenderer<NoteType> : MonoBehaviour where NoteType : Note
 {
     public NoteType Note;
 
+    protected RectTransform rect;
+
     protected virtual void Awake()
     {
+        rect = GetComponent<RectTransform>();
+
         // GameManager.OnNoteHit += OnNoteHit;
         // GameManager.OnNoteMissed += OnNoteMissed;
         SaveManager.OnChartLoaded += DestroyOnChartLoaded;
@@ -33,10 +38,16 @@ public class NoteRenderer<NoteType> : MonoBehaviour where NoteType : Note
         
     }
 
-    void DestroyOnChartLoaded(string _) => Destroy(gameObject);
+    void DestroyOnChartLoaded(string _)
+    {
+        Destroy(gameObject);
+    }
 
     void DestroyOnNoteRemoved(Note note)
     {
-        if (note == Note) Destroy(gameObject);
+        if (note == Note)
+        {
+            Destroy(gameObject);
+        }
     }
 }

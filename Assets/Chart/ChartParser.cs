@@ -8,9 +8,24 @@ using UnityEngine;
 
 public class ChartParser
 {
+	public class ChartParseException : Exception
+	{
+		public readonly uint Line;
+		public readonly Exception Cause;
+
+        public override string Message => $"Exception caused by line {Line} of chart. Error message: {Cause.Message}";
+
+        public ChartParseException(uint line, Exception cause)
+		{
+			Line = line;
+			Cause = cause;
+		}
+	}
+
 	uint bpm = 120;
 	int offset = 0;
 	readonly List<Note> notes = new();
+	Chart chart;
 
     readonly StreamReader reader;
 	uint lineNum = 0; // 0 == haven't started parsing yet
@@ -31,7 +46,11 @@ public class ChartParser
 
 	public Chart Run()
 	{
+		bool prevHasChanges = SaveManager.Instance.HasChanges;
+
 		Note.ResetNoteIds();
+
+		chart = new();
 
 		while ((line = reader.ReadLine()) != null)
 		{
@@ -59,13 +78,19 @@ public class ChartParser
 			}
 			catch (Exception e)
 			{
-				throw new ArgumentException($"Exception caused by line {lineNum} of chart. Error message: {e.Message}");
+				throw new ChartParseException(lineNum, e);
 			}
 		}
 		reader.Close();
 
-		notes.Sort();
-		return new Chart(notes, bpm, offset);
+		Debug.Log("notes in chart (not including notes inside sequences): " + notes.Count);
+
+		chart.BPM = bpm;
+		chart.Offset = offset;
+		chart.notes = new(notes);
+		
+		SaveManager.Instance.HasChanges = prevHasChanges;
+		return chart;
 	}
 
 
@@ -115,7 +140,7 @@ public class ChartParser
 		{
 			pos2 = int.Parse(args[3]);
 		}
-		return new ButtonNote(time, pos, pos2);
+		return new ButtonNote(chart, time, pos, pos2);
 	}
 	WheelFlick ParseWheelFlick()
 	{
@@ -123,7 +148,7 @@ public class ChartParser
 
 		int time = int.Parse(args[1]);
 		LeftRight dir = ParseLeftRight(args[2]);
-		return new WheelFlick(time, dir);
+		return new WheelFlick(chart, time, dir);
 	}
 	LeftRight ParseLeftRight(string arg)
 	{
@@ -150,23 +175,20 @@ public class ChartParser
 			angles.Add(int.Parse(args[i]));
 			endTimes.Add(int.Parse(args[i + 1]));
 		}
-		return new WheelSequence(time, pos, angles, endTimes);
+		return new WheelSequence(chart, time, pos, angles, endTimes);
 	}
 	LeverSequence ParseLeverSequence()
 	{
 		AssertArgCount(4, null, "Lever sequence");
 		AssertArgCount(args.Length % 2 == 0, "Lever sequence", "an even number of");
 		
-		LeftRight lever = ParseLeftRight(args[1]);
-		int time = int.Parse(args[2]);
-		List<int> times = new();
-		List<LeverPos> positions = new();
+		LeftRight dir = ParseLeftRight(args[1]);
+		List<(int time, LeverPos pos)> levers = new();
 		for (int i = 2; i < args.Length; i += 2)
 		{
-			times.Add(int.Parse(args[i]));
-			positions.Add(ParseLeverPos(args[i + 1]));
+			levers.Add((int.Parse(args[i]), ParseLeverPos(args[i+1])));
 		}
-		return new LeverSequence(lever, time, times, positions);
+		return new LeverSequence(chart, dir, levers);
 	}
 	LeverPos ParseLeverPos(string arg)
 	{
@@ -217,9 +239,9 @@ public class ChartParser
 				ButtonNote b => $"B {b.StartTime} {b.LeftPos}" + (b.RightPos == null ? "" : $" {b.RightPos}"),
 				WheelFlick f => $"F {f.StartTime} {lrToString(f.Dir)}",
 				WheelSequence w => $"W {w.StartTime} {w.Pos}" +
-					w.Turns.Aggregate("", (s, t) => s + $" {t.deltaAngle} {t.EndTime}"),
+					w.Notes.Aggregate("", (s, t) => s + $" {t.deltaAngle} {t.EndTime}"),
 				LeverSequence l => $"L {lrToString(l.Dir)}" +
-					l.Notes.Aggregate("", (s, n) => s + $" {n.StartTime} {leverPosToString(n.pos)}"),
+					l.Notes.Aggregate("", (s, n) => s + $" {n.StartTime} {leverPosToString(n.Pos)}"),
 				_ => throw new Exception($"Unable to serialize note {note}"),
 			};
 			writer.WriteLine(line);

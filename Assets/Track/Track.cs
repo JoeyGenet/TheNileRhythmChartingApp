@@ -16,6 +16,7 @@ public class Track : MonoBehaviour
     [Header("Note Prefabs")]
     [SerializeField] ButtonNoteRenderer buttonNotePrefab;
     [SerializeField] WheelFlickRenderer wheelFlickPrefab;
+    [SerializeField] LeverSequenceRenderer leverSequencePrefab;
 
     [Header("Beat Markers")]
     [SerializeField] BeatMarker mainBeatMarkerPrefab;
@@ -37,7 +38,6 @@ public class Track : MonoBehaviour
 
     void Start()
     {
-        Debug.Log("Track start");
         ReloadBeatMarkers();
         Reload();
     }
@@ -81,30 +81,37 @@ public class Track : MonoBehaviour
         return null;
     }
 
+    void AddNoteOnKeyPress()
+    {
+        // Only add notes through key presses if not currently typing in input field
+        if (UIManager.IsSelectingInputField) return;
+        if (MouseToTrackPosition() is not (int pos, int time)) return;
+        
+        Chart chart = SaveManager.Instance.Chart;
+        Note addedNote = null;
+
+        if (Input.GetKeyUp(KeyCode.Alpha1) || Input.GetKeyUp(KeyCode.B))
+        {
+            addedNote = new ButtonNote(chart, time, pos, null);
+            chart.AddNote(addedNote);
+        }
+        if (Input.GetKeyUp(KeyCode.Alpha2) || Input.GetKeyUp(KeyCode.F))
+        {
+            addedNote = new WheelFlick(chart, time, pos < 50 ? LeftRight.Left : LeftRight.Right);
+            chart.AddNote(addedNote);
+        }
+        if (Input.GetKeyUp(KeyCode.Alpha3) || Input.GetKeyUp(KeyCode.L))
+        {
+            addedNote = new LeverSequence(chart, pos < 50 ? LeftRight.Left : LeftRight.Right, new() { (time, LeverPos.Left) });
+            chart.AddNote(addedNote);
+        }
+
+        if (addedNote != null) UIManager.Instance.SelectNote(addedNote);
+    }
+
     void Update()
     {
-
-        if (!UIManager.IsSelectingInputField) // Only add notes through key presses if not currently typing in input field
-        {
-            Note addedNote = null;
-            if (Input.GetKeyUp(KeyCode.Alpha1) || Input.GetKeyUp(KeyCode.B))
-            {
-                if (MouseToTrackPosition() is (int pos, int time))
-                {
-                    addedNote = new ButtonNote(time, pos, null);
-                    SaveManager.Instance.Chart.AddNote(addedNote);
-                }
-            }
-            if (Input.GetKeyUp(KeyCode.Alpha2) || Input.GetKeyUp(KeyCode.F))
-            {
-                if (MouseToTrackPosition() is (int pos, int time))
-                {
-                    addedNote = new WheelFlick(time, pos < 50 ? LeftRight.Left : LeftRight.Right);
-                    SaveManager.Instance.Chart.AddNote(addedNote);
-                }
-            }
-            if (addedNote != null) UIManager.Instance.SelectNote(addedNote);
-        }
+        AddNoteOnKeyPress();
     }
 
     void AddNote(Note note)
@@ -122,6 +129,8 @@ public class Track : MonoBehaviour
             case WheelSequence wheelSeq:
                 break;
             case LeverSequence leverSeq:
+                var leverSequenceRenderer = Instantiate(leverSequencePrefab, leverTrackArea);
+                leverSequenceRenderer.Note = leverSeq;
                 break;
             default:
                 throw new System.Exception($"Spawning of note {note} not supported");
