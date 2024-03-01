@@ -54,6 +54,8 @@ public class WheelFlickInspector : NoteInspector<WheelFlick>
     {
         base.Update();
 
+        if (Note == null) return;
+
         if (!timeInput.isFocused) timeInput.SetTextWithoutNotify($"{Note.StartTime}");
     }
 }

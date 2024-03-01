@@ -5,9 +5,8 @@ using UnityEngine;
 
 public class LeverSequenceRenderer : NoteRenderer<LeverSequence>
 {
-    // public LeverSequence Note;
-
-    [SerializeField] LineRenderer line;
+    [SerializeField] RectTransform line;
+    [SerializeField] LeverNoteRenderer leverNotePrefab;
 
     // public override void OnNoteHit(Note note, JudgementGrade grade, int points)
     // {
@@ -27,21 +26,46 @@ public class LeverSequenceRenderer : NoteRenderer<LeverSequence>
         gameObject.SetActive(false);
     }
 
-    // Start is called before the first frame update
-    void Start()
+    protected override void Awake()
     {
-        // foreach (LeverSequence.LeverNote Note in Note.Notes)
-        // {
-        //     var leverNoteRenderer = Instantiate(leverNotePrefab);
-        //     leverNoteRenderer.Note = leverNote;
-        //     notes.Add(leverNoteRenderer);
-        // }
+        base.Awake();
+
+        LeverSequence.OnLeverNoteAdded += AddNote;
     }
 
-    // Update is called once per frame
+    protected override void OnDestroy()
+    {
+        LeverSequence.OnLeverNoteAdded -= AddNote;
+    }
+
+    void Start()
+    {
+        foreach (LeverNote leverNote in Note.Notes)
+        {
+            AddNote(Note, leverNote);
+        }
+    }
+
     void Update()
     {
-        line.SetPosition(0, RenderingManager.Instance.LeverTrackToWorldPosition(Note.Dir, Note.StartTime));
-        line.SetPosition(1, RenderingManager.Instance.LeverTrackToWorldPosition(Note.Dir, Note.EndTime));
+        // Update position
+        float anchorX = Note.Dir == LeftRight.Left ? 0 : 1;
+        rect.anchorMin = new Vector2(anchorX, rect.anchorMin.y);
+        rect.anchorMax = new Vector2(anchorX, rect.anchorMax.y);
+
+        // Update line position
+        Vector2 startUIPos = PlaybackManager.Instance.TrackToUIPosition(50, Note.StartTime);
+        Vector2 endUIPos = PlaybackManager.Instance.TrackToUIPosition(50, Note.EndTime);
+        line.anchorMin = new Vector2(line.anchorMin.x, startUIPos.y);
+        line.anchorMax = new Vector2(line.anchorMax.x, endUIPos.y);
+    }
+
+    void AddNote(LeverSequence sequence, LeverNote leverNote)
+    {
+        if (sequence == Note)
+        {
+            var leverNoteRenderer = Instantiate(leverNotePrefab, rect);
+            leverNoteRenderer.Note = leverNote;
+        }
     }
 }

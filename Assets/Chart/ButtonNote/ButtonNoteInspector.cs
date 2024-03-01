@@ -56,6 +56,8 @@ public class ButtonNoteInspector : NoteInspector<ButtonNote>
     {
         base.Update();
 
+        if (Note == null) return;
+        
         if (!timeInput.isFocused) timeInput.SetTextWithoutNotify($"{Note.StartTime}");
         if (!leftPosInput.isFocused) leftPosInput.SetTextWithoutNotify($"{Note.LeftPos}");
         if (!rightPosInput.isFocused) rightPosInput.SetTextWithoutNotify($"{Note.RightPos}");

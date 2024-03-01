@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-[RequireComponent(typeof(RectTransform))]
 public class ButtonNoteRenderer : NoteRenderer<ButtonNote>, IPointerClickHandler
 {
     // public ButtonNote Note;
@@ -13,15 +12,6 @@ public class ButtonNoteRenderer : NoteRenderer<ButtonNote>, IPointerClickHandler
     [SerializeField] RectTransform rightNote;
     [SerializeField] Image line;
     [SerializeField] private GameObject hitParticles;
-
-    RectTransform rect;
-
-    protected override void Awake()
-    {
-        base.Awake();
-
-        rect = GetComponent<RectTransform>();
-    }
 
     // public override void OnNoteHit(Note note, JudgementGrade grade, int points)
     // {

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class NoteInspector<NoteType> : MonoBehaviour where NoteType : Note
 {
-    public NoteType Note { get; protected set; }
+    public NoteType Note;
 
     protected virtual void Awake()
     {
@@ -40,8 +40,8 @@ public class NoteInspector<NoteType> : MonoBehaviour where NoteType : Note
         }
         else
         {
-            Note = null;
             gameObject.SetActive(false);
+            Note = null;
         }
     }
 }

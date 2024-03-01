@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Chart
+public class Chart : INoteContainer<Note>
 {
 	public delegate void NoteAddedEvent(Note note);
 	public delegate void NoteRemovedEvent(Note note);
@@ -22,35 +22,34 @@ public class Chart
         get => offset;
         set => SaveManager.RegisterChange(ref offset, value);
     }
-	public IReadOnlyList<Note> Notes => notes;
-	public List<Note> notes;
+	public IReadOnlyCollection<Note> Notes => notes;
 
-	public Chart(List<Note> notes, uint bpm = 100, int offset = 0)
+    public SortedSet<Note> notes;
+
+	public Chart(uint bpm = 120, int offset = 0)
 	{
-		this.notes = notes;
+		notes = new();
 		BPM = bpm;
 		Offset = offset;
-		Debug.Log("notes in chart (not including notes inside sequences): " + Notes.Count);
 	}
 
-	public Chart() : this(new List<Note>()) { }
 
 	public int BeatToTime(float beat) => (int) (beat * 60000f / BPM);
 	public float TimeToBeat(int time) => time * BPM / 60000f;
 
-	public void AddNote(Note note)
-	{
-		notes.Add(note);
+	public bool AddNoteWithoutNotify(Note note) => notes.Add(note);
+	public bool RemoveNoteWithoutNotify(Note note) => notes.Remove(note);
+	public bool ContainsNote(Note note) => notes.Contains(note);
+
+    void INoteContainer<Note>.OnNoteAdded(Note note)
+    {
 		SaveManager.Instance.HasChanges = true;
 		OnNoteAdded?.Invoke(note);
-	}
+    }
 
-	public void RemoveNote(Note note)
-	{
-		if (notes.Remove(note))
-		{
-			SaveManager.Instance.HasChanges = true;
-			OnNoteRemoved?.Invoke(note);
-		}
-	}
+    void INoteContainer<Note>.OnNoteRemoved(Note note)
+    {
+		SaveManager.Instance.HasChanges = true;
+		OnNoteRemoved?.Invoke(note);
+    }
 }
