@@ -36,8 +36,8 @@ public class LeverSequenceRenderer : NoteRenderer<LeverSequence>, IPointerClickH
 
     protected override void OnDestroy()
     {
-        base.Awake();
-        
+        base.OnDestroy();
+
         LeverSequence.OnLeverNoteAdded -= AddNote;
     }
 

@@ -50,10 +50,8 @@ public class LeverSequenceInspector : NoteInspector<LeverSequence>
         LeverSequence.OnLeverNoteAdded += AddLeverNoteInspector;
     }
 
-    protected override void OnDestroy()
+    void OnDestroy()
     {
-        base.OnDestroy();
-
         LeverSequence.OnLeverNoteAdded -= AddLeverNoteInspector;
     }
 
