@@ -38,7 +38,6 @@ public class Track : MonoBehaviour
 
     void Start()
     {
-        Debug.Log("Track start");
         ReloadBeatMarkers();
         Reload();
     }

@@ -16,14 +16,14 @@ public class NoteRenderer<NoteType> : MonoBehaviour where NoteType : Note
 
         // GameManager.OnNoteHit += OnNoteHit;
         // GameManager.OnNoteMissed += OnNoteMissed;
-        SaveManager.OnChartLoaded += DestroyOnChartLoaded;
-        Chart.OnNoteRemoved += DestroyOnNoteRemoved;
     }
 
     protected virtual void OnDestroy()
     {
         // GameManager.OnNoteHit -= OnNoteHit;
         // GameManager.OnNoteMissed -= OnNoteMissed;
+        SaveManager.OnChartLoaded += DestroyOnChartLoaded;
+        Chart.OnNoteRemoved += DestroyOnNoteRemoved;
         SaveManager.OnChartLoaded -= DestroyOnChartLoaded;
         Chart.OnNoteRemoved -= DestroyOnNoteRemoved;
     }
@@ -38,10 +38,16 @@ public class NoteRenderer<NoteType> : MonoBehaviour where NoteType : Note
         
     }
 
-    void DestroyOnChartLoaded(string _) => Destroy(gameObject);
+    void DestroyOnChartLoaded(string _)
+    {
+        Destroy(gameObject);
+    }
 
     void DestroyOnNoteRemoved(Note note)
     {
-        if (note == Note) Destroy(gameObject);
+        if (note == Note)
+        {
+            Destroy(gameObject);
+        }
     }
 }

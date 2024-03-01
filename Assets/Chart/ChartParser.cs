@@ -8,6 +8,20 @@ using UnityEngine;
 
 public class ChartParser
 {
+	public class ChartParseException : Exception
+	{
+		public readonly uint Line;
+		public readonly Exception Cause;
+
+        public override string Message => $"Exception caused by line {Line} of chart. Error message: {Cause.Message}";
+
+        public ChartParseException(uint line, Exception cause)
+		{
+			Line = line;
+			Cause = cause;
+		}
+	}
+
 	uint bpm = 120;
 	int offset = 0;
 	readonly List<Note> notes = new();
@@ -64,7 +78,7 @@ public class ChartParser
 			}
 			catch (Exception e)
 			{
-				throw new ArgumentException($"Exception caused by line {lineNum} of chart. Error message: {e.Message}");
+				throw new ChartParseException(lineNum, e);
 			}
 		}
 		reader.Close();

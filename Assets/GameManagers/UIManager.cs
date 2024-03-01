@@ -29,6 +29,13 @@ public class UIManager : MonoBehaviour
     void Awake()
     {
         Instance = this;
+
+        SaveManager.OnChartLoaded += DeselectOnChartLoaded;
+    }
+
+    void OnDestroy()
+    {
+        SaveManager.OnChartLoaded -= DeselectOnChartLoaded;
     }
 
     public AlertDialog ShowAlert(string title, string message)
@@ -38,6 +45,8 @@ public class UIManager : MonoBehaviour
         alert.Message = message;
         return alert;
     }
+
+    public void DeselectOnChartLoaded(string chart) => SelectNote(null);
 
     public void SelectNote(Note note) => OnNoteSelected?.Invoke(note);
 }

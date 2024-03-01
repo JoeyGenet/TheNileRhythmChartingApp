@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -67,7 +66,7 @@ public class LeverSequenceInspector : NoteInspector<LeverSequence>
         // Update note list
         foreach (var inspector in leverNoteInspectors.GetComponentsInChildren<LeverNoteInspector>())
         {
-            Destroy(inspector.gameObject);
+            DestroyImmediate(inspector.gameObject);
         }
         foreach (LeverNote note in Note.Notes)
         {

@@ -2,8 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
-public class LeverSequenceRenderer : NoteRenderer<LeverSequence>
+public class LeverSequenceRenderer : NoteRenderer<LeverSequence>, IPointerClickHandler
 {
     [SerializeField] RectTransform line;
     [SerializeField] LeverNoteRenderer leverNotePrefab;
@@ -23,7 +24,7 @@ public class LeverSequenceRenderer : NoteRenderer<LeverSequence>
         print("LeverSequenceRenderer OnNoteMissed() signal!!");
 
         //despawn note
-        gameObject.SetActive(false);
+        // gameObject.SetActive(false);
     }
 
     protected override void Awake()
@@ -35,6 +36,8 @@ public class LeverSequenceRenderer : NoteRenderer<LeverSequence>
 
     protected override void OnDestroy()
     {
+        base.Awake();
+        
         LeverSequence.OnLeverNoteAdded -= AddNote;
     }
 
@@ -67,5 +70,10 @@ public class LeverSequenceRenderer : NoteRenderer<LeverSequence>
             var leverNoteRenderer = Instantiate(leverNotePrefab, rect);
             leverNoteRenderer.Note = leverNote;
         }
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        UIManager.Instance.SelectNote(Note);
     }
 }

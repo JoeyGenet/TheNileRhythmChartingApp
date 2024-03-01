@@ -1,7 +1,7 @@
 
 public class WheelTurn : Note<WheelSequence, WheelTurn>
 {
-	public override int StartTime => PreviousTurn.EndTime;
+	public override int StartTime => EndTime; // TODO: use PreviousTurn.EndTime
 	public override int EndTime { get; }
 
 	public readonly int startAngle; // TODO: remove this. calculate in wheel sequence
