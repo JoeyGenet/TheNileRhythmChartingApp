@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class WheelSequenceRenderer : NoteRenderer<WheelSequence>
@@ -11,8 +12,7 @@ public class WheelSequenceRenderer : NoteRenderer<WheelSequence>
     private ParticleSystem wheelTurnParticleSystem;
     [SerializeField] Color color;
 
-    public int startAngle;
-    public int deltaAngle;
+    readonly List<UILine> lines = new();
 
     // public override void OnNoteHit(Note note, JudgementGrade grade, int points)
     // {
@@ -47,7 +47,6 @@ public class WheelSequenceRenderer : NoteRenderer<WheelSequence>
         gameObject.SetActive(false);
     }
 
-    // Start is called before the first frame update
     void Start()
     {
         // var turn = new WheelTurn(null, 5000, startAngle, deltaAngle);
@@ -60,31 +59,45 @@ public class WheelSequenceRenderer : NoteRenderer<WheelSequence>
         //     l.pos1 = PlaybackManager.Instance.TrackToUIPosition(pos1, time1);
         //     l.pos2 = PlaybackManager.Instance.TrackToUIPosition(pos2, time2);
         // }
+        // new WheelSequence(null, 500, 50, new() { 180 }, new() { 1000 }).ComputeLines();
+        // new WheelSequence(null, 1000, 25, new() { 90, 0, -90 }, new() { 2000, 3000, 4000 }).ComputeLines();
     }
 
-    // Update is called once per frame
     void Update()
     {
-        var turn = new WheelTurn(null, 5000, startAngle, deltaAngle);
-        turn.StartTime = 1000;
-        var lines = turn.ComputeLines();
-        var uiLines = GetComponentsInChildren<UILine>().ToList();
-        for (int i = uiLines.Count; i < lines.Count; i++)
+        // return;
+        // Update lines
+        var lineSequences = Note.ComputeLines();
+		// foreach (var line in lineSequences) Debug.Log(string.Join(", ", line));
+        var linePositions = lineSequences.SelectMany(lineSequence =>
+        {
+            List<(int pos1, int time1, int pos2, int time2)> positions = new();
+            for (int i = 0; i < lineSequence.Count-1; i++)
+            {
+                positions.Add((lineSequence[i].pos, lineSequence[i].time, lineSequence[i+1].pos, lineSequence[i+1].time));
+            }
+            return positions;
+        }).ToList();
+        
+        // Instantiate more lines if not enough
+        for (int i = lines.Count; i < linePositions.Count; i++)
         {
             var line = Instantiate(linePrefab, rect);
             line.Image.color = color;
-            uiLines.Add(line);
+            lines.Add(line);
         }
-        for (int i = lines.Count; i < uiLines.Count; i++)
+        // Destroy any extra lines
+        for (int i = lines.Count-1; i >= linePositions.Count; i--)
         {
-            Destroy(uiLines[i].gameObject);
+            Destroy(lines[i]);
+            lines.RemoveAt(i);
         }
-        for (int i = 0; i < lines.Count; i++)
+        // Update line positions
+        for (int i = 0; i < linePositions.Count; i++)
         {
-            var (pos1, time1, pos2, time2) = lines[i];
-            // Debug.Log($"{pos1} {time1} {pos2} {time2}");
-            uiLines[i].pos1 = PlaybackManager.Instance.TrackToUIPosition(pos1, time1);
-            uiLines[i].pos2 = PlaybackManager.Instance.TrackToUIPosition(pos2, time2);
+            var (pos1, time1, pos2, time2) = linePositions[i];
+            lines[i].pos1 = PlaybackManager.Instance.TrackToUIPosition(pos1, time1);
+            lines[i].pos2 = PlaybackManager.Instance.TrackToUIPosition(pos2, time2);
         }
 
 

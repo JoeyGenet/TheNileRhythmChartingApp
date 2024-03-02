@@ -24,7 +24,7 @@ public class Chart : INoteContainer<Note>
     }
 	public IReadOnlyCollection<Note> Notes => notes;
 
-    public SortedSet<Note> notes;
+    readonly SortedSet<Note> notes;
 
 	public Chart(uint bpm = 120, int offset = 0)
 	{

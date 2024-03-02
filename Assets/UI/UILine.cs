@@ -8,6 +8,8 @@ public class UILine : MonoBehaviour
 {
     RectTransform rect;
     Image image;
+
+    public RectTransform Rect => rect;
     public Image Image => image;
 
     public Vector2 pos1 = Vector2.one / 2;

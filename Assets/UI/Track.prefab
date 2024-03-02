@@ -257,6 +257,7 @@ MonoBehaviour:
   buttonNotePrefab: {fileID: 8250355419979038307, guid: 3766dda0e061f4a438c32214d6144ac4, type: 3}
   wheelFlickPrefab: {fileID: 4520919762027920641, guid: 16ab57f263ed0384aa3b9fa7dde487f8, type: 3}
   leverSequencePrefab: {fileID: 7615364491652198070, guid: faa1f754247f248a7a6a0ec96328c5fc, type: 3}
+  wheelSequencePrefab: {fileID: 4971912979019623520, guid: 39e91dc69677406469c52a5c98833c86, type: 3}
   mainBeatMarkerPrefab: {fileID: 4313033571829201881, guid: 6041b14bc4a494388aa0e207520499b9, type: 3}
   minorBeatMarkerPrefab: {fileID: 5825311411025553743, guid: f35b19b59835140c299840cdde0a5425, type: 3}
   maxMainBeatMarkers: 50

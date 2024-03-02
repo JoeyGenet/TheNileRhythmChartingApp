@@ -50,5 +50,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   linePrefab: {fileID: 8679464749577356383, guid: 224bf23625a504a3e898b55b3e102338, type: 3}
   wheelTurnParticles: {fileID: 0}
-  startAngle: 90
-  deltaAngle: -180
+  color: {r: 1, g: 0.87025803, b: 0.25943398, a: 1}

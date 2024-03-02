@@ -17,6 +17,7 @@ public class Track : MonoBehaviour
     [SerializeField] ButtonNoteRenderer buttonNotePrefab;
     [SerializeField] WheelFlickRenderer wheelFlickPrefab;
     [SerializeField] LeverSequenceRenderer leverSequencePrefab;
+    [SerializeField] WheelSequenceRenderer wheelSequencePrefab;
 
     [Header("Beat Markers")]
     [SerializeField] BeatMarker mainBeatMarkerPrefab;
@@ -127,6 +128,8 @@ public class Track : MonoBehaviour
                 wheelFlickRenderer.Note = flick;
                 break;
             case WheelSequence wheelSeq:
+                var wheelSequenceRenderer = Instantiate(wheelSequencePrefab, mainTrackArea);
+                wheelSequenceRenderer.Note = wheelSeq;
                 break;
             case LeverSequence leverSeq:
                 var leverSequenceRenderer = Instantiate(leverSequencePrefab, leverTrackArea);

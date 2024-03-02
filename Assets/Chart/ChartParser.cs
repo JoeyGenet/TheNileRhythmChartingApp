@@ -21,10 +21,7 @@ public class ChartParser
 			Cause = cause;
 		}
 	}
-
-	uint bpm = 120;
-	int offset = 0;
-	readonly List<Note> notes = new();
+	
 	Chart chart;
 
     readonly StreamReader reader;
@@ -65,14 +62,14 @@ public class ChartParser
 				{
 					case "bpm":
 						AssertArgCount(2, "BPM");
-						bpm = uint.Parse(args[1]);
+						chart.BPM = uint.Parse(args[1]);
 						break;
 					case "offset":
 						AssertArgCount(2, "Offset");
-						offset = int.Parse(args[1]);
+						chart.Offset = int.Parse(args[1]);
 						break;
 					default:
-						notes.Add(ParseNote());
+						chart.AddNote(ParseNote());
 						break;
 				}
 			}
@@ -83,11 +80,7 @@ public class ChartParser
 		}
 		reader.Close();
 
-		Debug.Log("notes in chart (not including notes inside sequences): " + notes.Count);
-
-		chart.BPM = bpm;
-		chart.Offset = offset;
-		chart.notes = new(notes);
+		Debug.Log("notes in chart (not including notes inside sequences): " + chart.Notes.Count);
 		
 		SaveManager.Instance.HasChanges = prevHasChanges;
 		return chart;
