@@ -964,6 +964,11 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!224 &678567329 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 603213738010275416, guid: 0064a68c69d3640a8b09fb13341469ce, type: 3}
+  m_PrefabInstance: {fileID: 1975742160}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &849040229
 GameObject:
   m_ObjectHideFlags: 0
@@ -1527,6 +1532,58 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 7854190221958985489, guid: 2c78b4191955b4741802d0abbf3b2afb, type: 3}
   m_PrefabInstance: {fileID: 1474590440}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1638198294
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1638198295}
+  - component: {fileID: 1638198296}
+  m_Layer: 5
+  m_Name: WheelSequence
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1638198295
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1638198294}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 678567329}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1638198296
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1638198294}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 45f2e9c595432cc428a56399b7d87629, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  linePrefab: {fileID: 8679464749577356383, guid: 224bf23625a504a3e898b55b3e102338, type: 3}
+  wheelTurnParticles: {fileID: 0}
+  startAngle: 90
+  deltaAngle: -180
 --- !u!1001 &1681612423
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1823,7 +1880,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 603213738010275416, guid: 0064a68c69d3640a8b09fb13341469ce, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1638198295}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0064a68c69d3640a8b09fb13341469ce, type: 3}
 --- !u!224 &1975742161 stripped
@@ -1881,6 +1941,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2086153273396741173, guid: 2525cf3074ebf4f50a601eb2c756d05e, type: 3}
       propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2086153273396741173, guid: 2525cf3074ebf4f50a601eb2c756d05e, type: 3}
+      propertyPath: m_AnchorMin.y
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2362769860695201911, guid: 2525cf3074ebf4f50a601eb2c756d05e, type: 3}

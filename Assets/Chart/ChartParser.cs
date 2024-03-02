@@ -239,7 +239,7 @@ public class ChartParser
 				ButtonNote b => $"B {b.StartTime} {b.LeftPos}" + (b.RightPos == null ? "" : $" {b.RightPos}"),
 				WheelFlick f => $"F {f.StartTime} {lrToString(f.Dir)}",
 				WheelSequence w => $"W {w.StartTime} {w.Pos}" +
-					w.Notes.Aggregate("", (s, t) => s + $" {t.deltaAngle} {t.EndTime}"),
+					w.Notes.Aggregate("", (s, t) => s + $" {t.DeltaAngle} {t.EndTime}"),
 				LeverSequence l => $"L {lrToString(l.Dir)}" +
 					l.Notes.Aggregate("", (s, n) => s + $" {n.StartTime} {leverPosToString(n.Pos)}"),
 				_ => throw new Exception($"Unable to serialize note {note}"),

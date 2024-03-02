@@ -47,7 +47,7 @@ public class SaveManager : MonoBehaviour
         ChartParser.Write(Chart, path);
         ChartPath = path;
         HasChanges = false;
-        OnChartLoaded?.Invoke(path);
+        OnChartSaved?.Invoke(path);
     }
 
     public static bool RegisterChange<T>(ref T value, T newValue)

@@ -1,14 +1,18 @@
-using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
+using System.Linq;
 using UnityEngine;
 
 public class WheelSequenceRenderer : NoteRenderer<WheelSequence>
 {
     // public WheelSequence Note;
-    [SerializeField] public List<LineRenderer> lineRenderers;
-    [SerializeField] private GameObject wheelTurnParticles;
+    // [SerializeField] public List<LineRenderer> lineRenderers;
+    [SerializeField] UILine linePrefab;
+    [SerializeField] GameObject wheelTurnParticles;
     private ParticleSystem wheelTurnParticleSystem;
+    [SerializeField] Color color;
+
+    public int startAngle;
+    public int deltaAngle;
 
     // public override void OnNoteHit(Note note, JudgementGrade grade, int points)
     // {
@@ -46,50 +50,83 @@ public class WheelSequenceRenderer : NoteRenderer<WheelSequence>
     // Start is called before the first frame update
     void Start()
     {
-        wheelTurnParticleSystem = wheelTurnParticles.GetComponent<ParticleSystem>();
+        // var turn = new WheelTurn(null, 5000, startAngle, deltaAngle);
+        // turn.StartTime = 1000;
+        // var lines = turn.ComputeLines();
+        // foreach (var (pos1, time1, pos2, time2) in lines)
+        // {
+        //     var l = Instantiate(linePrefab, rect);
+        //     Debug.Log($"{pos1} {time1} {pos2} {time2}");
+        //     l.pos1 = PlaybackManager.Instance.TrackToUIPosition(pos1, time1);
+        //     l.pos2 = PlaybackManager.Instance.TrackToUIPosition(pos2, time2);
+        // }
     }
 
     // Update is called once per frame
     void Update()
     {
-        //remove the first line renderer if it has no points
-        if (lineRenderers[0].positionCount <= 1)
+        var turn = new WheelTurn(null, 5000, startAngle, deltaAngle);
+        turn.StartTime = 1000;
+        var lines = turn.ComputeLines();
+        var uiLines = GetComponentsInChildren<UILine>().ToList();
+        for (int i = uiLines.Count; i < lines.Count; i++)
         {
-            lineRenderers[0].gameObject.SetActive(false);
-            lineRenderers.RemoveAt(0);
+            var line = Instantiate(linePrefab, rect);
+            line.Image.color = color;
+            uiLines.Add(line);
         }
-        //consider the closest point in the first line renderer
-        else
+        for (int i = lines.Count; i < uiLines.Count; i++)
         {
-            //calculate positions and times of each point in the turn
-            Vector3 closestPoint = lineRenderers[0].GetPosition(0);
-            Vector3 nextClosestPoint = lineRenderers[0].GetPosition(1);
-            float time = (closestPoint.y * 200f) + Note.StartTime;
-            float nextTime = (nextClosestPoint.y * 200f) + Note.StartTime;
-
-            //if it is past the time this point should hit the end of the track,
-            //move the point along the line to the next
-            //if the next point up is past the line, remove the first
-            if (nextTime < PlaybackManager.Instance.MillisecondsInChart)
-            {
-                for (int i=0; i<lineRenderers[0].positionCount-1; i++)
-                {
-                    lineRenderers[0].SetPosition(i, lineRenderers[0].GetPosition(i+1));
-                }
-                lineRenderers[0].positionCount --;
-            }
-            else if (time <= PlaybackManager.Instance.MillisecondsInChart)
-            {
-                Vector3 toNextClosestPoint = nextClosestPoint - closestPoint;
-                float timeDifference = nextTime - time;
-                float ratio = (PlaybackManager.Instance.MillisecondsInChart-time)/(timeDifference);
-                Vector3 newPos = (1-ratio)*closestPoint + (ratio)*nextClosestPoint;
-                lineRenderers[0].SetPosition(0, newPos); 
-                // wheelTurnParticleSystem.Play();
-                wheelTurnParticles.transform.localPosition = newPos; //new Vector3(newPos.x, 0, 0);
-            }
+            Destroy(uiLines[i].gameObject);
+        }
+        for (int i = 0; i < lines.Count; i++)
+        {
+            var (pos1, time1, pos2, time2) = lines[i];
+            // Debug.Log($"{pos1} {time1} {pos2} {time2}");
+            uiLines[i].pos1 = PlaybackManager.Instance.TrackToUIPosition(pos1, time1);
+            uiLines[i].pos2 = PlaybackManager.Instance.TrackToUIPosition(pos2, time2);
         }
 
-        transform.position = RenderingManager.Instance.TrackToWorldPosition(50, Note.StartTime);
+
+
+        // //remove the first line renderer if it has no points
+        // if (lineRenderers[0].positionCount <= 1)
+        // {
+        //     lineRenderers[0].gameObject.SetActive(false);
+        //     lineRenderers.RemoveAt(0);
+        // }
+        // //consider the closest point in the first line renderer
+        // else
+        // {
+        //     //calculate positions and times of each point in the turn
+        //     Vector3 closestPoint = lineRenderers[0].GetPosition(0);
+        //     Vector3 nextClosestPoint = lineRenderers[0].GetPosition(1);
+        //     float time = (closestPoint.y * 200f) + Note.StartTime;
+        //     float nextTime = (nextClosestPoint.y * 200f) + Note.StartTime;
+
+        //     //if it is past the time this point should hit the end of the track,
+        //     //move the point along the line to the next
+        //     //if the next point up is past the line, remove the first
+        //     if (nextTime < PlaybackManager.Instance.MillisecondsInChart)
+        //     {
+        //         for (int i=0; i<lineRenderers[0].positionCount-1; i++)
+        //         {
+        //             lineRenderers[0].SetPosition(i, lineRenderers[0].GetPosition(i+1));
+        //         }
+        //         lineRenderers[0].positionCount --;
+        //     }
+        //     else if (time <= PlaybackManager.Instance.MillisecondsInChart)
+        //     {
+        //         Vector3 toNextClosestPoint = nextClosestPoint - closestPoint;
+        //         float timeDifference = nextTime - time;
+        //         float ratio = (PlaybackManager.Instance.MillisecondsInChart-time)/(timeDifference);
+        //         Vector3 newPos = (1-ratio)*closestPoint + (ratio)*nextClosestPoint;
+        //         lineRenderers[0].SetPosition(0, newPos); 
+        //         // wheelTurnParticleSystem.Play();
+        //         wheelTurnParticles.transform.localPosition = newPos; //new Vector3(newPos.x, 0, 0);
+        //     }
+        // }
+
+        // transform.position = RenderingManager.Instance.TrackToWorldPosition(50, Note.StartTime);
     }
 }
