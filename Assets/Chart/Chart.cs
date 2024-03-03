@@ -37,8 +37,8 @@ public class Chart : INoteContainer<Note>
 	}
 
 
-	public int BeatToTime(float beat) => (int) (beat * 60000f / BPM);
-	public float TimeToBeat(int time) => time * BPM / 60000f;
+	public int BeatToTime(float beat) => (int) (beat * 60000f / BPM) + Offset;
+	public float TimeToBeat(int time) => (time - Offset) * BPM / 60000f;
 
 	public bool AddNoteWithoutNotify(Note note) => notes.Add(note);
 	public bool RemoveNoteWithoutNotify(Note note) => notes.Remove(note);
