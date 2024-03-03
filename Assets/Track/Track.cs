@@ -7,8 +7,11 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
 
-public class Track : MonoBehaviour
+public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
+    [Tooltip("Amount of view moved for every scroll unit")]
+    public float ScrollSpeed = 0.1f;
+
     [Header("Track Areas")]
     [SerializeField] RectTransform mainTrackArea;
     [SerializeField] RectTransform leverTrackArea;
@@ -26,8 +29,11 @@ public class Track : MonoBehaviour
     [SerializeField] int maxMainBeatMarkers = 50;
     [SerializeField] int maxMinorBeatMarkers = 50;
 
+    bool isPointerOverTrack = false;
+
     void Awake()
     {
+        // VisualElement
         SaveManager.OnChartLoaded += Reload;
         Chart.OnNoteAdded += AddNote;
     }
@@ -129,6 +135,15 @@ public class Track : MonoBehaviour
         }
     }
 
+    void OnGUI()
+    {
+        int scrollAmount = (int) (PlaybackManager.Instance.ViewSize * Input.mouseScrollDelta.y * ScrollSpeed);
+        if (scrollAmount != 0)
+        {
+            PlaybackManager.Instance.SetTimestamp(PlaybackManager.Instance.MillisecondsInChart + scrollAmount);
+        }
+    }
+
     void AddNote(Note note)
     {
         switch (note)
@@ -153,4 +168,7 @@ public class Track : MonoBehaviour
                 throw new System.Exception($"Spawning of note {note} not supported");
         }
     }
+
+    public void OnPointerEnter(PointerEventData eventData) => isPointerOverTrack = true;
+    public void OnPointerExit(PointerEventData eventData) => isPointerOverTrack = false;
 }

@@ -251,6 +251,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 87b1cca7e9bfe44bbaf17e59c2f0d887, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ScrollSpeed: 0.05
   mainTrackArea: {fileID: 603213738010275416}
   leverTrackArea: {fileID: 886424764403819448}
   beatMarkers: {fileID: 954906750186481495}

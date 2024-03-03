@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -63,9 +64,8 @@ public class PlaybackManager : MonoBehaviour
             int currentTime = (int)(Time.time * 1000);
             if (currentTime - lastSyncTime > syncInterval)
             {
+                lastSyncTimeInChart = CurrentSong != null ? (int) (audioSource.time * 1000) + Offset : MillisecondsInChart;
                 lastSyncTime = currentTime;
-                lastSyncTimeInChart = (int) (audioSource.time * 1000) + Offset;
-
             }
             if (MillisecondsInChart > CurrentSongLength)
             {
@@ -78,6 +78,7 @@ public class PlaybackManager : MonoBehaviour
     public void ClearSong()
     {
         audioSource.clip = null;
+        SongPath = null;
         Pause();
         SetTimestamp(0);
     }
@@ -114,6 +115,7 @@ public class PlaybackManager : MonoBehaviour
 
     public void SetTimestamp(int time)
     {
+        time = Math.Clamp(time, 0, CurrentSongLength);
         if (CurrentSong != null)
         {
             audioSource.time = (time - Offset) / 1000f;
