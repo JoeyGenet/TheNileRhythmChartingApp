@@ -1,8 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Networking;
 
 [RequireComponent(typeof(AudioSource))]
 public class PlaybackManager : MonoBehaviour
@@ -13,6 +16,9 @@ public class PlaybackManager : MonoBehaviour
     
     int lastSyncTime = 0;
     int lastSyncTimeInChart = 0;
+
+    [Tooltip("How often (in ms) the song playback is synced with the game time")]
+    [SerializeField] int syncInterval = 500;
 
     public int MillisecondsInChart => IsPaused 
         ? lastSyncTimeInChart
@@ -33,24 +39,13 @@ public class PlaybackManager : MonoBehaviour
 
     public uint ViewSize = 5000; // Number of milliseconds the view contains
 
-    [Header("Song")]
-    [SerializeField] List<AudioClip> songs;
-    public IReadOnlyList<AudioClip> Songs => songs;
-    int currentSong;
-    public int CurrentSong
-    {
-        get => currentSong;
-        set
-        {
-            currentSong = value;
-            audioSource.clip = currentSong == -1 ? null : Songs[currentSong];
-            Pause();
-            SetTimestamp(0);
-        }
-    }
-    public int CurrentSongLength => CurrentSong == -1
+    public string SongPath { get; private set; } = null;
+    public string SongDir => SongPath == null ? null : Path.GetDirectoryName(SongPath);
+
+    public AudioClip CurrentSong => audioSource.clip;
+    public int CurrentSongLength => CurrentSong == null
         ? SaveManager.Instance.Chart.Notes.Aggregate(10000, (a, n) => Math.Max(a, n.EndTime))
-        : (int) (Songs[CurrentSong].length * 1000);
+        : (int) (CurrentSong.length * 1000);
     
     AudioSource audioSource;
 
@@ -63,20 +58,63 @@ public class PlaybackManager : MonoBehaviour
 
     void Update()
     {
-        if (!IsPaused && MillisecondsInChart > CurrentSongLength)
+        if (!IsPaused)
         {
-            SetTimestamp(CurrentSongLength);
-            Pause();
+            int currentTime = (int)(Time.time * 1000);
+            if (currentTime - lastSyncTime > syncInterval)
+            {
+                lastSyncTime = currentTime;
+                lastSyncTimeInChart = (int) (audioSource.time * 1000) + Offset;
+
+            }
+            if (MillisecondsInChart > CurrentSongLength)
+            {
+                SetTimestamp(CurrentSongLength);
+                Pause();
+            }
         }
     }
-
-    void SyncTime()
+    
+    public void ClearSong()
     {
+        audioSource.clip = null;
+        Pause();
+        SetTimestamp(0);
+    }
+
+    public async Task LoadSong(string path)
+    {
+        var audioType = path[(path.LastIndexOf('.') + 1)..].ToLower() switch
+        {
+            "wav" => AudioType.WAV,
+            "mp3" or "mp2" => AudioType.MPEG,
+            "ogg" => AudioType.OGGVORBIS,
+            "aiff" => AudioType.AIFF,
+            _ => throw new Exception($"The audio file format of {path} is not supported"),
+        };
+
+        using UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip("file://" + path, audioType);
+        uwr.SendWebRequest();
+
+        while (!uwr.isDone) await Task.Delay(5);
+        audioSource.clip = null;
+
+        if (uwr.result != UnityWebRequest.Result.Success)
+        {
+            throw new Exception(uwr.error);
+        }
+        else
+        {
+            audioSource.clip = DownloadHandlerAudioClip.GetContent(uwr);
+            SongPath = path;
+            Pause();
+            SetTimestamp(0);
+        }
     }
 
     public void SetTimestamp(int time)
     {
-        if (currentSong != -1)
+        if (CurrentSong != null)
         {
             audioSource.time = (time - Offset) / 1000f;
         }
@@ -87,7 +125,7 @@ public class PlaybackManager : MonoBehaviour
     public void Play()
     {
         if (!IsPaused) return;
-        if (currentSong != -1)
+        if (CurrentSong != null)
         {
             audioSource.time = (lastSyncTimeInChart - Offset) / 1000f;
             audioSource.Play();
@@ -99,7 +137,7 @@ public class PlaybackManager : MonoBehaviour
     public void Pause()
     {
         if (IsPaused) return;
-        if (currentSong != -1)
+        if (CurrentSong != null)
         {
             audioSource.time = (MillisecondsInChart - Offset) / 1000f;
             audioSource.Pause();
