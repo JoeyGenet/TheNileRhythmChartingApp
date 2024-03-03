@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,8 +42,16 @@ public class WheelSequenceInspector : NoteInspector<WheelSequence>
         {
             int endTime = Note.EndTime + SaveManager.Instance.Chart.BeatToTime(1); // place 1 beat after last note
             // TODO: maybe place same distance as prev 2 notes?
-            Debug.Log("Add button clicked");
-            Note.AddNote(new WheelTurn(Note, endTime, 0));
+
+            try
+            {
+                Note.AddNote(new WheelTurn(Note, endTime, 0));
+            }
+            catch (Exception e)
+            {
+                UIManager.Instance.ShowAlert("Exception While Adding Wheel Turn", $"Note may not have been added.\n{e.Message}");
+                Debug.LogException(e);
+            }
         });
 
         WheelSequence.OnWheelTurnAdded += AddWheelTurnInspector;
@@ -70,7 +79,6 @@ public class WheelSequenceInspector : NoteInspector<WheelSequence>
 
     void AddWheelTurnInspector(WheelSequence sequence, WheelTurn note)
     {
-        Debug.Log($"Add inspector {note}");
         if (sequence == Note)
         {
             var wheelTurnInspector = Instantiate(wheelTurnInspectorPrefab, wheelTurnInspectors);

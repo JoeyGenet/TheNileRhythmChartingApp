@@ -38,7 +38,16 @@ public class LeverNoteInspector : MonoBehaviour
 
         deleteButton.onClick.AddListener(() =>
         {
-            Note.Container.RemoveNote(Note);
+            var note = Note;
+            try
+            {
+                Note.Container.RemoveNote(Note);
+            }
+            catch (Exception e)
+            {
+                UIManager.Instance.ShowAlert("Exception While Deleting Lever Note", $"Note {note} may not have been deleted.\n{e.Message}");
+                Debug.LogException(e);
+            }
         });
 
         LeverSequence.OnLeverNoteRemoved += RemoveNote;

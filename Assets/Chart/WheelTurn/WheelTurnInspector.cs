@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -36,7 +37,17 @@ public class WheelTurnInspector : MonoBehaviour
 
         deleteButton.onClick.AddListener(() =>
         {
-            Note.Container.RemoveNote(Note);
+
+            var note = Note;
+            try
+            {
+                Note.Container.RemoveNote(Note);
+            }
+            catch (Exception e)
+            {
+                UIManager.Instance.ShowAlert("Exception While Deleting Wheel Turn", $"Note {note} may not have been deleted.\n{e.Message}");
+                Debug.LogException(e);
+            }
         });
 
         WheelSequence.OnWheelTurnRemoved += RemoveNote;

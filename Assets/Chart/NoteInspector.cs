@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -24,8 +25,17 @@ public class NoteInspector<NoteType> : MonoBehaviour where NoteType : Note
         if (Note != null && !UIManager.IsSelectingInputField && 
             (Input.GetKeyUp(KeyCode.Backspace) || Input.GetKeyUp(KeyCode.Delete)))
         {
-            SaveManager.Instance.Chart.RemoveNote(Note);
-            ShowHide(null);
+            var note = Note;
+            try
+            {
+                SaveManager.Instance.Chart.RemoveNote(Note);
+                ShowHide(null);
+            }
+            catch (Exception e)
+            {
+                UIManager.Instance.ShowAlert("Exception While Deleting Note", $"Note {note} may not have been deleted.\n{e.Message}");
+                Debug.LogException(e);
+            }
         }
     }
 
@@ -36,8 +46,17 @@ public class NoteInspector<NoteType> : MonoBehaviour where NoteType : Note
         if (note is NoteType myNote)
         {
             Note = myNote;
-            OnShow();
-            gameObject.SetActive(true);
+            try
+            {
+                OnShow();
+                gameObject.SetActive(true);
+            }
+            catch (Exception e)
+            {
+                Note = null;
+                UIManager.Instance.ShowAlert("Exception While Showing Inspector", $"Tried to show inspector for {myNote}\n{e.Message}");
+                Debug.LogException(e);
+            }
         }
         else
         {

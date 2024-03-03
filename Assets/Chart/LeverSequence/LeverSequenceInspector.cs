@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,7 +45,16 @@ public class LeverSequenceInspector : NoteInspector<LeverSequence>
             int time = lastNote.EndTime + SaveManager.Instance.Chart.BeatToTime(1); // place 1 beat after last note
             // TODO: maybe place same distance as prev 2 notes?
             LeverPos pos = lastNote.Pos == LeverPos.Middle ? LeverPos.Left : LeverPos.Middle;
-            Note.AddNote(new LeverNote(Note, time, pos));
+            try
+            {
+                Note.AddNote(new LeverNote(Note, time, pos));
+            }
+            catch (Exception e)
+            {
+                UIManager.Instance.ShowAlert("Exception While Adding Lever Note", $"Note may not have been added.\n{e.Message}");
+                Debug.LogException(e);
+            }
+            
         });
 
         LeverSequence.OnLeverNoteAdded += AddLeverNoteInspector;

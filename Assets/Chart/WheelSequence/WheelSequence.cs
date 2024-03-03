@@ -52,10 +52,8 @@ public class WheelSequence : TimedNote<Chart, Note>, INoteContainer<WheelTurn>
 
 	public bool AddNoteWithoutNotify(WheelTurn note)
 	{
-		Debug.Log($"Adding note: {note}\n{this}");
 		// Note will be inserted between these 2 notes:
 		WheelTurn prevTurn = notes.GetViewBetween(DummyWheelTurn.Min, note).Max;
-		// Debug.Log($"PrevTurn: {prevTurn}");
 		WheelTurn nextTurn = prevTurn == null ? notes.Min : prevTurn.NextTurn;
 
 		// Update linked list
@@ -66,14 +64,7 @@ public class WheelSequence : TimedNote<Chart, Note>, INoteContainer<WheelTurn>
 
 		note.RecomputeStartAngle();
 
-		Debug.Log($"Setup linked list: {note}\n{this}");
-		
-		bool b = notes.Add(note);
-
-		Debug.Log($"Note added: {b}");
-		Debug.Log($"Note added: {note}\n{this}");
-
-		return b;
+		return notes.Add(note);
 	}
 	public bool RemoveNoteWithoutNotify(WheelTurn note)
 	{

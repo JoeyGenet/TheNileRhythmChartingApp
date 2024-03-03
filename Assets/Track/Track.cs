@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -117,7 +118,15 @@ public class Track : MonoBehaviour
 
     void Update()
     {
-        AddNoteOnKeyPress();
+        try
+        {
+            AddNoteOnKeyPress();
+        }
+        catch (Exception e)
+        {
+            UIManager.Instance.ShowAlert("Exception While Adding Note", $"Note may not have been added.\n{e.Message}");
+            Debug.LogException(e);
+        }
     }
 
     void AddNote(Note note)
