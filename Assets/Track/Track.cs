@@ -17,6 +17,7 @@ public class Track : MonoBehaviour
     [SerializeField] ButtonNoteRenderer buttonNotePrefab;
     [SerializeField] WheelFlickRenderer wheelFlickPrefab;
     [SerializeField] LeverSequenceRenderer leverSequencePrefab;
+    [SerializeField] WheelSequenceRenderer wheelSequencePrefab;
 
     [Header("Beat Markers")]
     [SerializeField] BeatMarker mainBeatMarkerPrefab;
@@ -100,7 +101,12 @@ public class Track : MonoBehaviour
             addedNote = new WheelFlick(chart, time, pos < 50 ? LeftRight.Left : LeftRight.Right);
             chart.AddNote(addedNote);
         }
-        if (Input.GetKeyUp(KeyCode.Alpha3) || Input.GetKeyUp(KeyCode.L))
+        if (Input.GetKeyUp(KeyCode.Alpha3) || Input.GetKeyUp(KeyCode.W))
+        {
+            addedNote = new WheelSequence(chart, time, pos, new() { (0, time + SaveManager.Instance.Chart.BeatToTime(1)) });
+            chart.AddNote(addedNote);
+        }
+        if (Input.GetKeyUp(KeyCode.Alpha4) || Input.GetKeyUp(KeyCode.L))
         {
             addedNote = new LeverSequence(chart, pos < 50 ? LeftRight.Left : LeftRight.Right, new() { (time, LeverPos.Left) });
             chart.AddNote(addedNote);
@@ -127,6 +133,8 @@ public class Track : MonoBehaviour
                 wheelFlickRenderer.Note = flick;
                 break;
             case WheelSequence wheelSeq:
+                var wheelSequenceRenderer = Instantiate(wheelSequencePrefab, mainTrackArea);
+                wheelSequenceRenderer.Note = wheelSeq;
                 break;
             case LeverSequence leverSeq:
                 var leverSequenceRenderer = Instantiate(leverSequencePrefab, leverTrackArea);

@@ -4,6 +4,9 @@ public interface INoteContainer<NoteType> where NoteType : Note
 {
 	public IReadOnlyCollection<NoteType> Notes { get; }
 
+	public NoteType FirstNote { get; }
+	public NoteType LastNote { get; }
+
 	bool AddNoteWithoutNotify(NoteType note);
 	bool RemoveNoteWithoutNotify(NoteType note);
 	// bool AddNote(NoteType note);

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -40,6 +41,7 @@ public class PlaybackUIController : MonoBehaviour
 
     void Update()
     {
+        SongLength = SaveManager.Instance.Chart.LastNote?.EndTime ?? defaultSongLength;
         timestampSlider.maxValue = SongLength;
 
         int timestamp = PlaybackManager.Instance.MillisecondsInChart;

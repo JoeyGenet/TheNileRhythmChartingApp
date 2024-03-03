@@ -21,10 +21,7 @@ public class ChartParser
 			Cause = cause;
 		}
 	}
-
-	uint bpm = 120;
-	int offset = 0;
-	readonly List<Note> notes = new();
+	
 	Chart chart;
 
     readonly StreamReader reader;
@@ -65,14 +62,14 @@ public class ChartParser
 				{
 					case "bpm":
 						AssertArgCount(2, "BPM");
-						bpm = uint.Parse(args[1]);
+						chart.BPM = uint.Parse(args[1]);
 						break;
 					case "offset":
 						AssertArgCount(2, "Offset");
-						offset = int.Parse(args[1]);
+						chart.Offset = int.Parse(args[1]);
 						break;
 					default:
-						notes.Add(ParseNote());
+						chart.AddNote(ParseNote());
 						break;
 				}
 			}
@@ -83,11 +80,7 @@ public class ChartParser
 		}
 		reader.Close();
 
-		Debug.Log("notes in chart (not including notes inside sequences): " + notes.Count);
-
-		chart.BPM = bpm;
-		chart.Offset = offset;
-		chart.notes = new(notes);
+		Debug.Log("notes in chart (not including notes inside sequences): " + chart.Notes.Count);
 		
 		SaveManager.Instance.HasChanges = prevHasChanges;
 		return chart;
@@ -168,14 +161,12 @@ public class ChartParser
 
 		int time = int.Parse(args[1]);
 		int pos = int.Parse(args[2]);
-		List<int> angles = new();
-		List<int> endTimes = new();
+		List<(int deltaAngle, int endTime)> turns = new();
 		for (int i = 3; i < args.Length; i += 2)
 		{
-			angles.Add(int.Parse(args[i]));
-			endTimes.Add(int.Parse(args[i + 1]));
+			turns.Add((int.Parse(args[i]), int.Parse(args[i + 1])));
 		}
-		return new WheelSequence(chart, time, pos, angles, endTimes);
+		return new WheelSequence(chart, time, pos, turns);
 	}
 	LeverSequence ParseLeverSequence()
 	{
@@ -239,7 +230,7 @@ public class ChartParser
 				ButtonNote b => $"B {b.StartTime} {b.LeftPos}" + (b.RightPos == null ? "" : $" {b.RightPos}"),
 				WheelFlick f => $"F {f.StartTime} {lrToString(f.Dir)}",
 				WheelSequence w => $"W {w.StartTime} {w.Pos}" +
-					w.Notes.Aggregate("", (s, t) => s + $" {t.deltaAngle} {t.EndTime}"),
+					w.Notes.Aggregate("", (s, t) => s + $" {t.DeltaAngle} {t.EndTime}"),
 				LeverSequence l => $"L {lrToString(l.Dir)}" +
 					l.Notes.Aggregate("", (s, n) => s + $" {n.StartTime} {leverPosToString(n.Pos)}"),
 				_ => throw new Exception($"Unable to serialize note {note}"),

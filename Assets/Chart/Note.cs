@@ -13,7 +13,12 @@ public abstract class Note : IComparable<Note>
 		get => throw new NotImplementedException();
 		set => throw new NotImplementedException();
 	}
-	public virtual int EndTime => StartTime;
+	public virtual int EndTime
+	{
+		get => StartTime;
+		set => throw new NotImplementedException();
+	}
+		
 
 	protected Note(int id)
 	{
@@ -27,7 +32,7 @@ public abstract class Note : IComparable<Note>
 		currentId = 0;
 	}
 
-	public int CompareTo(Note other)
+	public virtual int CompareTo(Note other)
 	{
 		if (StartTime == other.StartTime)
 		{

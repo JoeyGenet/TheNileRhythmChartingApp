@@ -50,8 +50,10 @@ public class LeverSequenceInspector : NoteInspector<LeverSequence>
         LeverSequence.OnLeverNoteAdded += AddLeverNoteInspector;
     }
 
-    void OnDestroy()
+    protected override void OnDestroy()
     {
+        base.OnDestroy();
+
         LeverSequence.OnLeverNoteAdded -= AddLeverNoteInspector;
     }
 
@@ -87,6 +89,7 @@ public class LeverSequenceInspector : NoteInspector<LeverSequence>
 
         if (Note == null) return;
 
+        // TODO: optimize somehow?
         Dictionary<LeverNote, LeverNoteInspector> inspectors = leverNoteInspectors
             .GetComponentsInChildren<LeverNoteInspector>()
             .ToDictionary(i => i.Note, i => i);
