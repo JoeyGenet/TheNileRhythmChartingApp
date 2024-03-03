@@ -66,10 +66,8 @@ public class WheelSequenceRenderer : NoteRenderer<WheelSequence>, IPointerClickH
 
     void Update()
     {
-        // return;
         // Update lines
         var lineSequences = Note.ComputeLines();
-		foreach (var line in lineSequences) Debug.Log(string.Join(", ", line));
         var linePositions = lineSequences.SelectMany(lineSequence =>
         {
             List<(int pos1, int time1, int pos2, int time2)> positions = new();

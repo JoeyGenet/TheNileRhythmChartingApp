@@ -8,6 +8,7 @@ using UnityEngine.UI;
 public class PlaybackUIController : MonoBehaviour
 {
     [SerializeField] TMP_Dropdown songDropdown;
+    [SerializeField] TMP_InputField offsetInput;
 	[SerializeField] TMP_Text timestampText;
 	[SerializeField] Button playButton;
 	[SerializeField] Button pauseButton;
@@ -20,9 +21,16 @@ public class PlaybackUIController : MonoBehaviour
 
     void Start()
     {
-        Debug.Log(string.Join(",", PlaybackManager.Instance.Songs.Select(song => song.name).ToList()));
         songDropdown.AddOptions(PlaybackManager.Instance.Songs.Select(song => song.name).ToList());
         songDropdown.onValueChanged.AddListener(value => PlaybackManager.Instance.CurrentSong = value - 1);
+
+        offsetInput.onEndEdit.AddListener(text =>
+        {
+            if (int.TryParse(text, out int offset))
+            {
+                PlaybackManager.Instance.Offset = offset;
+            }
+        });
 
         playButton.onClick.AddListener(() => PlaybackManager.Instance.Play());
         pauseButton.onClick.AddListener(() => PlaybackManager.Instance.Pause());
@@ -45,6 +53,8 @@ public class PlaybackUIController : MonoBehaviour
     void Update()
     {
         timestampSlider.maxValue = PlaybackManager.Instance.CurrentSongLength;
+
+        if (!offsetInput.isFocused) offsetInput.text = $"{PlaybackManager.Instance.Offset}";
         
         bool isPaused = PlaybackManager.Instance.IsPaused;
         playButton.gameObject.SetActive(isPaused);

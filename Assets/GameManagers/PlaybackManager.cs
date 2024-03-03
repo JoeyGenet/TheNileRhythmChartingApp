@@ -10,12 +10,26 @@ public class PlaybackManager : MonoBehaviour
     public static PlaybackManager Instance;
 
     public bool IsPaused { get; private set; } = true;
+    
     int lastSyncTime = 0;
     int lastSyncTimeInChart = 0;
+
     public int MillisecondsInChart => IsPaused 
         ? lastSyncTimeInChart
         : (int)(Time.time * 1000) - lastSyncTime + lastSyncTimeInChart;
+
     public float BeatsInChart => SaveManager.Instance.Chart.TimeToBeat(MillisecondsInChart);
+
+    int offset;
+    public int Offset
+    {
+        get => offset;
+        set
+        {
+            offset = value;
+            audioSource.time = (MillisecondsInChart - offset) / 1000f;
+        }
+    }
 
     public uint ViewSize = 5000; // Number of milliseconds the view contains
 
@@ -56,11 +70,15 @@ public class PlaybackManager : MonoBehaviour
         }
     }
 
+    void SyncTime()
+    {
+    }
+
     public void SetTimestamp(int time)
     {
         if (currentSong != -1)
         {
-            audioSource.time = time / 1000f;
+            audioSource.time = (time - Offset) / 1000f;
         }
         lastSyncTime = (int) (Time.time * 1000);
         lastSyncTimeInChart = time;
@@ -71,7 +89,7 @@ public class PlaybackManager : MonoBehaviour
         if (!IsPaused) return;
         if (currentSong != -1)
         {
-            audioSource.time = lastSyncTimeInChart / 1000f;
+            audioSource.time = (lastSyncTimeInChart - Offset) / 1000f;
             audioSource.Play();
         }
         lastSyncTime = (int) (Time.time * 1000);
@@ -83,7 +101,7 @@ public class PlaybackManager : MonoBehaviour
         if (IsPaused) return;
         if (currentSong != -1)
         {
-            audioSource.time = MillisecondsInChart / 1000f;
+            audioSource.time = (MillisecondsInChart - Offset) / 1000f;
             audioSource.Pause();
         }
         lastSyncTimeInChart = MillisecondsInChart;
