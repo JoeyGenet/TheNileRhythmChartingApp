@@ -18,6 +18,7 @@ public class NoteInspector<NoteType> : MonoBehaviour where NoteType : Note
         UIManager.OnNoteSelected -= ShowHide;
     }
 
+    // TODO: create UpdateOnNoteChanged that is called when the note changes or note's value changes
     protected virtual void Update()
     {
         if (Note != null && !UIManager.IsSelectingInputField && 

@@ -16,14 +16,7 @@ public class SaveManager : MonoBehaviour
 
     public static SaveManager Instance;
 
-    public Chart Chart = new()
-    {
-        // new WheelFlick(500, LeftRight.Left),
-        // new WheelFlick(1000, LeftRight.Right),
-        // new ButtonNote(1500, 50, null),
-        // new ButtonNote(2000, 25, 75),
-        
-    };
+    public Chart Chart = new();
     public string ChartPath { get; private set; } = null;
     public string ChartDir => ChartPath == null ? null : Path.GetDirectoryName(ChartPath);
 
@@ -36,7 +29,7 @@ public class SaveManager : MonoBehaviour
         // Chart.AddNote(new WheelSequence(null, 1000, 25, new() { 90, 0, -90 }, new() { 2000, 3000, 4000 }));
         // Chart.AddNote(new WheelSequence(null, 1000, 100, new() { -180, -180, -180 }, new() { 2000, 3000, 4000 }));
         // W 115159 50 -45 115553 90 115948 -45 116343 89 116738 -44 117132 90 117527 -45 117922
-        Chart.AddNote(new WheelSequence(null, 1000, 75, new() { 90, -45 }, new() { 2000, 3000 }));
+        // Chart.AddNote(new WheelSequence(null, 1000, 75, new() { (90, 2000), (-45, 2000) }));
     }
 
     public void LoadChart(string path)

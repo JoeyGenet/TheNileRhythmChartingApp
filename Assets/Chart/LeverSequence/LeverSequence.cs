@@ -24,11 +24,11 @@ public class LeverSequence : Note<Chart, Note>, INoteContainer<LeverNote>
     readonly SortedSet<LeverNote> notes;
 	public IReadOnlyCollection<LeverNote> Notes => notes;
 
+    public LeverNote FirstNote => notes.Min;
+    public LeverNote LastNote => notes.Max;
+
 	public override int StartTime => notes.Min.StartTime;
 	public override int EndTime => notes.Max.EndTime;
-
-	public LeverNote FirstNote => notes.Min;
-	public LeverNote LastNote => notes.Max;
 
     public LeverSequence(int time, int id) : base(id)
 	{

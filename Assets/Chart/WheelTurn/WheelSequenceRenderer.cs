@@ -2,8 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
-public class WheelSequenceRenderer : NoteRenderer<WheelSequence>
+public class WheelSequenceRenderer : NoteRenderer<WheelSequence>, IPointerClickHandler
 {
     // public WheelSequence Note;
     // [SerializeField] public List<LineRenderer> lineRenderers;
@@ -68,7 +69,7 @@ public class WheelSequenceRenderer : NoteRenderer<WheelSequence>
         // return;
         // Update lines
         var lineSequences = Note.ComputeLines();
-		// foreach (var line in lineSequences) Debug.Log(string.Join(", ", line));
+		foreach (var line in lineSequences) Debug.Log(string.Join(", ", line));
         var linePositions = lineSequences.SelectMany(lineSequence =>
         {
             List<(int pos1, int time1, int pos2, int time2)> positions = new();
@@ -89,7 +90,7 @@ public class WheelSequenceRenderer : NoteRenderer<WheelSequence>
         // Destroy any extra lines
         for (int i = lines.Count-1; i >= linePositions.Count; i--)
         {
-            Destroy(lines[i]);
+            Destroy(lines[i].gameObject);
             lines.RemoveAt(i);
         }
         // Update line positions
@@ -99,47 +100,10 @@ public class WheelSequenceRenderer : NoteRenderer<WheelSequence>
             lines[i].pos1 = PlaybackManager.Instance.TrackToUIPosition(pos1, time1);
             lines[i].pos2 = PlaybackManager.Instance.TrackToUIPosition(pos2, time2);
         }
+    }
 
-
-
-        // //remove the first line renderer if it has no points
-        // if (lineRenderers[0].positionCount <= 1)
-        // {
-        //     lineRenderers[0].gameObject.SetActive(false);
-        //     lineRenderers.RemoveAt(0);
-        // }
-        // //consider the closest point in the first line renderer
-        // else
-        // {
-        //     //calculate positions and times of each point in the turn
-        //     Vector3 closestPoint = lineRenderers[0].GetPosition(0);
-        //     Vector3 nextClosestPoint = lineRenderers[0].GetPosition(1);
-        //     float time = (closestPoint.y * 200f) + Note.StartTime;
-        //     float nextTime = (nextClosestPoint.y * 200f) + Note.StartTime;
-
-        //     //if it is past the time this point should hit the end of the track,
-        //     //move the point along the line to the next
-        //     //if the next point up is past the line, remove the first
-        //     if (nextTime < PlaybackManager.Instance.MillisecondsInChart)
-        //     {
-        //         for (int i=0; i<lineRenderers[0].positionCount-1; i++)
-        //         {
-        //             lineRenderers[0].SetPosition(i, lineRenderers[0].GetPosition(i+1));
-        //         }
-        //         lineRenderers[0].positionCount --;
-        //     }
-        //     else if (time <= PlaybackManager.Instance.MillisecondsInChart)
-        //     {
-        //         Vector3 toNextClosestPoint = nextClosestPoint - closestPoint;
-        //         float timeDifference = nextTime - time;
-        //         float ratio = (PlaybackManager.Instance.MillisecondsInChart-time)/(timeDifference);
-        //         Vector3 newPos = (1-ratio)*closestPoint + (ratio)*nextClosestPoint;
-        //         lineRenderers[0].SetPosition(0, newPos); 
-        //         // wheelTurnParticleSystem.Play();
-        //         wheelTurnParticles.transform.localPosition = newPos; //new Vector3(newPos.x, 0, 0);
-        //     }
-        // }
-
-        // transform.position = RenderingManager.Instance.TrackToWorldPosition(50, Note.StartTime);
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        UIManager.Instance.SelectNote(Note);
     }
 }

@@ -28,6 +28,9 @@ public class NoteRenderer<NoteType> : MonoBehaviour where NoteType : Note
         Chart.OnNoteRemoved -= DestroyOnNoteRemoved;
     }
 
+    // TODO: create UpdateOnPlayback that is called when the user drags the playback/zoom or during playback
+    // and note is visible or startTime and endTime go in/out of view as a result
+
     // public virtual void OnNoteHit(Note note, JudgementGrade grade, int points)
     // {
 

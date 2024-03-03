@@ -161,14 +161,12 @@ public class ChartParser
 
 		int time = int.Parse(args[1]);
 		int pos = int.Parse(args[2]);
-		List<int> angles = new();
-		List<int> endTimes = new();
+		List<(int deltaAngle, int endTime)> turns = new();
 		for (int i = 3; i < args.Length; i += 2)
 		{
-			angles.Add(int.Parse(args[i]));
-			endTimes.Add(int.Parse(args[i + 1]));
+			turns.Add((int.Parse(args[i]), int.Parse(args[i + 1])));
 		}
-		return new WheelSequence(chart, time, pos, angles, endTimes);
+		return new WheelSequence(chart, time, pos, turns);
 	}
 	LeverSequence ParseLeverSequence()
 	{

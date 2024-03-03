@@ -41,7 +41,7 @@ public class PlaybackUIController : MonoBehaviour
 
     void Update()
     {
-        SongLength = SaveManager.Instance.Chart.Notes.Max().EndTime;
+        SongLength = SaveManager.Instance.Chart.LastNote?.EndTime ?? defaultSongLength;
         timestampSlider.maxValue = SongLength;
 
         int timestamp = PlaybackManager.Instance.MillisecondsInChart;

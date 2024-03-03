@@ -101,7 +101,12 @@ public class Track : MonoBehaviour
             addedNote = new WheelFlick(chart, time, pos < 50 ? LeftRight.Left : LeftRight.Right);
             chart.AddNote(addedNote);
         }
-        if (Input.GetKeyUp(KeyCode.Alpha3) || Input.GetKeyUp(KeyCode.L))
+        if (Input.GetKeyUp(KeyCode.Alpha3) || Input.GetKeyUp(KeyCode.W))
+        {
+            addedNote = new WheelSequence(chart, time, pos, new() { (0, time + SaveManager.Instance.Chart.BeatToTime(1)) });
+            chart.AddNote(addedNote);
+        }
+        if (Input.GetKeyUp(KeyCode.Alpha4) || Input.GetKeyUp(KeyCode.L))
         {
             addedNote = new LeverSequence(chart, pos < 50 ? LeftRight.Left : LeftRight.Right, new() { (time, LeverPos.Left) });
             chart.AddNote(addedNote);
