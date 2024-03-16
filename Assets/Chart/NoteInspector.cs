@@ -12,6 +12,7 @@ public class NoteInspector<NoteType> : MonoBehaviour where NoteType : Note
         gameObject.SetActive(false);
 
         UIManager.OnNoteSelected += ShowHide;
+        // Chart.OnNoteRemoved += 
     }
 
     protected virtual void OnDestroy()

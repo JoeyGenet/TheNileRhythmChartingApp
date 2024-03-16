@@ -31,11 +31,15 @@ public class UIManager : MonoBehaviour
         Instance = this;
 
         SaveManager.OnChartLoaded += DeselectOnChartLoaded;
+        Chart.OnNoteAdded += SelectNote;
+        Chart.OnNoteRemoved += DeselectNoteOnNoteRemoved;
     }
 
     void OnDestroy()
     {
         SaveManager.OnChartLoaded -= DeselectOnChartLoaded;
+        Chart.OnNoteAdded += SelectNote;
+        Chart.OnNoteRemoved -= DeselectNoteOnNoteRemoved;
     }
 
     public AlertDialog ShowAlert(string title, string message)
@@ -49,4 +53,6 @@ public class UIManager : MonoBehaviour
     public void DeselectOnChartLoaded(string chart) => SelectNote(null);
 
     public void SelectNote(Note note) => OnNoteSelected?.Invoke(note);
+
+    void DeselectNoteOnNoteRemoved(Note _) => OnNoteSelected?.Invoke(null);
 }

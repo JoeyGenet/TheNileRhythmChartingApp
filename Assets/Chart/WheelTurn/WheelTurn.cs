@@ -16,10 +16,10 @@ public class WheelTurn : Note<WheelSequence, WheelTurn>, IComparable<WheelTurn>
         {
 			if (value != endTime)
 			{	// Changing end time changes the sorting, so we remove and add back to the container
-				Debug.Log($"Endtime change remove {Container.RemoveNoteWithoutNotify(this)}");
+				Debug.Log($"Endtime change remove {Container.RemoveNote(this, notify: false)}");
 				endTime = value;
 				SaveManager.Instance.HasChanges = true;
-				Debug.Log($"Endtime change add {Container.AddNoteWithoutNotify(this)}");
+				Debug.Log($"Endtime change add {Container.AddNote(this, notify: true)}");
 				Debug.Log(Container);
 			}
         }

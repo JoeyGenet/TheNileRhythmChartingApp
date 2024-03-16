@@ -71,10 +71,10 @@ where C : INoteContainer<T>
         {
 			if (value != startTime)
 			{
-				Container.RemoveNoteWithoutNotify((T) (Note) this);
+				Container.RemoveNote((T) (Note) this, notify: false);
 				startTime = value;
 				SaveManager.Instance.HasChanges = true;
-				Container.AddNoteWithoutNotify((T) (Note) this);
+				Container.AddNote((T) (Note) this, notify: false);
 			}
         }
     }

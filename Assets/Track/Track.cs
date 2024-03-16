@@ -118,8 +118,6 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
             addedNote = new LeverSequence(chart, pos < 50 ? LeftRight.Left : LeftRight.Right, new() { (time, LeverPos.Left) });
             chart.AddNote(addedNote);
         }
-
-        if (addedNote != null) UIManager.Instance.SelectNote(addedNote);
     }
 
     void Update()

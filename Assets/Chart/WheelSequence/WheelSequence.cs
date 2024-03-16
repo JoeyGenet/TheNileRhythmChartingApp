@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -56,55 +57,52 @@ public class WheelSequence : TimedNote<Chart, Note>, INoteContainer<WheelTurn>
 		}
 	}
 
-	public bool AddNoteWithoutNotify(WheelTurn note)
-	{
-		// Note will be inserted between these 2 notes:
-		WheelTurn prevTurn = notes.GetViewBetween(DummyWheelTurn.Min, note).Max;
-		WheelTurn nextTurn = prevTurn == null ? notes.Min : prevTurn.NextTurn;
-
-		// Update linked list
-		if (prevTurn != null) prevTurn.NextTurn = note;
-		if (nextTurn != null) nextTurn.PreviousTurn = note;
-		note.NextTurn = nextTurn;
-		note.PreviousTurn = prevTurn;
-
-		note.RecomputeStartAngle();
-
-		return notes.Add(note);
-	}
-	public bool RemoveNoteWithoutNotify(WheelTurn note)
-	{
-		// Update linked list
-		if (note.PreviousTurn != null) note.PreviousTurn.NextTurn = note.NextTurn;
-		if (note.NextTurn != null)
+	public bool AddNote(WheelTurn note, bool notify = true) => SaveManager.ChangeWithNotify(notify,
+		() =>
 		{
-			note.NextTurn.PreviousTurn = note.PreviousTurn;
-			note.NextTurn.RecomputeStartAngle();
-		}
+			// Note will be inserted between these 2 notes:
+			WheelTurn prevTurn = notes.GetViewBetween(DummyWheelTurn.Min, note).Max;
+			WheelTurn nextTurn = prevTurn == null ? notes.Min : prevTurn.NextTurn;
 
-		note.PreviousTurn = note.NextTurn = null;
+			// Update linked list
+			if (prevTurn != null) prevTurn.NextTurn = note;
+			if (nextTurn != null) nextTurn.PreviousTurn = note;
+			note.NextTurn = nextTurn;
+			note.PreviousTurn = prevTurn;
 
-		return notes.Remove(note);
-	}
+			note.RecomputeStartAngle();
+
+			return notes.Add(note);
+		},
+		() => OnWheelTurnAdded?.Invoke(this, note)
+	);
+
+	public bool RemoveNote(WheelTurn note, bool notify = true) => SaveManager.ChangeWithNotify(notify,
+		() =>
+		{
+			// If last note, just remove the entire sequence
+			if (notes.Count == 1 && notes.Contains(note))
+			{
+				Container.RemoveNote(this);
+				return true;
+			}
+
+			// Update linked list
+			if (note.PreviousTurn != null) note.PreviousTurn.NextTurn = note.NextTurn;
+			if (note.NextTurn != null)
+			{
+				note.NextTurn.PreviousTurn = note.PreviousTurn;
+				note.NextTurn.RecomputeStartAngle();
+			}
+
+			note.PreviousTurn = note.NextTurn = null;
+
+			return notes.Remove(note);
+		},
+		() => OnWheelTurnRemoved?.Invoke(this, note)
+	);
+	
 	public bool ContainsNote(WheelTurn note) => notes.Contains(note);
-
-    void INoteContainer<WheelTurn>.OnNoteAdded(WheelTurn note)
-    {
-		SaveManager.Instance.HasChanges = true;
-		OnWheelTurnAdded?.Invoke(this, note);
-    }
-
-    void INoteContainer<WheelTurn>.OnNoteRemoved(WheelTurn note)
-    {
-		SaveManager.Instance.HasChanges = true;
-		OnWheelTurnRemoved?.Invoke(this, note);
-
-		// Remove this entire sequence if last turn was removed
-		if (notes.Count == 0)
-		{
-			SaveManager.Instance.Chart.RemoveNote(this);
-		}
-    }
 
 	// Get the lines required to render this sequence, taking into account wraps
 	public List<List<(int pos, int time)>> ComputeLines()

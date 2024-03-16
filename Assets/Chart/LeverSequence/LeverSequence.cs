@@ -53,25 +53,26 @@ public class LeverSequence : Note<Chart, Note>, INoteContainer<LeverNote>
 		}
 	}
 
-    public bool AddNoteWithoutNotify(LeverNote note) => notes.Add(note);
-    public bool RemoveNoteWithoutNotify(LeverNote note) => notes.Remove(note);
+    // public bool AddNoteWithoutNotify(LeverNote note) => notes.Add(note);
+    // public bool RemoveNoteWithoutNotify(LeverNote note) => notes.Remove(note);
 	public bool ContainsNote(LeverNote note) => notes.Contains(note);
 
-    void INoteContainer<LeverNote>.OnNoteAdded(LeverNote note)
-    {
-		SaveManager.Instance.HasChanges = true;
-		OnLeverNoteAdded?.Invoke(this, note);
-    }
+    public bool AddNote(LeverNote note, bool notify = true) => SaveManager.ChangeWithNotify(notify,
+		() => notes.Add(note),
+		() => OnLeverNoteAdded?.Invoke(this, note)
+	);
 
-    void INoteContainer<LeverNote>.OnNoteRemoved(LeverNote note)
-    {
-		SaveManager.Instance.HasChanges = true;
-		OnLeverNoteRemoved?.Invoke(this, note);
-
-		// Remove this entire sequence if last lever note was removed
-		if (notes.Count == 0)
+    public bool RemoveNote(LeverNote note, bool notify = true) => SaveManager.ChangeWithNotify(notify,
+		() =>
 		{
-			SaveManager.Instance.Chart.RemoveNote(this);
-		}
-    }
+			// If last note, just remove the entire sequence
+			if (notes.Count == 1 && notes.Contains(note))
+			{
+				Container.RemoveNote(this);
+				return true;
+			}
+			return notes.Remove(note);
+		},
+		() => OnLeverNoteRemoved?.Invoke(this, note)
+	);
 }

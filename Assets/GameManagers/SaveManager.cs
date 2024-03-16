@@ -59,4 +59,15 @@ public class SaveManager : MonoBehaviour
         }
 		return false;
     }
+
+	public static bool ChangeWithNotify(bool notify, Func<bool> addAction, Action notifyAction)
+	{
+		bool added = addAction();
+		if (added && notify)
+		{
+			SaveManager.Instance.HasChanges = true;
+			notifyAction();
+		}
+		return added;
+	}
 }

@@ -41,19 +41,15 @@ public class Chart : INoteContainer<Note>
 	public int BeatToTime(float beat) => (int) (beat * 60000f / BPM) + Offset;
 	public float TimeToBeat(int time) => (time - Offset) * BPM / 60000f;
 
-	public bool AddNoteWithoutNotify(Note note) => notes.Add(note);
-	public bool RemoveNoteWithoutNotify(Note note) => notes.Remove(note);
 	public bool ContainsNote(Note note) => notes.Contains(note);
 
-    void INoteContainer<Note>.OnNoteAdded(Note note)
-    {
-		SaveManager.Instance.HasChanges = true;
-		OnNoteAdded?.Invoke(note);
-    }
+    public bool AddNote(Note note, bool notify = true) => SaveManager.ChangeWithNotify(notify, 
+		() => notes.Add(note), 
+		() => OnNoteAdded?.Invoke(note)
+	);
 
-    void INoteContainer<Note>.OnNoteRemoved(Note note)
-    {
-		SaveManager.Instance.HasChanges = true;
-		OnNoteRemoved?.Invoke(note);
-    }
+    public bool RemoveNote(Note note, bool notify = true) => SaveManager.ChangeWithNotify(notify,
+		() => notes.Remove(note), 
+		() => OnNoteRemoved?.Invoke(note)
+	);
 }
