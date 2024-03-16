@@ -8,6 +8,9 @@ public class LeverNote : TimedNote<LeverSequence, LeverNote>
         set => SaveManager.RegisterChange(ref pos, value);
     }
 
+	public LeverNote PreviousNote;
+	public LeverNote NextNote;
+
     public LeverNote(int time, int id) : base(time, id) { }
     public LeverNote(LeverSequence seq, int time, LeverPos pos) : base(seq, time)
     {

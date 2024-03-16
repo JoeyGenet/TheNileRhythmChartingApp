@@ -18,7 +18,13 @@ public class WheelSequence : TimedNote<Chart, Note>, INoteContainer<WheelTurn>
 	public int Pos
 	{
 		get => pos;
-		set => SaveManager.RegisterChange(ref pos, value);
+		set
+		{
+			if (SaveManager.RegisterChange(ref pos, value))
+			{
+				notes.Min.RecomputeStartAngle();
+			}
+		}
 	}
 
 	readonly SortedSet<WheelTurn> notes;

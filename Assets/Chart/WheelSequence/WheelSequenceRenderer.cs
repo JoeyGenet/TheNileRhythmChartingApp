@@ -10,7 +10,7 @@ public class WheelSequenceRenderer : NoteRenderer<WheelSequence>, IPointerClickH
     // [SerializeField] public List<LineRenderer> lineRenderers;
     [SerializeField] UILine linePrefab;
     [SerializeField] GameObject wheelTurnParticles;
-    private ParticleSystem wheelTurnParticleSystem;
+    private readonly ParticleSystem wheelTurnParticleSystem;
     [SerializeField] Color color;
 
     readonly List<UILine> lines = new();

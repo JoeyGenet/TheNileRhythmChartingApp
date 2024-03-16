@@ -35,14 +35,21 @@ public class LeverSequence : Note<Chart, Note>, INoteContainer<LeverNote>
 		notes = new() { new LeverNote(time, -1) };
 	}
 
-	public LeverSequence(Chart container, LeftRight dir, List<(int time, LeverPos pos)> levers) : 
-		base(container)
+	public LeverSequence(Chart container, LeftRight dir, List<(int time, LeverPos pos)> levers) : base(container)
 	{
 		this.dir = dir;
 		notes = new();
 		foreach (var (time, pos) in levers)
 		{
 			notes.Add(new LeverNote(this, time, pos));
+		}
+
+		LeverNote prevNote = null;
+		foreach (var note in notes)
+		{
+			note.PreviousNote = prevNote;
+			if (prevNote != null) prevNote.NextNote = note;
+			prevNote = note;
 		}
 	}
 

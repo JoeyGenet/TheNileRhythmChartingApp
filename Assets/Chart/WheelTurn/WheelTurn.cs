@@ -130,7 +130,7 @@ public class DummyWheelTurn : WheelTurn
 	public static DummyWheelTurn Min = new(int.MinValue, int.MinValue);
 	public static DummyWheelTurn Max = new(int.MaxValue, int.MaxValue);
 
-	int startTime;
+    readonly int startTime;
 	public override int StartTime => startTime;
 
     public DummyWheelTurn(int startTime, int id) : base(id)
