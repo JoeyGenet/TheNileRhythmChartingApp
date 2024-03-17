@@ -46,6 +46,7 @@ public class NoteInspector<NoteType> : MonoBehaviour where NoteType : Note
     {
         if (note is NoteType myNote)
         {
+            if (Note == myNote) return; // Inspector is already showing this note. don't show again
             Note = myNote;
             try
             {

@@ -65,7 +65,7 @@ public class SaveManager : MonoBehaviour
 		bool added = addAction();
 		if (added && notify)
 		{
-			SaveManager.Instance.HasChanges = true;
+			Instance.HasChanges = true;
 			notifyAction();
 		}
 		return added;
