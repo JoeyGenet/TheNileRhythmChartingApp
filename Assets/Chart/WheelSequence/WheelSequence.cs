@@ -71,6 +71,7 @@ public class WheelSequence : TimedNote<Chart, Note>, INoteContainer<WheelTurn>
 			note.PreviousTurn = prevTurn;
 
 			note.RecomputeStartAngle();
+			if (note.NextTurn != null) note.NextTurn.DeltaAngle -= note.DeltaAngle;
 
 			return notes.Add(note);
 		},
@@ -81,7 +82,7 @@ public class WheelSequence : TimedNote<Chart, Note>, INoteContainer<WheelTurn>
 		() =>
 		{
 			// If last note, just remove the entire sequence
-			if (notes.Count == 1 && notes.Contains(note))
+			if (notify && notes.Count == 1 && notes.Contains(note))
 			{
 				Container.RemoveNote(this);
 				return true;
@@ -93,6 +94,7 @@ public class WheelSequence : TimedNote<Chart, Note>, INoteContainer<WheelTurn>
 			{
 				note.NextTurn.PreviousTurn = note.PreviousTurn;
 				note.NextTurn.RecomputeStartAngle();
+				note.NextTurn.DeltaAngle += note.DeltaAngle;
 			}
 
 			note.PreviousTurn = note.NextTurn = null;
@@ -103,6 +105,9 @@ public class WheelSequence : TimedNote<Chart, Note>, INoteContainer<WheelTurn>
 	);
 	
 	public bool ContainsNote(WheelTurn note) => notes.Contains(note);
+
+	public IReadOnlyCollection<WheelTurn> GetNotesBefore(int time, bool inclusive = true) 
+		=> notes.GetViewBetween(DummyWheelTurn.Min, new DummyWheelTurn(time, inclusive ? int.MaxValue : int.MinValue));
 
 	// Get the lines required to render this sequence, taking into account wraps
 	public List<List<(int pos, int time)>> ComputeLines()

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -29,7 +30,8 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     [SerializeField] int maxMainBeatMarkers = 50;
     [SerializeField] int maxMinorBeatMarkers = 50;
 
-    bool isPointerOverTrack = false;
+    public bool IsPointerOverTrack { get; private set; } = false;
+    public bool IsScrolling { get; private set; } = false;
 
     void Awake()
     {
@@ -96,27 +98,46 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         if (MouseToTrackPosition() is not (int pos, int time)) return;
         
         Chart chart = SaveManager.Instance.Chart;
-        Note addedNote = null;
 
         if (Input.GetKeyUp(KeyCode.Alpha1) || Input.GetKeyUp(KeyCode.B))
         {
-            addedNote = new ButtonNote(chart, time, pos, null);
-            chart.AddNote(addedNote);
+            chart.AddNote(new ButtonNote(chart, time, pos, null));
         }
         if (Input.GetKeyUp(KeyCode.Alpha2) || Input.GetKeyUp(KeyCode.F))
         {
-            addedNote = new WheelFlick(chart, time, pos < 50 ? LeftRight.Left : LeftRight.Right);
-            chart.AddNote(addedNote);
+            chart.AddNote(new WheelFlick(chart, time, pos < 50 ? LeftRight.Left : LeftRight.Right));
         }
         if (Input.GetKeyUp(KeyCode.Alpha3) || Input.GetKeyUp(KeyCode.W))
         {
-            addedNote = new WheelSequence(chart, time, pos, new() { (0, time + SaveManager.Instance.Chart.BeatToTime(1)) });
-            chart.AddNote(addedNote);
+            // If placing inside an existing sequence or holding shift, add to the previous sequence. Otherwise create a new sequence
+            if (chart.GetNotesBefore(time).LastOrDefault(note => note is WheelSequence) is WheelSequence lastWheelSequence
+                && (lastWheelSequence.EndTime > time || Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)))
+            {
+                WheelTurn prevNote = lastWheelSequence.GetNotesBefore(time).LastOrDefault();
+                int prevEndAngle = prevNote == null ? WheelTurn.PosToAngle(lastWheelSequence.Pos)
+                    : WheelTurn.WrapAngle(prevNote.StartAngle + prevNote.DeltaAngle);
+                int endAngle = WheelTurn.PosToAngle(pos);
+                lastWheelSequence.AddNote(new WheelTurn(lastWheelSequence, time, endAngle - prevEndAngle));
+            }
+            else
+            {
+                chart.AddNote(new WheelSequence(chart, time, pos, new() { (0, time + SaveManager.Instance.Chart.BeatToTime(1)) }));
+            }
         }
         if (Input.GetKeyUp(KeyCode.Alpha4) || Input.GetKeyUp(KeyCode.L))
         {
-            addedNote = new LeverSequence(chart, pos < 50 ? LeftRight.Left : LeftRight.Right, new() { (time, LeverPos.Left) });
-            chart.AddNote(addedNote);
+            // If placing inside an existing sequence or holding shift, add to the previous sequence. Otherwise create a new sequence
+            LeftRight side = pos < 50 ? LeftRight.Left : LeftRight.Right;
+            if (chart.GetNotesBefore(time).LastOrDefault(note => note is LeverSequence seq && seq.Dir == side) is LeverSequence lastLeverSequence
+                && (lastLeverSequence.EndTime > time || Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)))
+            {
+                LeverPos prevPos = lastLeverSequence.GetNotesBefore(time).Last().Pos;
+                lastLeverSequence.AddNote(new LeverNote(lastLeverSequence, time, prevPos == LeverPos.Middle ? LeverPos.Left : LeverPos.Middle));
+            }
+            else
+            {
+                chart.AddNote(new LeverSequence(chart, pos < 50 ? LeftRight.Left : LeftRight.Right, new() { (time, LeverPos.Left) }));
+            }
         }
     }
 
@@ -136,37 +157,43 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     void OnGUI()
     {
         int scrollAmount = (int) (PlaybackManager.Instance.ViewSize * Input.mouseScrollDelta.y * ScrollSpeed);
-        if (scrollAmount != 0)
+        if (IsPointerOverTrack && scrollAmount != 0)
         {
             PlaybackManager.Instance.SetTimestamp(PlaybackManager.Instance.MillisecondsInChart + scrollAmount);
+            IsScrolling = true;
+        }
+        else
+        {
+            IsScrolling = false;
         }
     }
 
     void AddNote(Note note)
     {
-        switch (note)
-        {
-            case ButtonNote buttonNote:
-                var buttonNoteRenderer = Instantiate(buttonNotePrefab, mainTrackArea);
-                buttonNoteRenderer.Note = buttonNote;
-                break;
-            case WheelFlick flick:
-                var wheelFlickRenderer = Instantiate(wheelFlickPrefab, mainTrackArea);
-                wheelFlickRenderer.Note = flick;
-                break;
-            case WheelSequence wheelSeq:
-                var wheelSequenceRenderer = Instantiate(wheelSequencePrefab, mainTrackArea);
-                wheelSequenceRenderer.Note = wheelSeq;
-                break;
-            case LeverSequence leverSeq:
-                var leverSequenceRenderer = Instantiate(leverSequencePrefab, leverTrackArea);
-                leverSequenceRenderer.Note = leverSeq;
-                break;
-            default:
-                throw new System.Exception($"Spawning of note {note} not supported");
-        }
+		NoteRenderer<NoteType> instantiateNoteRenderer<NoteType>(NoteRenderer<NoteType> prefab, NoteType note, Transform parent)
+		where NoteType : Note
+		{
+			var noteRenderer = Instantiate(prefab, parent);
+
+			// For some reason the renderer's Update isn't called until 1 frame after it is instantiated,
+			// so this is added to not let the player see the note on the first frame the note is spawned
+			// noteRenderer.transform.position = new Vector3(0, 1000, 0); 
+
+			noteRenderer.Init(this, note);
+
+			return noteRenderer;
+		};
+
+		MonoBehaviour _ = note switch
+		{
+			ButtonNote buttonNote => instantiateNoteRenderer(buttonNotePrefab, buttonNote, mainTrackArea),
+			WheelFlick wheelFlick => instantiateNoteRenderer(wheelFlickPrefab, wheelFlick, mainTrackArea),
+			LeverSequence leverSequence => instantiateNoteRenderer(leverSequencePrefab, leverSequence, leverTrackArea),
+			WheelSequence wheelSequence => instantiateNoteRenderer(wheelSequencePrefab, wheelSequence, mainTrackArea),
+			_ => throw new Exception($"Spawning of note {note} not supported"),
+		};
     }
 
-    public void OnPointerEnter(PointerEventData eventData) => isPointerOverTrack = true;
-    public void OnPointerExit(PointerEventData eventData) => isPointerOverTrack = false;
+    public void OnPointerEnter(PointerEventData eventData) => IsPointerOverTrack = true;
+    public void OnPointerExit(PointerEventData eventData) => IsPointerOverTrack = false;
 }

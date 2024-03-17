@@ -19,7 +19,7 @@ public class WheelTurn : Note<WheelSequence, WheelTurn>, IComparable<WheelTurn>
 				Debug.Log($"Endtime change remove {Container.RemoveNote(this, notify: false)}");
 				endTime = value;
 				SaveManager.Instance.HasChanges = true;
-				Debug.Log($"Endtime change add {Container.AddNote(this, notify: true)}");
+				Debug.Log($"Endtime change add {Container.AddNote(this, notify: false)}");
 				Debug.Log(Container);
 			}
         }
@@ -130,11 +130,12 @@ public class DummyWheelTurn : WheelTurn
 	public static DummyWheelTurn Min = new(int.MinValue, int.MinValue);
 	public static DummyWheelTurn Max = new(int.MaxValue, int.MaxValue);
 
-    readonly int startTime;
-	public override int StartTime => startTime;
+    readonly int time;
+	public override int StartTime => time;
+	public override int EndTime => time;
 
-    public DummyWheelTurn(int startTime, int id) : base(id)
+    public DummyWheelTurn(int time, int id) : base(id)
 	{
-		this.startTime = startTime;
+		this.time = time;
 	}
 }

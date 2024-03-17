@@ -44,13 +44,13 @@ public class LeverSequence : Note<Chart, Note>, INoteContainer<LeverNote>
 			notes.Add(new LeverNote(this, time, pos));
 		}
 
-		LeverNote prevNote = null;
-		foreach (var note in notes)
-		{
-			note.PreviousNote = prevNote;
-			if (prevNote != null) prevNote.NextNote = note;
-			prevNote = note;
-		}
+		// LeverNote prevNote = null;
+		// foreach (var note in notes)
+		// {
+		// 	note.PreviousNote = prevNote;
+		// 	if (prevNote != null) prevNote.NextNote = note;
+		// 	prevNote = note;
+		// }
 	}
 
     // public bool AddNoteWithoutNotify(LeverNote note) => notes.Add(note);
@@ -66,7 +66,7 @@ public class LeverSequence : Note<Chart, Note>, INoteContainer<LeverNote>
 		() =>
 		{
 			// If last note, just remove the entire sequence
-			if (notes.Count == 1 && notes.Contains(note))
+			if (notify && notes.Count == 1 && notes.Contains(note))
 			{
 				Container.RemoveNote(this);
 				return true;
@@ -75,4 +75,7 @@ public class LeverSequence : Note<Chart, Note>, INoteContainer<LeverNote>
 		},
 		() => OnLeverNoteRemoved?.Invoke(this, note)
 	);
+
+	public IReadOnlyCollection<LeverNote> GetNotesBefore(int time, bool inclusive = true) 
+		=> notes.GetViewBetween(DummyLeverNote.Min, new DummyLeverNote(time, inclusive ? int.MaxValue : int.MinValue));
 }

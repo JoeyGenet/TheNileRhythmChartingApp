@@ -9,24 +9,6 @@ public class LeverSequenceRenderer : NoteRenderer<LeverSequence>, IPointerClickH
     [SerializeField] RectTransform line;
     [SerializeField] LeverNoteRenderer leverNotePrefab;
 
-    // public override void OnNoteHit(Note note, JudgementGrade grade, int points)
-    // {
-    //     if (note != Note) return;
-    //     print("LeverSequenceRenderer OnNoteHit() signal!!");
-
-    //     //despawn note
-    //     gameObject.SetActive(false);
-    // }
-
-    public override void OnNoteMissed(Note note)
-    {
-        if (note != Note) return;
-        print("LeverSequenceRenderer OnNoteMissed() signal!!");
-
-        //despawn note
-        // gameObject.SetActive(false);
-    }
-
     protected override void Awake()
     {
         base.Awake();
@@ -49,8 +31,10 @@ public class LeverSequenceRenderer : NoteRenderer<LeverSequence>, IPointerClickH
         }
     }
 
-    void Update()
+    protected override void Update()
     {
+        base.Update();
+
         // Update position
         float anchorX = Note.Dir == LeftRight.Left ? 0 : 1;
         rect.anchorMin = new Vector2(anchorX, rect.anchorMin.y);
@@ -68,7 +52,7 @@ public class LeverSequenceRenderer : NoteRenderer<LeverSequence>, IPointerClickH
         if (sequence == Note)
         {
             var leverNoteRenderer = Instantiate(leverNotePrefab, rect);
-            leverNoteRenderer.Note = leverNote;
+            leverNoteRenderer.Init(Track, leverNote);
         }
     }
 

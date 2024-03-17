@@ -5,6 +5,7 @@ using System.IO;
 using SFB;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Audio;
 using UnityEngine.UI;
 
 public class PlaybackSettingsUIController : MonoBehaviour
@@ -14,6 +15,10 @@ public class PlaybackSettingsUIController : MonoBehaviour
     [SerializeField] Button clearSongButton;
     
     [SerializeField] TMP_InputField offsetInput;
+
+    [SerializeField] Slider gainSlider;
+    [SerializeField] TMP_Text gainText;
+    [SerializeField] AudioMixer audioMixer;
 
     string defaultSongPathText;
 
@@ -34,6 +39,15 @@ public class PlaybackSettingsUIController : MonoBehaviour
                 PlaybackManager.Instance.Offset = offset;
             }
         });
+
+        gainSlider.onValueChanged.AddListener(value =>
+        {  
+            audioMixer.SetFloat("SongGain", value);
+        });
+        if (audioMixer.GetFloat("SongGain", out float gain))
+        {
+            gainSlider.value = gain;
+        }
     }
 
     void LoadSong()
@@ -69,5 +83,7 @@ public class PlaybackSettingsUIController : MonoBehaviour
         clearSongButton.interactable = hasPath;
 
         if (!offsetInput.isFocused) offsetInput.text = $"{PlaybackManager.Instance.Offset}";
+
+        gainText.text = $"{gainSlider.value:0.0}";
     }
 }

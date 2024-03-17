@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
+[RequireComponent(typeof(AudioSource))]
 public class WheelFlickRenderer : NoteRenderer<WheelFlick>, IPointerClickHandler
 {
     // public WheelFlick Note;
@@ -13,47 +14,27 @@ public class WheelFlickRenderer : NoteRenderer<WheelFlick>, IPointerClickHandler
     [SerializeField] Sprite leftSprite;
     [SerializeField] Sprite rightSprite;
 
-    [SerializeField] private Material leftSwipeMaterial;
-    [SerializeField] private Material rightSwipeMaterial;
+    [SerializeField] AudioClip flickLeftSound;
+    [SerializeField] AudioClip flickRightSound;
+    AudioSource audioSource;
 
-    // TODO: do particles?
-    // [SerializeField] private GameObject rightSwipeHitParticles;
-    // [SerializeField] private GameObject leftSwipeHitParticles;
-
-    // public override void OnNoteHit(Note note, JudgementGrade grade, int points)
-    // {
-    //     // base.OnNoteHit(grade, points);
-    //     if (note != Note) return;
-    //     print("WheelFlickRenderer OnNoteHit() signal!!");
-
-    //     //create particles, despawn note
-    //     if (Note.Dir == LeftRight.Right)
-    //     {
-    //         Instantiate(rightSwipeHitParticles, transform.position, transform.rotation);
-    //         FlickRightEvent.Post(gameObject);
-    //     }
-    //     else
-    //     {
-    //         Instantiate(leftSwipeHitParticles, transform.position, transform.rotation);
-    //         FlickLeftEvent.Post(gameObject);
-    //     }
-
-    //     gameObject.SetActive(false);
-    // }
-
-    public override void OnNoteMissed(Note note)
+    protected override void Awake()
     {
-        // base.OnNoteHit(grade, points);
-        if (note != Note) return;
-        print("WheelFlickRenderer OnNoteMissed() signal!!");
+        base.Awake();
+        audioSource = GetComponent<AudioSource>();
+    }
 
-        //despawn note
-        gameObject.SetActive(false);
+    protected override void OnNoteStarted()
+    {
+        audioSource.clip = Note.Dir == LeftRight.Left ? flickLeftSound : flickRightSound;
+        audioSource.Play();
     }
 
     // Update is called once per frame
-    void Update()
+    protected override void Update()
     {
+        base.Update();
+        
         Vector2 uiPos = PlaybackManager.Instance.TrackToUIPosition(50, Note.StartTime);
         rect.anchorMax = new Vector2(rect.anchorMax.x, uiPos.y);
         rect.anchorMin = new Vector2(rect.anchorMin.x, uiPos.y);

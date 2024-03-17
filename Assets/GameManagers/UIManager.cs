@@ -33,13 +33,17 @@ public class UIManager : MonoBehaviour
         SaveManager.OnChartLoaded += DeselectOnChartLoaded;
         Chart.OnNoteAdded += SelectNote;
         Chart.OnNoteRemoved += DeselectNoteOnNoteRemoved;
+        LeverSequence.OnLeverNoteAdded += SelectNoteOnLeverNoteAdded;
+        WheelSequence.OnWheelTurnAdded += SelectNoteOnWheelTurnAdded;
     }
 
     void OnDestroy()
     {
         SaveManager.OnChartLoaded -= DeselectOnChartLoaded;
-        Chart.OnNoteAdded += SelectNote;
+        Chart.OnNoteAdded -= SelectNote;
         Chart.OnNoteRemoved -= DeselectNoteOnNoteRemoved;
+        LeverSequence.OnLeverNoteAdded -= SelectNoteOnLeverNoteAdded;
+        WheelSequence.OnWheelTurnAdded -= SelectNoteOnWheelTurnAdded;
     }
 
     public AlertDialog ShowAlert(string title, string message)
@@ -54,5 +58,7 @@ public class UIManager : MonoBehaviour
 
     public void SelectNote(Note note) => OnNoteSelected?.Invoke(note);
 
-    void DeselectNoteOnNoteRemoved(Note _) => OnNoteSelected?.Invoke(null);
+    void DeselectNoteOnNoteRemoved(Note _) => SelectNote(null);
+    void SelectNoteOnLeverNoteAdded(LeverSequence seq, LeverNote _) => SelectNote(seq);
+    void SelectNoteOnWheelTurnAdded(WheelSequence seq, WheelTurn _) => SelectNote(seq);
 }

@@ -45,14 +45,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b3841c416472a449ba26739158f4c0a4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  syncInterval: 500
   ViewSize: 5000
-  songs:
-  - {fileID: 8300000, guid: 8cf4790d24a3144f1a8e0e2a7f5b963e, type: 3}
-  - {fileID: 8300000, guid: 8a03fa9f2286d4fac8ff62663ceb2fde, type: 3}
-  - {fileID: 8300000, guid: 8364baf77b3a44a55b2d40be44651e5c, type: 3}
-  - {fileID: 8300000, guid: 999cd810975f245f0bf7783e586f3657, type: 3}
-  - {fileID: 8300000, guid: 5b79167362c7647aeb255b4cac2ba5e7, type: 3}
-  - {fileID: 8300000, guid: a13c0b2f7296b4808a890c304979f6f2, type: 3}
 --- !u!82 &1270945848296058574
 AudioSource:
   m_ObjectHideFlags: 0
@@ -62,7 +56,7 @@ AudioSource:
   m_GameObject: {fileID: 1259164873307533468}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: 4683422321013796558, guid: 653ef9e58789e4e4ea1e22af695cd6c0, type: 2}
   m_audioClip: {fileID: 0}
   m_PlayOnAwake: 1
   m_Volume: 1

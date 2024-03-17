@@ -90,3 +90,11 @@ where C : INoteContainer<T>
         startTime = time;
     }
 }
+
+public class DummyNote : TimedNote<Chart, Note>
+{
+	public static DummyNote Min = new(int.MinValue, int.MinValue);
+	public static DummyNote Max = new(int.MaxValue, int.MaxValue);
+
+    public DummyNote(int time, int id) : base(time, id) { }
+}

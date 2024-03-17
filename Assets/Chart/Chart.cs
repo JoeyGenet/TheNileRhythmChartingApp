@@ -52,4 +52,8 @@ public class Chart : INoteContainer<Note>
 		() => notes.Remove(note), 
 		() => OnNoteRemoved?.Invoke(note)
 	);
+
+	// Get all notes that start before or at the given time
+	public IReadOnlyCollection<Note> GetNotesBefore(int time, bool inclusive = true) 
+		=> notes.GetViewBetween(DummyNote.Min, new DummyNote(time, inclusive ? int.MaxValue : int.MinValue));
 }

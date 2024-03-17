@@ -6,8 +6,6 @@ using UnityEngine.EventSystems;
 
 public class WheelSequenceRenderer : NoteRenderer<WheelSequence>, IPointerClickHandler
 {
-    // public WheelSequence Note;
-    // [SerializeField] public List<LineRenderer> lineRenderers;
     [SerializeField] UILine linePrefab;
     [SerializeField] GameObject wheelTurnParticles;
     private readonly ParticleSystem wheelTurnParticleSystem;
@@ -15,57 +13,10 @@ public class WheelSequenceRenderer : NoteRenderer<WheelSequence>, IPointerClickH
 
     readonly List<UILine> lines = new();
 
-    // public override void OnNoteHit(Note note, JudgementGrade grade, int points)
-    // {
-    //     //handle hit for individual turn notes in the sequence
-    //     if (note.GetType() == typeof(WheelSequence.WheelTurn) && Note.Turns.Contains((WheelSequence.WheelTurn)note)) //note.GetType() == WheelSequence.WheelTurn && ?
-    //     {
-    //         print("'WheelNote' OnNoteHit() signal!!");
-    //         wheelTurnParticleSystem.Play();
-    //     }
-    //     //handle hit for sequence as a whole
-    //     if (note != Note) return;
-    //     print("WheelSequenceRenderer OnNoteHit() signal!!");
-
-    //     //despawn note
-    //     gameObject.SetActive(false);
-    // }
-
-    public override void OnNoteMissed(Note note)
+    protected override void Update()
     {
-        //handle hit for individual turn notes in the sequence
-        if ((note.GetType() == typeof(WheelTurn) && Note.ContainsNote((WheelTurn)note)) || note == Note) //note.GetType() == WheelSequence.WheelTurn && ?
-        {
-            print("'WheelNote' OnNoteMissed() signal!!");
-            wheelTurnParticleSystem.Stop();
-        }
-        //handle miss for sequence as a whole
-        if (note != Note) return;
-        print("WheelSequenceRenderer OnNoteMissed() signal!!");
+        base.Update();
 
-        //despawn note
-        wheelTurnParticles.transform.parent = null;
-        gameObject.SetActive(false);
-    }
-
-    void Start()
-    {
-        // var turn = new WheelTurn(null, 5000, startAngle, deltaAngle);
-        // turn.StartTime = 1000;
-        // var lines = turn.ComputeLines();
-        // foreach (var (pos1, time1, pos2, time2) in lines)
-        // {
-        //     var l = Instantiate(linePrefab, rect);
-        //     Debug.Log($"{pos1} {time1} {pos2} {time2}");
-        //     l.pos1 = PlaybackManager.Instance.TrackToUIPosition(pos1, time1);
-        //     l.pos2 = PlaybackManager.Instance.TrackToUIPosition(pos2, time2);
-        // }
-        // new WheelSequence(null, 500, 50, new() { 180 }, new() { 1000 }).ComputeLines();
-        // new WheelSequence(null, 1000, 25, new() { 90, 0, -90 }, new() { 2000, 3000, 4000 }).ComputeLines();
-    }
-
-    void Update()
-    {
         // Update lines
         var lineSequences = Note.ComputeLines();
         var linePositions = lineSequences.SelectMany(lineSequence =>

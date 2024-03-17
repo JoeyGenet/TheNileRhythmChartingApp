@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+[RequireComponent(typeof(AudioSource))]
 public class LeverNoteRenderer : NoteRenderer<LeverNote>
 {
     [Header("Sprites")]
@@ -15,54 +16,17 @@ public class LeverNoteRenderer : NoteRenderer<LeverNote>
     [SerializeField] private Color downColor;
     [SerializeField] private Color middleColor;
 
-    [Header("Particles")]
-    [SerializeField] private GameObject leftParticles;
-    [SerializeField] private GameObject rightParticles;
-    [SerializeField] private GameObject upParticles;
-    [SerializeField] private GameObject downParticles;
-    [SerializeField] private GameObject middleParticles;
-    
-    // public override void OnNoteHit(Note note, JudgementGrade grade, int points)
-    // {
-    //     if (note != Note) return;
-    //     print("LeverNoteRenderer OnNoteHit() signal!!");
-    //     switch (Note.pos)
-    //     {
-    //         case LeverPos.Left:
-    //             Instantiate(leftParticles, transform.position, transform.rotation);
-    //             break;
-    //         case LeverPos.Up:
-    //             Instantiate(upParticles, transform.position, transform.rotation);
-    //             break;
-    //         case LeverPos.Right:
-    //             Instantiate(rightParticles, transform.position, transform.rotation);
-    //             break;
-    //         case LeverPos.Down:
-    //             Instantiate(downParticles, transform.position, transform.rotation);
-    //             break;
-    //         case LeverPos.Middle:
-    //             Instantiate(middleParticles, transform.position, transform.rotation);
-    //             break;
-    //         default:
-    //             throw new System.Exception($"Lever direction not supported.");
-    //     }
+    [Header("Hit Sounds")]
+    [SerializeField] AudioClip leverSideSound;
+    [SerializeField] AudioClip leverPushSound;
+    [SerializeField] AudioClip leverPullSound;
 
-    //     //despawn note
-    //     gameObject.SetActive(false);
-    // }
-
-    public override void OnNoteMissed(Note note)
-    {
-        if (note != Note) return;
-        print("LeverNoteRenderer OnNoteMissed() signal!!");
-
-        //despawn note
-        gameObject.SetActive(false);
-    }
+    AudioSource audioSource;
 
     protected override void Awake()
     {
         base.Awake();
+        audioSource = GetComponent<AudioSource>();
 
         LeverSequence.OnLeverNoteRemoved += RemoveNote;
     }
@@ -74,8 +38,24 @@ public class LeverNoteRenderer : NoteRenderer<LeverNote>
         LeverSequence.OnLeverNoteRemoved -= RemoveNote;
     }
 
-    void Update()
+    protected override void OnNoteStarted()
     {
+        audioSource.clip = Note.Pos switch
+        {
+            LeverPos.Left => leverSideSound,
+            LeverPos.Up => leverPushSound,
+            LeverPos.Right => leverSideSound,
+            LeverPos.Down => leverPullSound,
+            LeverPos.Middle => leverPullSound,
+            _ => throw new System.Exception($"Lever direction not supported.")
+        };
+        audioSource.Play();
+    }
+
+    protected override void Update()
+    {
+        base.Update();
+        
         // Update position
         Vector2 uiPos = PlaybackManager.Instance.TrackToUIPosition(50, Note.StartTime);
         rect.anchorMin = new Vector2(rect.anchorMin.x, uiPos.y);

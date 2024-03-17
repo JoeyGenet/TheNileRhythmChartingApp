@@ -4,26 +4,31 @@ using Unity.VisualScripting;
 using UnityEngine;
 
 [RequireComponent(typeof(RectTransform))]
-public class NoteRenderer<NoteType> : MonoBehaviour where NoteType : Note
+public abstract class NoteRenderer<NoteType> : MonoBehaviour where NoteType : Note
 {
-    public NoteType Note;
+    protected Track Track;
+    protected NoteType Note;
 
     protected RectTransform rect;
+
+    int prevTime = int.MaxValue;
+
+    public virtual void Init(Track track, NoteType note)
+    {
+        Track = track;
+        Note = note;
+    }
 
     protected virtual void Awake()
     {
         rect = GetComponent<RectTransform>();
 
-        // GameManager.OnNoteHit += OnNoteHit;
-        // GameManager.OnNoteMissed += OnNoteMissed;
         SaveManager.OnChartLoaded += DestroyOnChartLoaded;
         Chart.OnNoteRemoved += DestroyOnNoteRemoved;
     }
 
     protected virtual void OnDestroy()
     {
-        // GameManager.OnNoteHit -= OnNoteHit;
-        // GameManager.OnNoteMissed -= OnNoteMissed;
         SaveManager.OnChartLoaded -= DestroyOnChartLoaded;
         Chart.OnNoteRemoved -= DestroyOnNoteRemoved;
     }
@@ -31,14 +36,17 @@ public class NoteRenderer<NoteType> : MonoBehaviour where NoteType : Note
     // TODO: create UpdateOnPlayback that is called when the user drags the playback/zoom or during playback
     // and note is visible or startTime and endTime go in/out of view as a result
 
-    // public virtual void OnNoteHit(Note note, JudgementGrade grade, int points)
-    // {
+    // Methods called when the note starts or ends on playback (not when user is scrolling)
+    protected virtual void OnNoteStarted() {}
+    protected virtual void OnNoteEnded() {}
 
-    // }
 
-    public virtual void OnNoteMissed(Note note)
+    protected virtual void Update()
     {
-        
+        int currTime = PlaybackManager.Instance.MillisecondsInChart;
+        if (!Track.IsScrolling && prevTime < Note.StartTime && currTime >= Note.StartTime) OnNoteStarted();
+        if (!Track.IsScrolling && prevTime < Note.EndTime && currTime >= Note.EndTime) OnNoteStarted();
+        prevTime = currTime;
     }
 
     void DestroyOnChartLoaded(string _)
