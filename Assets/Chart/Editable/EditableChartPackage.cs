@@ -59,8 +59,8 @@ public class EditableChartPackage : ChartPackage, IEditable
         set => this.RegisterChange(ref songEnd, value);
     }
 
-    readonly List<EditableChart> charts = new();
-    public new IReadOnlyList<EditableChart> Charts => charts;
+    // readonly List<EditableChart> charts = new();
+    public new IReadOnlyList<EditableChart> Charts => charts as IReadOnlyList<EditableChart>;
 
     string imageCache = null;
     string songCache = null;
@@ -100,11 +100,12 @@ public class EditableChartPackage : ChartPackage, IEditable
         chartNames[chart] = entry.Name;
     }
 
+    public EditableChartPackage() : base() {}
     public EditableChartPackage(Stream stream) : base(stream) {}
 
-    public void Save(string path)
+    public void Save(Stream stream)
     {
-        using var archive = new ZipArchive(File.OpenWrite(path));
+        using var archive = new ZipArchive(stream, ZipArchiveMode.Create, leaveOpen: true);
 
         var imageEntry = archive.CreateEntryFromFile(imageCache, Path.GetFileName(imageCache));
         var songEntry = archive.CreateEntryFromFile(songCache, Path.GetFileName(songCache));
@@ -112,7 +113,7 @@ public class EditableChartPackage : ChartPackage, IEditable
         foreach (EditableChart chart in charts)
         {
             var chartEntry = archive.CreateEntry(chartNames[chart]);
-            using var stream = chartEntry.Open();
+            using var chartStream = chartEntry.Open();
             chart.Save(stream);
         }
 
@@ -123,11 +124,11 @@ public class EditableChartPackage : ChartPackage, IEditable
             writer.WriteLine($"Title: {Title}");
             writer.WriteLine($"Artist: {Artist}");
             writer.WriteLine($"Charter: {Charter}");
-            writer.WriteLine($"CoverImage: {Path.GetFileName(imageCache)}");
+            writer.WriteLine($"CoverImage: {imageEntry.Name}");
             writer.WriteLine();
 
             writer.WriteLine("[Song]");
-            writer.WriteLine($"SongFile: {Path.GetFileName(songCache)}");
+            writer.WriteLine($"SongFile: {songEntry.Name}");
             writer.WriteLine($"BPM: {BPM}");
             writer.WriteLine($"BPMOffset: {BPMOffset}");
             writer.WriteLine($"Gain: {Gain}");

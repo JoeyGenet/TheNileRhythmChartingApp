@@ -1,22 +1,28 @@
 
 public class LeverNote : TimedNote<LeverSequence, LeverNote>
 {
-    LeverPos pos;
-    public LeverPos Pos
-    {
-        get => pos;
-        set => SaveManager.RegisterChange(ref pos, value);
-    }
+	protected LeverPos pos;
+	public LeverPos Pos => pos;
 
-    // Commented out because not fully implemented yet (not updated when new lever note is inserted)
-	// public LeverNote PreviousNote;
-	// public LeverNote NextNote;
+	public LeverNote PreviousNote;
+	public LeverNote NextNote;
 
-    public LeverNote(int time, int id) : base(time, id) { }
-    public LeverNote(LeverSequence seq, int time, LeverPos pos) : base(seq, time)
-    {
-        this.pos = pos;
-    }
+	public LeverNote(int time, int id) : base(time, id) { }
+	public LeverNote(LeverSequence seq, int time, LeverPos pos) : base(seq, time)
+	{
+		this.pos = pos;
+	}
+	public LeverPos PreviousPos()
+	{
+		if (PreviousNote == null)
+		{
+			return LeverPos.Middle;
+		}
+		else
+		{
+			return PreviousNote.Pos;
+		}
+	}
 }
 
 public class DummyLeverNote : LeverNote

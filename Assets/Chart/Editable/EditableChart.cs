@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -36,7 +37,7 @@ public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
 
 	public void Save(Stream stream)
 	{
-        using var writer = new StreamWriter(stream);
+        using var writer = new StreamWriter(stream, Encoding.UTF8, bufferSize: 1024, leaveOpen: true);
 
 		writer.WriteLine("[Difficulty]");
 		writer.WriteLine($"Rating: {DifficultyRating}");

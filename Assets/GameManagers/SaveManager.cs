@@ -24,7 +24,7 @@ public class SaveManager : MonoBehaviour
 
     public static SaveManager Instance;
 
-    public ChartPackage ChartPackage = new();
+    public EditableChartPackage ChartPackage = new();
     public string ChartPath { get; private set; } = null;
     public string ChartDir => ChartPath == null ? null : Path.GetDirectoryName(ChartPath);
 
@@ -42,32 +42,37 @@ public class SaveManager : MonoBehaviour
 
     public void LoadChart(string path)
     {
-        ChartPackage newChart = ChartPackage.Load(path);;
+        using (var stream = File.OpenRead(path))
+        {
+            ChartPackage = new EditableChartPackage(stream);
+        }
         ChartPath = path;
         HasChanges = false;
-        ChartPackage = newChart;
         OnChartLoaded?.Invoke(path);
     }
 
     public void SaveChart(string path)
     {
-        ChartPackage.Save(path);
+        using (var stream = File.Open(path, FileMode.Create))
+        {
+            ChartPackage.Save(stream);
+        }
         ChartPath = path;
         HasChanges = false;
         OnChartSaved?.Invoke(path);
     }
 
-    public static bool RegisterChange<T>(ref T value, T newValue, bool notify = true, Action notifyAction = null)
-    {
-        if (newValue.Equals(value)) return false;
-        value = newValue;
-        if (notify)
-        {
-            if (Instance != null) Instance.HasChanges = true;
-            notifyAction?.Invoke();
-        }
-        return true;
-    }
+    // public static bool RegisterChange<T>(ref T value, T newValue, bool notify = true, Action notifyAction = null)
+    // {
+    //     if (newValue.Equals(value)) return false;
+    //     value = newValue;
+    //     if (notify)
+    //     {
+    //         if (Instance != null) Instance.HasChanges = true;
+    //         notifyAction?.Invoke();
+    //     }
+    //     return true;
+    // }
 
 	public static bool RegisterChange(Func<bool> changeAction, bool notify = true, Action notifyAction = null)
 	{
@@ -81,7 +86,7 @@ public class SaveManager : MonoBehaviour
 	}
 
 	public static bool RegisterNoteAdd<C, N>(C container, N note, Func<N, bool> addAction, bool notify = true, Action notifyAction = null)
-    where N : Note where C : INoteContainer<N> => RegisterChange(
+    where N : Note where C : IEditableNoteContainer<N> => RegisterChange(
         () => addAction(note),
         notify,
         () =>
@@ -98,7 +103,7 @@ public class SaveManager : MonoBehaviour
     );
 
 	public static bool RegisterNoteRemove<C, N>(C container, N note, Func<N, bool> removeAction, bool notify = true, Action notifyAction = null)
-    where N : Note where C : INoteContainer<N> => RegisterChange(
+    where N : Note where C : IEditableNoteContainer<N> => RegisterChange(
         () => removeAction(note),
         notify,
         () =>

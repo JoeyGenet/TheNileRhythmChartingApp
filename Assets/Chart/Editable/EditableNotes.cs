@@ -1,0 +1,264 @@
+using System.Collections.Generic;
+using UnityEngine.Assertions;
+
+
+public class EditableButtonNote : ButtonNote, IEditable
+{
+	public new EditableChart Container => base.Container as EditableChart;
+
+    public bool HasChanges => false;
+    public void SetChanged() => Container.SetChanged();
+
+	public new int StartTime
+	{
+		get => time;
+		set => this.RegisterSortingChange(Container, ref time, value);
+	}
+	public new int LeftPos
+	{
+		get => leftPos;
+		set => this.RegisterChange(ref leftPos, value);
+	}
+	public new int? RightPos
+	{
+		get => rightPos;
+		set => this.RegisterChange(ref rightPos, value);
+	}
+
+	public EditableButtonNote(EditableChart chart, int time, int pos1, int? pos2 = null)
+		: base(chart, time, pos1, pos2) {}
+}
+
+
+public class EditableWheelFlick : WheelFlick, IEditable
+{
+	public new EditableChart Container => base.Container as EditableChart;
+
+    public bool HasChanges => false;
+    public void SetChanged() => Container.SetChanged();
+
+	public new int StartTime
+	{
+		get => time;
+		set => this.RegisterSortingChange(Container, ref time, value);
+	}
+	public new LeftRight Dir
+	{
+		get => dir;
+		set => this.RegisterChange(ref dir, value);
+	}
+
+	public EditableWheelFlick(EditableChart chart, int time, LeftRight dir) : base(chart, time, dir) {}
+}
+
+
+public class EditableWheelSequence : WheelSequence, IEditableNoteContainer<EditableWheelTurn>, IEditable
+{
+	// public delegate void WheelTurnAddedEvent(WheelSequence sequence, WheelTurn note);
+	// public delegate void WheelTurnRemovedEvent(WheelSequence sequence, WheelTurn note);
+
+	// public static event WheelTurnAddedEvent OnWheelTurnAdded;
+	// public static event WheelTurnAddedEvent OnWheelTurnRemoved;
+
+	public new EditableChart Container => base.Container as EditableChart;
+
+    public bool HasChanges => false;
+    public void SetChanged() => Container.SetChanged();
+
+	public new int StartTime
+	{
+		get => time;
+		set => this.RegisterSortingChange(Container, ref time, value);
+	}
+	public new int Pos
+	{
+		get => pos;
+		set => this.RegisterChange(ref pos, value, notifyAction: () => notes.Min.RecomputeStartAngle());
+	}
+
+    public new IReadOnlyCollection<EditableWheelTurn> Notes => notes as IReadOnlyCollection<EditableWheelTurn>;
+
+    public new EditableWheelTurn FirstNote => notes.Min as EditableWheelTurn;
+    public new EditableWheelTurn LastNote => notes.Max as EditableWheelTurn;
+
+	public EditableWheelSequence(EditableChart chart, int time, int pos, List<(int deltaAngle, int endTime)> turns)
+		: base(chart, time, pos, turns) {}
+
+	public bool AddNote(EditableWheelTurn note, bool notify = true) => SaveManager.RegisterNoteAdd(
+		this, note,
+		note =>
+		{
+			if (notes.Contains(note)) return false;
+
+			// Note will be inserted between these 2 notes:
+			EditableWheelTurn prevTurn = (EditableWheelTurn) notes.GetViewBetween(DummyWheelTurn.Min, note).Max;
+			EditableWheelTurn nextTurn = prevTurn == null ? (EditableWheelTurn) notes.Min : prevTurn.NextTurn;
+
+			// Update linked list
+			if (prevTurn != null) prevTurn.NextTurn = note;
+			if (nextTurn != null) nextTurn.PreviousTurn = note;
+			note.NextTurn = nextTurn;
+			note.PreviousTurn = prevTurn;
+
+			note.RecomputeStartAngle();
+			if (note.NextTurn != null) note.NextTurn.DeltaAngle -= note.DeltaAngle;
+
+			Assert.IsTrue(notes.Add(note));
+			return true;
+		},
+		notify
+	);
+
+	public bool RemoveNote(EditableWheelTurn note, bool notify = true) => SaveManager.RegisterNoteRemove(
+		this, note,
+		note =>
+		{
+			if (!notes.Contains(note)) return false;
+
+			// If last note, just remove the entire sequence
+			if (notify && notes.Count == 1)
+			{
+				Container.RemoveNote(this);
+				return true;
+			}
+
+			// Update linked list
+			if (note.PreviousTurn != null) note.PreviousTurn.NextTurn = note.NextTurn;
+			if (note.NextTurn != null)
+			{
+				note.NextTurn.PreviousTurn = note.PreviousTurn;
+				note.NextTurn.RecomputeStartAngle();
+				note.NextTurn.DeltaAngle += note.DeltaAngle;
+			}
+
+			note.PreviousTurn = note.NextTurn = null;
+
+			Assert.IsTrue(notes.Remove(note));
+			return true;
+		},
+		notify
+	);
+	
+	public bool ContainsNote(EditableWheelTurn note) => notes.Contains(note);
+}
+
+
+public class EditableWheelTurn : WheelTurn, IEditable
+{
+	public new EditableWheelSequence Container => base.Container as EditableWheelSequence;
+
+    public bool HasChanges => false;
+    public void SetChanged() => Container.SetChanged();
+
+	public new int EndTime
+	{
+		get => endTime;
+        set => this.RegisterSortingChange(Container, ref endTime, value);
+	}
+
+	public new int DeltaAngle
+	{
+		get => deltaAngle;
+		set => this.RegisterChange(ref deltaAngle, value, notifyAction: () => NextTurn?.RecomputeStartAngle());
+	}
+
+	public new EditableWheelTurn PreviousTurn
+	{
+		get => base.PreviousTurn as EditableWheelTurn;
+		set => base.PreviousTurn = value;
+	}
+	public new EditableWheelTurn NextTurn
+	{
+		get => base.NextTurn as EditableWheelTurn;
+		set => base.NextTurn = value;
+	}
+
+	public EditableWheelTurn(EditableWheelSequence seq, int endTime, int deltaAngle) : base(seq, endTime, deltaAngle) {}
+}
+
+
+
+public class EditableLeverSequence : LeverSequence, IEditableNoteContainer<EditableLeverNote>, IEditable
+{
+	// public delegate void LeverNoteAddedEvent(LeverSequence sequence, LeverNote note);
+	// public delegate void LeverNoteRemovedEvent(LeverSequence sequence, LeverNote note);
+
+	// public static event LeverNoteAddedEvent OnLeverNoteAdded;
+	// public static event LeverNoteAddedEvent OnLeverNoteRemoved;
+
+	public new EditableChart Container => base.Container as EditableChart;
+
+    public bool HasChanges => false;
+    public void SetChanged() => Container.SetChanged();
+
+	public override bool AffectsScore => false;
+
+	public new LeftRight Dir
+	{
+		get => dir;
+		set => this.RegisterChange(ref dir, value);
+	}
+
+	public new IReadOnlyCollection<EditableLeverNote> Notes => notes as IReadOnlyCollection<EditableLeverNote>;
+
+    public new EditableLeverNote FirstNote => notes.Min as EditableLeverNote;
+    public new EditableLeverNote LastNote => notes.Max as EditableLeverNote;
+
+	public EditableLeverSequence(EditableChart chart, LeftRight dir, List<(int time, LeverPos pos)> levers) 
+		: base(chart, dir, levers) {}
+		
+	public bool ContainsNote(EditableLeverNote note) => notes.Contains(note);
+
+	// TODO: update linked list
+	// TODO: register sorting change when adding/removing a lever note caused start time to change
+    public bool AddNote(EditableLeverNote note, bool notify = true)
+		=> SaveManager.RegisterNoteAdd(this, note, notes.Add, notify);
+
+    public bool RemoveNote(EditableLeverNote note, bool notify = true) => SaveManager.RegisterNoteRemove(
+		this, note,
+		note =>
+		{
+			// If last note, just remove the entire sequence
+			if (notify && notes.Count == 1 && notes.Contains(note))
+			{
+				Container.RemoveNote(this);
+				return true;
+			}
+			return notes.Remove(note);
+		},
+		notify
+	);
+}
+
+
+public class EditableLeverNote : LeverNote, IEditable
+{
+	public new EditableLeverSequence Container => base.Container as EditableLeverSequence;
+
+    public bool HasChanges => false;
+    public void SetChanged() => Container.SetChanged();
+
+	public new int StartTime
+	{
+		get => time;
+		set => this.RegisterSortingChange(Container, ref time, value);
+	}
+    public new LeverPos Pos
+    {
+        get => pos;
+        set => this.RegisterChange(ref pos, value);
+    }
+
+	public new EditableLeverNote PreviousNote
+	{
+		get => base.PreviousNote as EditableLeverNote;
+		set => base.PreviousNote = value;
+	}
+	public new EditableLeverNote NextNote
+	{
+		get => base.NextNote as EditableLeverNote;
+		set => base.NextNote = value;
+	}
+
+    public EditableLeverNote(EditableLeverSequence seq, int time, LeverPos pos) : base(seq, time, pos) {}
+}

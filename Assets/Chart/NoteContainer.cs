@@ -9,12 +9,3 @@ public interface INoteContainer<out NoteType> where NoteType : Note
 	public NoteType FirstNote { get; }
 	public NoteType LastNote { get; }
 }
-
-
-public interface IEditableNoteContainer<NoteType> : INoteContainer<NoteType>
-where NoteType : Note
-{
-	bool AddNote(NoteType note, bool notify = true);
-	bool RemoveNote(NoteType note, bool notify = true);
-    bool ContainsNote(NoteType note);
-}

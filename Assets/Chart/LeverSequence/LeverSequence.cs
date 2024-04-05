@@ -1,27 +1,19 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
-using UnityEngine.Assertions;
 
 public class LeverSequence : Note<Chart, Note>, INoteContainer<LeverNote>
 {
-	// public delegate void LeverNoteAddedEvent(LeverSequence sequence, LeverNote note);
-	// public delegate void LeverNoteRemovedEvent(LeverSequence sequence, LeverNote note);
+	public delegate void LeverNoteAddedEvent(LeverSequence sequence, LeverNote note);
+	public delegate void LeverNoteRemovedEvent(LeverSequence sequence, LeverNote note);
 
-	// public static event LeverNoteAddedEvent OnLeverNoteAdded;
-	// public static event LeverNoteAddedEvent OnLeverNoteRemoved;
+	public static event LeverNoteAddedEvent OnLeverNoteAdded;
+	public static event LeverNoteAddedEvent OnLeverNoteRemoved;
 
 	public override bool AffectsScore => false;
 
-	LeftRight dir;
-	public LeftRight Dir
-	{
-		get => dir;
-		set => SaveManager.RegisterChange(ref dir, value);
-	}
+	protected LeftRight dir;
+	public LeftRight Dir => dir;
 
-    readonly SortedSet<LeverNote> notes;
+    protected readonly SortedSet<LeverNote> notes;
 	public IReadOnlyCollection<LeverNote> Notes => notes;
 
     public LeverNote FirstNote => notes.Min;
@@ -35,7 +27,7 @@ public class LeverSequence : Note<Chart, Note>, INoteContainer<LeverNote>
 		notes = new() { new LeverNote(time, -1) };
 	}
 
-	public LeverSequence(Chart container, LeftRight dir, List<(int time, LeverPos pos)> levers) : base(container)
+	public LeverSequence(Chart chart, LeftRight dir, List<(int time, LeverPos pos)> levers) : base(chart)
 	{
 		this.dir = dir;
 		notes = new();
@@ -44,37 +36,12 @@ public class LeverSequence : Note<Chart, Note>, INoteContainer<LeverNote>
 			notes.Add(new LeverNote(this, time, pos));
 		}
 
-		// LeverNote prevNote = null;
-		// foreach (var note in notes)
-		// {
-		// 	note.PreviousNote = prevNote;
-		// 	if (prevNote != null) prevNote.NextNote = note;
-		// 	prevNote = note;
-		// }
-	}
-
-    // public bool AddNoteWithoutNotify(LeverNote note) => notes.Add(note);
-    // public bool RemoveNoteWithoutNotify(LeverNote note) => notes.Remove(note);
-	public bool ContainsNote(LeverNote note) => notes.Contains(note);
-
-    public bool AddNote(LeverNote note, bool notify = true)
-		=> SaveManager.RegisterNoteAdd(this, note, notes.Add, notify);
-
-    public bool RemoveNote(LeverNote note, bool notify = true) => SaveManager.RegisterNoteRemove(
-		this, note,
-		note =>
+		LeverNote prevNote = null;
+		foreach (var note in notes)
 		{
-			// If last note, just remove the entire sequence
-			if (notify && notes.Count == 1 && notes.Contains(note))
-			{
-				Container.RemoveNote(this);
-				return true;
-			}
-			return notes.Remove(note);
-		},
-		notify
-	);
-
-	public IReadOnlyCollection<LeverNote> GetNotesBefore(int time, bool inclusive = true) 
-		=> notes.GetViewBetween(DummyLeverNote.Min, new DummyLeverNote(time, inclusive ? int.MaxValue : int.MinValue));
+			note.PreviousNote = prevNote;
+			if (prevNote != null) prevNote.NextNote = note;
+			prevNote = note;
+		}
+	}
 }

@@ -100,7 +100,7 @@ public static class FileManager
     public static string SaveToTempPath(this Stream stream, string path = null)
     {
         string tempFilePath = GetTempPath(path, null);
-        using var fileStream = File.OpenWrite(tempFilePath);
+        using var fileStream = File.Open(tempFilePath, FileMode.Create);
         stream.CopyTo(fileStream);
         return tempFilePath;
     }
