@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
 
@@ -52,18 +53,15 @@ public class EditableWheelFlick : WheelFlick, IEditable
 }
 
 
-public class EditableWheelSequence : WheelSequence, IEditableNoteContainer<EditableWheelTurn>, IEditable
+public class EditableWheelSequence : WheelSequence, IEditableNoteContainer<EditableWheelTurn>
 {
-	// public delegate void WheelTurnAddedEvent(WheelSequence sequence, WheelTurn note);
-	// public delegate void WheelTurnRemovedEvent(WheelSequence sequence, WheelTurn note);
-
-	// public static event WheelTurnAddedEvent OnWheelTurnAdded;
-	// public static event WheelTurnAddedEvent OnWheelTurnRemoved;
-
 	public new EditableChart Container => base.Container as EditableChart;
 
     public bool HasChanges => false;
     public void SetChanged() => Container.SetChanged();
+
+    public event NoteAddedEvent<EditableWheelTurn> OnNoteAdded;
+    public event NoteRemovedEvent<EditableWheelTurn> OnNoteRemoved;
 
 	public new int StartTime
 	{
@@ -84,9 +82,8 @@ public class EditableWheelSequence : WheelSequence, IEditableNoteContainer<Edita
 	public EditableWheelSequence(EditableChart chart, int time, int pos, List<(int deltaAngle, int endTime)> turns)
 		: base(chart, time, pos, turns) {}
 
-	public bool AddNote(EditableWheelTurn note, bool notify = true) => SaveManager.RegisterNoteAdd(
-		this, note,
-		note =>
+	public bool AddNote(EditableWheelTurn note, bool notify = true) => this.RegisterChange(
+		() =>
 		{
 			if (notes.Contains(note)) return false;
 
@@ -106,12 +103,12 @@ public class EditableWheelSequence : WheelSequence, IEditableNoteContainer<Edita
 			Assert.IsTrue(notes.Add(note));
 			return true;
 		},
-		notify
+		notify,
+		() => OnNoteAdded?.Invoke(note)
 	);
 
-	public bool RemoveNote(EditableWheelTurn note, bool notify = true) => SaveManager.RegisterNoteRemove(
-		this, note,
-		note =>
+	public bool RemoveNote(EditableWheelTurn note, bool notify = true) => this.RegisterChange(
+		() =>
 		{
 			if (!notes.Contains(note)) return false;
 
@@ -136,7 +133,8 @@ public class EditableWheelSequence : WheelSequence, IEditableNoteContainer<Edita
 			Assert.IsTrue(notes.Remove(note));
 			return true;
 		},
-		notify
+		notify,
+		() => OnNoteRemoved?.Invoke(note)
 	);
 	
 	public bool ContainsNote(EditableWheelTurn note) => notes.Contains(note);
@@ -178,20 +176,15 @@ public class EditableWheelTurn : WheelTurn, IEditable
 
 
 
-public class EditableLeverSequence : LeverSequence, IEditableNoteContainer<EditableLeverNote>, IEditable
+public class EditableLeverSequence : LeverSequence, IEditableNoteContainer<EditableLeverNote>
 {
-	// public delegate void LeverNoteAddedEvent(LeverSequence sequence, LeverNote note);
-	// public delegate void LeverNoteRemovedEvent(LeverSequence sequence, LeverNote note);
-
-	// public static event LeverNoteAddedEvent OnLeverNoteAdded;
-	// public static event LeverNoteAddedEvent OnLeverNoteRemoved;
-
 	public new EditableChart Container => base.Container as EditableChart;
 
     public bool HasChanges => false;
     public void SetChanged() => Container.SetChanged();
 
-	public override bool AffectsScore => false;
+    public event NoteAddedEvent<EditableLeverNote> OnNoteAdded;
+    public event NoteRemovedEvent<EditableLeverNote> OnNoteRemoved;
 
 	public new LeftRight Dir
 	{
@@ -211,12 +204,14 @@ public class EditableLeverSequence : LeverSequence, IEditableNoteContainer<Edita
 
 	// TODO: update linked list
 	// TODO: register sorting change when adding/removing a lever note caused start time to change
-    public bool AddNote(EditableLeverNote note, bool notify = true)
-		=> SaveManager.RegisterNoteAdd(this, note, notes.Add, notify);
+    public bool AddNote(EditableLeverNote note, bool notify = true) => this.RegisterChange(
+		() => notes.Add(note),
+		notify,
+		() => OnNoteAdded?.Invoke(note)
+	);
 
-    public bool RemoveNote(EditableLeverNote note, bool notify = true) => SaveManager.RegisterNoteRemove(
-		this, note,
-		note =>
+    public bool RemoveNote(EditableLeverNote note, bool notify = true) => this.RegisterChange(
+		() =>
 		{
 			// If last note, just remove the entire sequence
 			if (notify && notes.Count == 1 && notes.Contains(note))
@@ -226,7 +221,8 @@ public class EditableLeverSequence : LeverSequence, IEditableNoteContainer<Edita
 			}
 			return notes.Remove(note);
 		},
-		notify
+		notify,
+		() => OnNoteRemoved?.Invoke(note)
 	);
 }
 

@@ -5,7 +5,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class LeverSequenceInspector : NoteInspector<LeverSequence>
+public class LeverSequenceInspector : NoteContainerInspector<EditableLeverSequence, EditableLeverNote>
 {
     [Header("Left Right Position")]
     [SerializeField] Button leftButton;
@@ -47,7 +47,7 @@ public class LeverSequenceInspector : NoteInspector<LeverSequence>
             LeverPos pos = lastNote.Pos == LeverPos.Middle ? LeverPos.Left : LeverPos.Middle;
             try
             {
-                Note.AddNote(new LeverNote(Note, time, pos));
+                Note.AddNote(new EditableLeverNote(Note, time, pos));
             }
             catch (Exception e)
             {
@@ -56,15 +56,6 @@ public class LeverSequenceInspector : NoteInspector<LeverSequence>
             }
             
         });
-
-        SaveManager.OnLeverNoteAdded += AddLeverNoteInspector;
-    }
-
-    protected override void OnDestroy()
-    {
-        base.OnDestroy();
-
-        SaveManager.OnLeverNoteAdded -= AddLeverNoteInspector;
     }
 
     protected override void OnShow()
@@ -78,19 +69,17 @@ public class LeverSequenceInspector : NoteInspector<LeverSequence>
         {
             DestroyImmediate(inspector.gameObject);
         }
-        foreach (LeverNote note in Note.Notes)
+        foreach (EditableLeverNote note in Note.Notes)
         {
-            AddLeverNoteInspector(Note, note);
+            OnNoteAdded(note);
         }
     }
 
-    void AddLeverNoteInspector(LeverSequence sequence, LeverNote note)
+    // TODO: move this functionality to Update(), so we don't need to write all this stuff
+    protected override void OnNoteAdded(EditableLeverNote note)
     {
-        if (sequence == Note)
-        {
-            var leverNoteInspector = Instantiate(leverNoteInspectorPrefab, leverNoteInspectors);
-            leverNoteInspector.Note = note;
-        }
+        var leverNoteInspector = Instantiate(leverNoteInspectorPrefab, leverNoteInspectors);
+        leverNoteInspector.Note = note;
     }
 
     protected override void Update()
@@ -100,7 +89,7 @@ public class LeverSequenceInspector : NoteInspector<LeverSequence>
         if (Note == null) return;
 
         // TODO: optimize somehow?
-        Dictionary<LeverNote, LeverNoteInspector> inspectors = leverNoteInspectors
+        Dictionary<EditableLeverNote, LeverNoteInspector> inspectors = leverNoteInspectors
             .GetComponentsInChildren<LeverNoteInspector>()
             .ToDictionary(i => i.Note, i => i);
         foreach (var (leverNote, i) in Note.Notes.Select((note, i) => (note, i)))

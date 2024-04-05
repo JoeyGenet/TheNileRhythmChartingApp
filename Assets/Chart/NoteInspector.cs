@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class NoteInspector<NoteType> : MonoBehaviour where NoteType : Note
+public abstract class NoteInspector<NoteType> : MonoBehaviour where NoteType : Note
 {
     public NoteType Note;
 
@@ -42,7 +42,7 @@ public class NoteInspector<NoteType> : MonoBehaviour where NoteType : Note
 
     protected virtual void OnShow() {}
 
-    void ShowHide(Note note)
+    protected virtual void ShowHide(Note note)
     {
         if (note is NoteType myNote)
         {
@@ -64,6 +64,40 @@ public class NoteInspector<NoteType> : MonoBehaviour where NoteType : Note
         {
             gameObject.SetActive(false);
             Note = null;
+        }
+    }
+}
+
+
+public abstract class NoteContainerInspector<NoteType, N> : NoteInspector<NoteType>
+where N : Note
+where NoteType : Note, IEditableNoteContainer<N>
+{
+
+    protected virtual void OnNoteAdded(N note) {}
+    protected virtual void OnNoteRemoved(N note) {}
+
+    protected override void ShowHide(Note note)
+    {
+        if (note is NoteType myNote)
+        {
+            myNote.OnNoteAdded += OnNoteAdded;
+            myNote.OnNoteRemoved += OnNoteRemoved;
+
+            base.OnShow();
+
+            if (Note == null)
+            {
+                myNote.OnNoteAdded -= OnNoteAdded;
+                myNote.OnNoteRemoved -= OnNoteRemoved;
+            }
+        }
+        else
+        {
+            Note.OnNoteAdded -= OnNoteAdded;
+            Note.OnNoteRemoved -= OnNoteRemoved;
+            
+            base.OnShow();
         }
     }
 }

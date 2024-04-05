@@ -11,6 +11,9 @@ public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
 {
     public bool HasChanges { get; private set; }
     public void SetChanged() => HasChanges = true;
+
+    public event NoteAddedEvent<Note> OnNoteAdded;
+    public event NoteRemovedEvent<Note> OnNoteRemoved;
 	
 	public new int DifficultyRating
     {
@@ -29,11 +32,17 @@ public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
 	public bool ContainsNote(Note note) => notes.Contains(note);
 
     public new bool AddNote(Note note) => AddNote(note, true);
-    public bool AddNote(Note note, bool notify)
-		=> SaveManager.RegisterNoteAdd(this, note, notes.Add, notify);
+    public bool AddNote(Note note, bool notify) => this.RegisterChange(
+		() => notes.Add(note),
+		notify,
+		() => OnNoteAdded?.Invoke(note)
+	);
 
-    public bool RemoveNote(Note note, bool notify = true)
-		=> SaveManager.RegisterNoteRemove(this, note, notes.Remove, notify);
+    public bool RemoveNote(Note note, bool notify = true) => this.RegisterChange(
+		() => notes.Remove(note),
+		notify,
+		() => OnNoteRemoved?.Invoke(note)
+	);
 
 	public void Save(Stream stream)
 	{

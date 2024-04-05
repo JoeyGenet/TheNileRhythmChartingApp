@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 public class WheelTurnInspector : MonoBehaviour
 {
-    public WheelTurn Note;
+    public EditableWheelTurn Note;
 
     [SerializeField] TMP_InputField deltaAngleInput;
     [SerializeField] TMP_InputField endTimeInput;

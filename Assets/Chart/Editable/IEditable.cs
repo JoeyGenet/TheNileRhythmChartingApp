@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public interface IEditable
@@ -10,9 +11,15 @@ public interface IEditable
     public void SetChanged();
 }
 
-public interface IEditableNoteContainer<NoteType> : INoteContainer<NoteType>
+public delegate void NoteAddedEvent<N>(N note) where N : Note;
+public delegate void NoteRemovedEvent<N>(N note) where N : Note;
+
+public interface IEditableNoteContainer<NoteType> : INoteContainer<NoteType>, IEditable
 where NoteType : Note
 {
+	public event NoteAddedEvent<NoteType> OnNoteAdded;
+	public event NoteRemovedEvent<NoteType> OnNoteRemoved;
+
 	bool AddNote(NoteType note, bool notify = true);
 	bool RemoveNote(NoteType note, bool notify = true);
     bool ContainsNote(NoteType note);
@@ -51,21 +58,14 @@ public static class IEditableExtensions
         return true;
     }
 
-    public static bool RegisterSortingChange<T, E, N>(this E editable, N note,
-                                        ref T value, T newValue,
-                                        bool notify = true, Action notifyAction = null)
-    where N : Note
-    where E : IEditable, IEditableNoteContainer<N>
-    {
-        if (newValue.Equals(value)) return false;
-        editable.RemoveNote(note, notify: false);
-        value = newValue;
-        editable.AddNote(note, notify: false);
-        if (notify)
-        {
-            editable.SetChanged();
-            notifyAction?.Invoke();
-        }
-        return true;
-    }
+	public static bool RegisterChange(this IEditable editable, Func<bool> changeAction, bool notify = true, Action notifyAction = null)
+	{
+		if (!changeAction()) return false;
+		if (notify)
+		{
+			editable.SetChanged();
+			notifyAction?.Invoke();
+		}
+		return true;
+	}
 }

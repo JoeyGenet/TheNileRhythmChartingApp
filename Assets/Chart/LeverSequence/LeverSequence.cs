@@ -2,12 +2,6 @@ using System.Collections.Generic;
 
 public class LeverSequence : Note<Chart, Note>, INoteContainer<LeverNote>
 {
-	public delegate void LeverNoteAddedEvent(LeverSequence sequence, LeverNote note);
-	public delegate void LeverNoteRemovedEvent(LeverSequence sequence, LeverNote note);
-
-	public static event LeverNoteAddedEvent OnLeverNoteAdded;
-	public static event LeverNoteAddedEvent OnLeverNoteRemoved;
-
 	public override bool AffectsScore => false;
 
 	protected LeftRight dir;

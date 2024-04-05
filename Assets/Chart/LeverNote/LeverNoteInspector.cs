@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 public class LeverNoteInspector : MonoBehaviour
 {
-    public LeverNote Note;
+    public EditableLeverNote Note;
 
     [SerializeField] TMP_InputField timeInput;
     [SerializeField] TMP_Dropdown posDropdown;

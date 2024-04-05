@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class ButtonNoteInspector : NoteInspector<ButtonNote>
+public class ButtonNoteInspector : NoteInspector<EditableButtonNote>
 {
     [SerializeField] TMP_InputField timeInput;
     [SerializeField] TMP_InputField leftPosInput;

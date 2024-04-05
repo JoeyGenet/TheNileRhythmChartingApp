@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class WheelFlickInspector : NoteInspector<WheelFlick>
+public class WheelFlickInspector : NoteInspector<EditableWheelFlick>
 {
     [SerializeField] TMP_InputField timeInput;
     [SerializeField] Button leftButton;

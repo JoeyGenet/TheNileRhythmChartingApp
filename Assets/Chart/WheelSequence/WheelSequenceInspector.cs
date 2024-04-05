@@ -6,7 +6,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class WheelSequenceInspector : NoteInspector<WheelSequence>
+public class WheelSequenceInspector : NoteContainerInspector<EditableWheelSequence, EditableWheelTurn>
 {
     [SerializeField] TMP_InputField startTimeInput;
     [SerializeField] TMP_InputField startPosInput;
@@ -45,7 +45,7 @@ public class WheelSequenceInspector : NoteInspector<WheelSequence>
 
             try
             {
-                Note.AddNote(new WheelTurn(Note, endTime, 0));
+                Note.AddNote(new EditableWheelTurn(Note, endTime, 0));
             }
             catch (Exception e)
             {
@@ -53,15 +53,6 @@ public class WheelSequenceInspector : NoteInspector<WheelSequence>
                 Debug.LogException(e);
             }
         });
-
-        SaveManager.OnWheelTurnAdded += AddWheelTurnInspector;
-    }
-
-    protected override void OnDestroy()
-    {
-        base.OnDestroy();
-
-        SaveManager.OnWheelTurnAdded -= AddWheelTurnInspector;
     }
 
     protected override void OnShow()
@@ -71,19 +62,16 @@ public class WheelSequenceInspector : NoteInspector<WheelSequence>
         {
             DestroyImmediate(inspector.gameObject);
         }
-        foreach (WheelTurn note in Note.Notes)
+        foreach (EditableWheelTurn note in Note.Notes)
         {
-            AddWheelTurnInspector(Note, note);
+            OnNoteAdded(note);
         }
     }
 
-    void AddWheelTurnInspector(WheelSequence sequence, WheelTurn note)
+    protected override void OnNoteAdded(EditableWheelTurn note)
     {
-        if (sequence == Note)
-        {
-            var wheelTurnInspector = Instantiate(wheelTurnInspectorPrefab, wheelTurnInspectors);
-            wheelTurnInspector.Note = note;
-        }
+        var wheelTurnInspector = Instantiate(wheelTurnInspectorPrefab, wheelTurnInspectors);
+        wheelTurnInspector.Note = note;
     }
 
     protected override void Update()
@@ -96,7 +84,7 @@ public class WheelSequenceInspector : NoteInspector<WheelSequence>
         if (!startPosInput.isFocused) startPosInput.SetTextWithoutNotify($"{Note.Pos}");
 
         // TODO: optimize somehow?
-        Dictionary<WheelTurn, WheelTurnInspector> inspectors = wheelTurnInspectors
+        Dictionary<EditableWheelTurn, WheelTurnInspector> inspectors = wheelTurnInspectors
             .GetComponentsInChildren<WheelTurnInspector>()
             .ToDictionary(i => i.Note, i => i);
         foreach (var (turn, i) in Note.Notes.Select((note, i) => (note, i)))
