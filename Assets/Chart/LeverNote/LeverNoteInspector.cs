@@ -50,12 +50,12 @@ public class LeverNoteInspector : MonoBehaviour
             }
         });
 
-        LeverSequence.OnLeverNoteRemoved += RemoveNote;
+        SaveManager.OnLeverNoteRemoved += RemoveNote;
     }
 
     void OnDestroy()
     {
-        LeverSequence.OnLeverNoteRemoved -= RemoveNote;
+        SaveManager.OnLeverNoteRemoved -= RemoveNote;
     }
 
     void Start()

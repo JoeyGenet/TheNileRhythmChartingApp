@@ -50,12 +50,12 @@ public class WheelTurnInspector : MonoBehaviour
             }
         });
 
-        WheelSequence.OnWheelTurnRemoved += RemoveNote;
+        SaveManager.OnWheelTurnRemoved += RemoveNote;
     }
 
     void OnDestroy()
     {
-        WheelSequence.OnWheelTurnRemoved -= RemoveNote;
+        SaveManager.OnWheelTurnRemoved -= RemoveNote;
     }
 
     void Update()

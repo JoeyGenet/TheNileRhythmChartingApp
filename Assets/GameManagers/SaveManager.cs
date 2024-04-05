@@ -1,4 +1,4 @@
-// Handles loading and saving the chart
+// Handles loading, saving, and registering changes to the chart
 
 using System;
 using System.IO;
@@ -10,13 +10,21 @@ public class SaveManager : MonoBehaviour
 {
     public delegate void ChartLoadedEvent(string path);
     public delegate void ChartSavedEvent(string path);
+	public delegate void NoteAddedEvent<C, N>(C container, N note) where N : Note where C : INoteContainer<N>;
+	public delegate void NoteRemovedEvent<C, N>(C container, N note) where N : Note where C : INoteContainer<N>;
 
     public static event ChartLoadedEvent OnChartLoaded;
     public static event ChartSavedEvent OnChartSaved;
+	public static event NoteAddedEvent<Chart, Note> OnNoteAdded;
+	public static event NoteRemovedEvent<Chart, Note> OnNoteRemoved;
+	public static event NoteAddedEvent<WheelSequence, WheelTurn> OnWheelTurnAdded;
+	public static event NoteRemovedEvent<WheelSequence, WheelTurn> OnWheelTurnRemoved;
+	public static event NoteAddedEvent<LeverSequence, LeverNote> OnLeverNoteAdded;
+	public static event NoteRemovedEvent<LeverSequence, LeverNote> OnLeverNoteRemoved;
 
     public static SaveManager Instance;
 
-    public Chart Chart = new();
+    public ChartPackage ChartPackage = new();
     public string ChartPath { get; private set; } = null;
     public string ChartDir => ChartPath == null ? null : Path.GetDirectoryName(ChartPath);
 
@@ -34,40 +42,75 @@ public class SaveManager : MonoBehaviour
 
     public void LoadChart(string path)
     {
-        Chart newChart = new ChartParser(path).Run();
+        ChartPackage newChart = ChartPackage.Load(path);;
         ChartPath = path;
         HasChanges = false;
-        Chart = newChart;
+        ChartPackage = newChart;
         OnChartLoaded?.Invoke(path);
     }
 
     public void SaveChart(string path)
     {
-        ChartParser.Write(Chart, path);
+        ChartPackage.Save(path);
         ChartPath = path;
         HasChanges = false;
         OnChartSaved?.Invoke(path);
     }
 
-    public static bool RegisterChange<T>(ref T value, T newValue)
+    public static bool RegisterChange<T>(ref T value, T newValue, bool notify = true, Action notifyAction = null)
     {
-        if (!newValue.Equals(value))
+        if (newValue.Equals(value)) return false;
+        value = newValue;
+        if (notify)
         {
-            value = newValue;
             if (Instance != null) Instance.HasChanges = true;
-			return true;
+            notifyAction?.Invoke();
         }
-		return false;
+        return true;
     }
 
-	public static bool ChangeWithNotify(bool notify, Func<bool> addAction, Action notifyAction)
+	public static bool RegisterChange(Func<bool> changeAction, bool notify = true, Action notifyAction = null)
 	{
-		bool added = addAction();
-		if (added && notify)
+		if (!changeAction()) return false;
+		if (notify)
 		{
-			Instance.HasChanges = true;
-			notifyAction();
+			if (Instance != null) Instance.HasChanges = true;
+			notifyAction?.Invoke();
 		}
-		return added;
+		return true;
 	}
+
+	public static bool RegisterNoteAdd<C, N>(C container, N note, Func<N, bool> addAction, bool notify = true, Action notifyAction = null)
+    where N : Note where C : INoteContainer<N> => RegisterChange(
+        () => addAction(note),
+        notify,
+        () =>
+        {
+            notifyAction?.Invoke();
+
+            if (container is Chart chart)
+                OnNoteAdded?.Invoke(chart, note);
+            if (container is WheelSequence wheelSeq && note is WheelTurn turn)
+                OnWheelTurnAdded?.Invoke(wheelSeq, turn);
+            if (container is LeverSequence leverSeq && note is LeverNote leverNote)
+                OnLeverNoteAdded?.Invoke(leverSeq, leverNote);
+        }
+    );
+
+	public static bool RegisterNoteRemove<C, N>(C container, N note, Func<N, bool> removeAction, bool notify = true, Action notifyAction = null)
+    where N : Note where C : INoteContainer<N> => RegisterChange(
+        () => removeAction(note),
+        notify,
+        () =>
+        {
+            notifyAction?.Invoke();
+            
+            if (container is Chart chart)
+                OnNoteRemoved?.Invoke(chart, note);
+            if (container is WheelSequence wheelSeq && note is WheelTurn turn)
+                OnWheelTurnRemoved?.Invoke(wheelSeq, turn);
+            if (container is LeverSequence leverSeq && note is LeverNote leverNote)
+                OnLeverNoteRemoved?.Invoke(leverSeq, leverNote);
+        }
+    );
 }

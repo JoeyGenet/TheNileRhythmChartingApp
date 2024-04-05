@@ -28,14 +28,14 @@ public class LeverNoteRenderer : NoteRenderer<LeverNote>
         base.Awake();
         audioSource = GetComponent<AudioSource>();
 
-        LeverSequence.OnLeverNoteRemoved += RemoveNote;
+        SaveManager.OnLeverNoteRemoved += RemoveNote;
     }
 
     protected override void OnDestroy()
     {
         base.OnDestroy();
 
-        LeverSequence.OnLeverNoteRemoved -= RemoveNote;
+        SaveManager.OnLeverNoteRemoved -= RemoveNote;
     }
 
     protected override void OnNoteStarted()

@@ -29,7 +29,7 @@ public class NoteInspector<NoteType> : MonoBehaviour where NoteType : Note
             var note = Note;
             try
             {
-                SaveManager.Instance.Chart.RemoveNote(Note);
+                SaveManager.Instance.ChartPackage.RemoveNote(Note);
                 ShowHide(null);
             }
             catch (Exception e)

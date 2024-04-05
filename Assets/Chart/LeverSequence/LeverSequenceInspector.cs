@@ -42,7 +42,7 @@ public class LeverSequenceInspector : NoteInspector<LeverSequence>
         addNoteButton.onClick.AddListener(() =>
         {
             LeverNote lastNote = Note.LastNote;
-            int time = lastNote.EndTime + SaveManager.Instance.Chart.BeatToTime(1); // place 1 beat after last note
+            int time = lastNote.EndTime + SaveManager.Instance.ChartPackage.BeatToTime(1); // place 1 beat after last note
             // TODO: maybe place same distance as prev 2 notes?
             LeverPos pos = lastNote.Pos == LeverPos.Middle ? LeverPos.Left : LeverPos.Middle;
             try
@@ -57,14 +57,14 @@ public class LeverSequenceInspector : NoteInspector<LeverSequence>
             
         });
 
-        LeverSequence.OnLeverNoteAdded += AddLeverNoteInspector;
+        SaveManager.OnLeverNoteAdded += AddLeverNoteInspector;
     }
 
     protected override void OnDestroy()
     {
         base.OnDestroy();
 
-        LeverSequence.OnLeverNoteAdded -= AddLeverNoteInspector;
+        SaveManager.OnLeverNoteAdded -= AddLeverNoteInspector;
     }
 
     protected override void OnShow()

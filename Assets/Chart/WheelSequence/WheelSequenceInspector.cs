@@ -40,7 +40,7 @@ public class WheelSequenceInspector : NoteInspector<WheelSequence>
 
         addTurnButton.onClick.AddListener(() =>
         {
-            int endTime = Note.EndTime + SaveManager.Instance.Chart.BeatToTime(1); // place 1 beat after last note
+            int endTime = Note.EndTime + SaveManager.Instance.ChartPackage.BeatToTime(1); // place 1 beat after last note
             // TODO: maybe place same distance as prev 2 notes?
 
             try
@@ -54,14 +54,14 @@ public class WheelSequenceInspector : NoteInspector<WheelSequence>
             }
         });
 
-        WheelSequence.OnWheelTurnAdded += AddWheelTurnInspector;
+        SaveManager.OnWheelTurnAdded += AddWheelTurnInspector;
     }
 
     protected override void OnDestroy()
     {
         base.OnDestroy();
 
-        WheelSequence.OnWheelTurnAdded -= AddWheelTurnInspector;
+        SaveManager.OnWheelTurnAdded -= AddWheelTurnInspector;
     }
 
     protected override void OnShow()

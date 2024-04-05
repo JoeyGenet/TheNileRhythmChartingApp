@@ -13,14 +13,14 @@ public class LeverSequenceRenderer : NoteRenderer<LeverSequence>, IPointerClickH
     {
         base.Awake();
 
-        LeverSequence.OnLeverNoteAdded += AddNote;
+        SaveManager.OnLeverNoteAdded += AddNote;
     }
 
     protected override void OnDestroy()
     {
         base.OnDestroy();
 
-        LeverSequence.OnLeverNoteAdded -= AddNote;
+        SaveManager.OnLeverNoteAdded -= AddNote;
     }
 
     void Start()

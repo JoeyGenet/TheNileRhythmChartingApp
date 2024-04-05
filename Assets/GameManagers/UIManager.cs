@@ -31,19 +31,20 @@ public class UIManager : MonoBehaviour
         Instance = this;
 
         SaveManager.OnChartLoaded += DeselectOnChartLoaded;
-        Chart.OnNoteAdded += SelectNote;
-        Chart.OnNoteRemoved += DeselectNoteOnNoteRemoved;
-        LeverSequence.OnLeverNoteAdded += SelectNoteOnLeverNoteAdded;
-        WheelSequence.OnWheelTurnAdded += SelectNoteOnWheelTurnAdded;
+        SaveManager.OnNoteAdded += SelectNoteOnNoteAdded;
+        SaveManager.OnNoteRemoved += DeselectNoteOnNoteRemoved;
+        SaveManager.OnLeverNoteAdded += SelectNoteOnNoteAdded;
+        SaveManager.OnWheelTurnAdded += SelectNoteOnNoteAdded;
+        // TODO: select the sequence when a lever note or wheel turn is removed
     }
 
     void OnDestroy()
     {
         SaveManager.OnChartLoaded -= DeselectOnChartLoaded;
-        Chart.OnNoteAdded -= SelectNote;
-        Chart.OnNoteRemoved -= DeselectNoteOnNoteRemoved;
-        LeverSequence.OnLeverNoteAdded -= SelectNoteOnLeverNoteAdded;
-        WheelSequence.OnWheelTurnAdded -= SelectNoteOnWheelTurnAdded;
+        SaveManager.OnNoteAdded -= SelectNoteOnNoteAdded;
+        SaveManager.OnNoteRemoved -= DeselectNoteOnNoteRemoved;
+        SaveManager.OnLeverNoteAdded -= SelectNoteOnNoteAdded;
+        SaveManager.OnWheelTurnAdded -= SelectNoteOnNoteAdded;
     }
 
     public AlertDialog ShowAlert(string title, string message)
@@ -58,7 +59,6 @@ public class UIManager : MonoBehaviour
 
     public void SelectNote(Note note) => OnNoteSelected?.Invoke(note);
 
-    void DeselectNoteOnNoteRemoved(Note _) => SelectNote(null);
-    void SelectNoteOnLeverNoteAdded(LeverSequence seq, LeverNote _) => SelectNote(seq);
-    void SelectNoteOnWheelTurnAdded(WheelSequence seq, WheelTurn _) => SelectNote(seq);
+    public void SelectNoteOnNoteAdded<C, N>(C container, N note) where N : Note => SelectNote(note);
+    void DeselectNoteOnNoteRemoved<C, N>(C container, N note) => SelectNote(null);
 }

@@ -54,7 +54,7 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
     void Reload(string _ = "")
     {
-        foreach (Note note in SaveManager.Instance.Chart.Notes) AddNote(note);
+        foreach (Note note in SaveManager.Instance.ChartPackage.Notes) AddNote(note);
     }
 
     void ReloadBeatMarkers()
@@ -97,7 +97,7 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         if (UIManager.IsSelectingInputField) return;
         if (MouseToTrackPosition() is not (int pos, int time)) return;
         
-        Chart chart = SaveManager.Instance.Chart;
+        Chart chart = SaveManager.Instance.ChartPackage;
 
         if (Input.GetKeyUp(KeyCode.Alpha1) || Input.GetKeyUp(KeyCode.B))
         {
@@ -121,7 +121,7 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
             }
             else
             {
-                chart.AddNote(new WheelSequence(chart, time, pos, new() { (0, time + SaveManager.Instance.Chart.BeatToTime(1)) }));
+                chart.AddNote(new WheelSequence(chart, time, pos, new() { (0, time + SaveManager.Instance.ChartPackage.BeatToTime(1)) }));
             }
         }
         if (Input.GetKeyUp(KeyCode.Alpha4) || Input.GetKeyUp(KeyCode.L))

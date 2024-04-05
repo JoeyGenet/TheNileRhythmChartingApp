@@ -7,11 +7,11 @@ using UnityEngine.Assertions;
 
 public class WheelSequence : TimedNote<Chart, Note>, INoteContainer<WheelTurn>
 {
-	public delegate void WheelTurnAddedEvent(WheelSequence sequence, WheelTurn note);
-	public delegate void WheelTurnRemovedEvent(WheelSequence sequence, WheelTurn note);
+	// public delegate void WheelTurnAddedEvent(WheelSequence sequence, WheelTurn note);
+	// public delegate void WheelTurnRemovedEvent(WheelSequence sequence, WheelTurn note);
 
-	public static event WheelTurnAddedEvent OnWheelTurnAdded;
-	public static event WheelTurnAddedEvent OnWheelTurnRemoved;
+	// public static event WheelTurnAddedEvent OnWheelTurnAdded;
+	// public static event WheelTurnAddedEvent OnWheelTurnRemoved;
 
 	public override bool AffectsScore => false;
 
@@ -57,9 +57,12 @@ public class WheelSequence : TimedNote<Chart, Note>, INoteContainer<WheelTurn>
 		}
 	}
 
-	public bool AddNote(WheelTurn note, bool notify = true) => SaveManager.ChangeWithNotify(notify,
-		() =>
+	public bool AddNote(WheelTurn note, bool notify = true) => SaveManager.RegisterNoteAdd(
+		this, note,
+		note =>
 		{
+			if (notes.Contains(note)) return false;
+
 			// Note will be inserted between these 2 notes:
 			WheelTurn prevTurn = notes.GetViewBetween(DummyWheelTurn.Min, note).Max;
 			WheelTurn nextTurn = prevTurn == null ? notes.Min : prevTurn.NextTurn;
@@ -73,16 +76,20 @@ public class WheelSequence : TimedNote<Chart, Note>, INoteContainer<WheelTurn>
 			note.RecomputeStartAngle();
 			if (note.NextTurn != null) note.NextTurn.DeltaAngle -= note.DeltaAngle;
 
-			return notes.Add(note);
+			Assert.IsTrue(notes.Add(note));
+			return true;
 		},
-		() => OnWheelTurnAdded?.Invoke(this, note)
+		notify
 	);
 
-	public bool RemoveNote(WheelTurn note, bool notify = true) => SaveManager.ChangeWithNotify(notify,
-		() =>
+	public bool RemoveNote(WheelTurn note, bool notify = true) => SaveManager.RegisterNoteRemove(
+		this, note,
+		note =>
 		{
+			if (!notes.Contains(note)) return false;
+
 			// If last note, just remove the entire sequence
-			if (notify && notes.Count == 1 && notes.Contains(note))
+			if (notify && notes.Count == 1)
 			{
 				Container.RemoveNote(this);
 				return true;
@@ -99,9 +106,10 @@ public class WheelSequence : TimedNote<Chart, Note>, INoteContainer<WheelTurn>
 
 			note.PreviousTurn = note.NextTurn = null;
 
-			return notes.Remove(note);
+			Assert.IsTrue(notes.Remove(note));
+			return true;
 		},
-		() => OnWheelTurnRemoved?.Invoke(this, note)
+		notify
 	);
 	
 	public bool ContainsNote(WheelTurn note) => notes.Contains(note);

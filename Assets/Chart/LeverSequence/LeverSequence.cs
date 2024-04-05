@@ -6,11 +6,11 @@ using UnityEngine.Assertions;
 
 public class LeverSequence : Note<Chart, Note>, INoteContainer<LeverNote>
 {
-	public delegate void LeverNoteAddedEvent(LeverSequence sequence, LeverNote note);
-	public delegate void LeverNoteRemovedEvent(LeverSequence sequence, LeverNote note);
+	// public delegate void LeverNoteAddedEvent(LeverSequence sequence, LeverNote note);
+	// public delegate void LeverNoteRemovedEvent(LeverSequence sequence, LeverNote note);
 
-	public static event LeverNoteAddedEvent OnLeverNoteAdded;
-	public static event LeverNoteAddedEvent OnLeverNoteRemoved;
+	// public static event LeverNoteAddedEvent OnLeverNoteAdded;
+	// public static event LeverNoteAddedEvent OnLeverNoteRemoved;
 
 	public override bool AffectsScore => false;
 
@@ -57,13 +57,12 @@ public class LeverSequence : Note<Chart, Note>, INoteContainer<LeverNote>
     // public bool RemoveNoteWithoutNotify(LeverNote note) => notes.Remove(note);
 	public bool ContainsNote(LeverNote note) => notes.Contains(note);
 
-    public bool AddNote(LeverNote note, bool notify = true) => SaveManager.ChangeWithNotify(notify,
-		() => notes.Add(note),
-		() => OnLeverNoteAdded?.Invoke(this, note)
-	);
+    public bool AddNote(LeverNote note, bool notify = true)
+		=> SaveManager.RegisterNoteAdd(this, note, notes.Add, notify);
 
-    public bool RemoveNote(LeverNote note, bool notify = true) => SaveManager.ChangeWithNotify(notify,
-		() =>
+    public bool RemoveNote(LeverNote note, bool notify = true) => SaveManager.RegisterNoteRemove(
+		this, note,
+		note =>
 		{
 			// If last note, just remove the entire sequence
 			if (notify && notes.Count == 1 && notes.Contains(note))
@@ -73,7 +72,7 @@ public class LeverSequence : Note<Chart, Note>, INoteContainer<LeverNote>
 			}
 			return notes.Remove(note);
 		},
-		() => OnLeverNoteRemoved?.Invoke(this, note)
+		notify
 	);
 
 	public IReadOnlyCollection<LeverNote> GetNotesBefore(int time, bool inclusive = true) 
