@@ -19,17 +19,17 @@ public class EditableChartPackage : ChartPackage, IEditable
     public new string Title
     {
         get => title;
-        set => this.RegisterChange(ref title, value);
+        set => this.RegisterChange(ref title, value.Trim());
     }
     public new string Artist
     {
         get => artist;
-        set => this.RegisterChange(ref artist, value);
+        set => this.RegisterChange(ref artist, value.Trim());
     }
-    public new string Charter
+    public new string Charter // TODO: move charter to Chart
     {
         get => charter;
-        set => this.RegisterChange(ref charter, value);
+        set => this.RegisterChange(ref charter, value.Trim());
     }
 
     // Song
@@ -58,6 +58,9 @@ public class EditableChartPackage : ChartPackage, IEditable
         get => songEnd;
         set => this.RegisterChange(ref songEnd, value);
     }
+
+    readonly List<EditableChart> charts = new();
+    public new IReadOnlyList<EditableChart> Charts => charts;
 
     string imageCache = null;
     string songCache = null;
@@ -92,7 +95,7 @@ public class EditableChartPackage : ChartPackage, IEditable
     protected override void LoadChart(ZipArchiveEntry entry)
     {
         using var stream = entry.Open();
-        var chart = Chart.Load(this, stream); // TODO: change to editable chart
+        var chart = new EditableChart(this, stream); // TODO: change to editable chart
         charts.Add(chart);
         chartNames[chart] = entry.Name;
     }
@@ -106,6 +109,31 @@ public class EditableChartPackage : ChartPackage, IEditable
         var imageEntry = archive.CreateEntryFromFile(imageCache, Path.GetFileName(imageCache));
         var songEntry = archive.CreateEntryFromFile(songCache, Path.GetFileName(songCache));
 
+        foreach (EditableChart chart in charts)
+        {
+            var chartEntry = archive.CreateEntry(chartNames[chart]);
+            using var stream = chartEntry.Open();
+            chart.Save(stream);
+        }
 
+        var configEntry = archive.CreateEntry($"{Title}.nr");
+        using (var writer = new StreamWriter(configEntry.Open()))
+        {
+            writer.WriteLine("[Metadata]");
+            writer.WriteLine($"Title: {Title}");
+            writer.WriteLine($"Artist: {Artist}");
+            writer.WriteLine($"Charter: {Charter}");
+            writer.WriteLine($"CoverImage: {Path.GetFileName(imageCache)}");
+            writer.WriteLine();
+
+            writer.WriteLine("[Song]");
+            writer.WriteLine($"SongFile: {Path.GetFileName(songCache)}");
+            writer.WriteLine($"BPM: {BPM}");
+            writer.WriteLine($"BPMOffset: {BPMOffset}");
+            writer.WriteLine($"Gain: {Gain}");
+            writer.WriteLine($"Start: {SongStart}");
+            writer.WriteLine($"End: {SongEnd}");
+            writer.WriteLine();
+        }
     }
 }

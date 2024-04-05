@@ -51,7 +51,7 @@ public class ChartPackage
     public int SongStart => songStart;
     public int SongEnd => songEnd;
     
-    protected readonly List<Chart> charts = new();
+    readonly List<Chart> charts = new();
     public IReadOnlyList<Chart> Charts => charts;
 
 	public int BeatToTime(float beat) => (int) (beat * 60000f / BPM + BPMOffset);
@@ -73,7 +73,7 @@ public class ChartPackage
     protected virtual void LoadChart(ZipArchiveEntry entry)
     {
         using var stream = entry.Open();
-        charts.Add(Chart.Load(this, stream));
+        charts.Add(new Chart(this, stream));
     }
 
     public ChartPackage(Stream stream)

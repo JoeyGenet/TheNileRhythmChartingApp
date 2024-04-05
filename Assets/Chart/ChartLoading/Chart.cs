@@ -7,38 +7,35 @@ public class Chart : INoteContainer<Note>
 {
 	public readonly ChartPackage Package;
 
-    readonly SortedSet<Note> notes = new();
+    protected readonly SortedSet<Note> notes = new();
 	public IReadOnlyCollection<Note> Notes => notes;
 
     public Note FirstNote => notes.Min;
     public Note LastNote => notes.Max;
 	
-	public int DifficultyRating { get; private set; } = -1;
-	public string DifficultyName { get; private set; } = "";
+	protected int difficultyRating = -1;
+	protected string difficultyName = "";
+
+	public int DifficultyRating => difficultyRating;
+	public string DifficultyName => difficultyName;
+
+
+	public bool AddNote(Note note) => notes.Add(note);
+
 
 	public Chart(ChartPackage package)
 	{
 		Package = package;
 	}
 
-	public bool ContainsNote(Note note) => notes.Contains(note);
-
-    public bool AddNote(Note note, bool notify = true)
-		=> SaveManager.RegisterNoteAdd(this, note, notes.Add, notify);
-
-    public bool RemoveNote(Note note, bool notify = true)
-		=> SaveManager.RegisterNoteRemove(this, note, notes.Remove, notify);
-
-	public static Chart Load(ChartPackage package, Stream stream)
+	public Chart(ChartPackage package, Stream stream) : this(package)
 	{
-		var chart = new Chart(package);
-
-        using var parser = new FileParser(stream);
+        var parser = new FileParser();
 
 		parser["Difficulty"] = (line, args) => parser.KeyValue(new()
 		{
-			["Rating"] = val => chart.DifficultyRating = int.Parse(val),
-			["Name"] = val => chart.DifficultyName = val,
+			["Rating"] = val => difficultyRating = int.Parse(val),
+			["Name"] = val => difficultyName = val,
 		});
 
 		parser["Notes"] = (line, args) =>
@@ -53,7 +50,7 @@ public class Chart : INoteContainer<Note>
 				"3" or "L" => parseLeverSequence,
 				_ => throw new ArgumentException($"Invalid note type: \"{args[0]}\""),
 			};
-			chart.AddNote(noteParser());
+			AddNote(noteParser());
 
 			ButtonNote parseButton()
 			{
@@ -66,7 +63,7 @@ public class Chart : INoteContainer<Note>
 				{
 					pos2 = int.Parse(args[3]);
 				}
-				return new ButtonNote(chart, time, pos, pos2);
+				return new ButtonNote(this, time, pos, pos2);
 			}
 			WheelFlick parseWheelFlick()
 			{
@@ -74,7 +71,7 @@ public class Chart : INoteContainer<Note>
 
 				int time = int.Parse(args[1]);
 				LeftRight dir = parseLeftRight(args[2]);
-				return new WheelFlick(chart, time, dir);
+				return new WheelFlick(this, time, dir);
 			}
 			WheelSequence parseWheelSequence()
 			{
@@ -88,7 +85,7 @@ public class Chart : INoteContainer<Note>
 				{
 					turns.Add((int.Parse(args[i]), int.Parse(args[i + 1])));
 				}
-				return new WheelSequence(chart, time, pos, turns);
+				return new WheelSequence(this, time, pos, turns);
 			}
 			LeverSequence parseLeverSequence()
 			{
@@ -101,7 +98,7 @@ public class Chart : INoteContainer<Note>
 				{
 					levers.Add((int.Parse(args[i]), parseLeverPos(args[i+1])));
 				}
-				return new LeverSequence(chart, dir, levers);
+				return new LeverSequence(this, dir, levers);
 			}
 			LeftRight parseLeftRight(string arg)
 			{
@@ -126,113 +123,6 @@ public class Chart : INoteContainer<Note>
 			}
 		};
 
-		parser.Run();
-
-		return chart;
-	}
-
-	public void Save(string path)
-	{
-        using var writer = new StreamWriter(path);
-
-		writer.WriteLine("# Metadata");
-		// writer.WriteLine($"BPM {chart.BPM}");
-		// writer.WriteLine($"Offset {chart.Offset}");
-		writer.WriteLine();
-
-		writer.WriteLine("# Notes");
-
-		static char lrToString(LeftRight lr) => lr switch
-		{
-			LeftRight.Left => 'L',
-			LeftRight.Right => 'R',
-			_ => throw new Exception($"Unable to serialize LeftRight {lr}"),
-		};
-		static char leverPosToString(LeverPos pos) => pos switch
-		{
-			LeverPos.Left => '<',
-			LeverPos.Up => '^',
-			LeverPos.Right => '>',
-			LeverPos.Down => 'V',
-			LeverPos.Middle => '.',
-			_ => throw new Exception($"Unable to serialize LeverPos {pos}"),
-		};
-
-		foreach (Note note in notes)
-		{
-			string line = note switch
-			{
-				ButtonNote b => $"B {b.StartTime} {b.LeftPos}" + (b.RightPos == null ? "" : $" {b.RightPos}"),
-				WheelFlick f => $"F {f.StartTime} {lrToString(f.Dir)}",
-				WheelSequence w => $"W {w.StartTime} {w.Pos}" +
-					w.Notes.Aggregate("", (s, t) => s + $" {t.DeltaAngle} {t.EndTime}"),
-				LeverSequence l => $"L {lrToString(l.Dir)}" +
-					l.Notes.Aggregate("", (s, n) => s + $" {n.StartTime} {leverPosToString(n.Pos)}"),
-				_ => throw new Exception($"Unable to serialize note {note}"),
-			};
-			writer.WriteLine(line);
-		}
+		parser.Run(stream);
 	}
 }
-
-
-
-// using System.Collections.Generic;
-// using UnityEngine;
-
-// public class Chart : INoteContainer<Note>
-// {
-// 	public delegate void NoteAddedEvent(Note note);
-// 	public delegate void NoteRemovedEvent(Note note);
-
-// 	public static event NoteAddedEvent OnNoteAdded;
-// 	public static event NoteRemovedEvent OnNoteRemoved;
-
-// 	uint bpm;
-//     public uint BPM
-//     {
-//         get => bpm;
-//         set => SaveManager.RegisterChange(ref bpm, value);
-//     }
-
-// 	int offset;
-//     public int Offset
-//     {
-//         get => offset;
-//         set => SaveManager.RegisterChange(ref offset, value);
-//     }
-	
-//     readonly SortedSet<Note> notes;
-// 	public IReadOnlyCollection<Note> Notes => notes;
-
-//     public Note FirstNote => notes.Min;
-//     public Note LastNote => notes.Max;
-
-
-// 	public Chart(uint bpm = 120, int offset = 0)
-// 	{
-// 		notes = new();
-// 		BPM = bpm;
-// 		Offset = offset;
-// 	}
-
-
-// 	public int BeatToTime(float beat) => (int) (beat * 60000f / BPM) + Offset;
-// 	public float TimeToBeat(int time) => (time - Offset) * BPM / 60000f;
-
-// 	public bool ContainsNote(Note note) => notes.Contains(note);
-
-//     public bool AddNote(Note note, bool notify = true) => SaveManager.ChangeWithNotify(notify, 
-// 		() => notes.Add(note), 
-// 		() => OnNoteAdded?.Invoke(note)
-// 	);
-
-//     public bool RemoveNote(Note note, bool notify = true) => SaveManager.ChangeWithNotify(notify,
-// 		() => notes.Remove(note), 
-// 		() => OnNoteRemoved?.Invoke(note)
-// 	);
-
-// 	// Get all notes that start before or at the given time
-// 	public IReadOnlyCollection<Note> GetNotesBefore(int time, bool inclusive = true) 
-// 		=> notes.GetViewBetween(DummyNote.Min, new DummyNote(time, inclusive ? int.MaxValue : int.MinValue));
-// }

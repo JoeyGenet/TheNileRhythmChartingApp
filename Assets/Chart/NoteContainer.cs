@@ -2,8 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-public interface IReadonlyNoteContainer<out NoteType>
-where NoteType : Note
+public interface INoteContainer<out NoteType> where NoteType : Note
 {
 	public IReadOnlyCollection<NoteType> Notes { get; }
 
@@ -11,7 +10,8 @@ where NoteType : Note
 	public NoteType LastNote { get; }
 }
 
-public interface INoteContainer<NoteType> : IReadonlyNoteContainer<NoteType>
+
+public interface IEditableNoteContainer<NoteType> : INoteContainer<NoteType>
 where NoteType : Note
 {
 	bool AddNote(NoteType note, bool notify = true);
