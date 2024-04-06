@@ -17,10 +17,10 @@ public class SaveManager : MonoBehaviour
     public static event ChartSavedEvent OnChartSaved;
 	public static event NoteAddedEvent<Chart, Note> OnNoteAdded;
 	public static event NoteRemovedEvent<Chart, Note> OnNoteRemoved;
-	public static event NoteAddedEvent<WheelSequence, WheelTurn> OnWheelTurnAdded;
-	public static event NoteRemovedEvent<WheelSequence, WheelTurn> OnWheelTurnRemoved;
-	public static event NoteAddedEvent<LeverSequence, LeverNote> OnLeverNoteAdded;
-	public static event NoteRemovedEvent<LeverSequence, LeverNote> OnLeverNoteRemoved;
+	// public static event NoteAddedEvent<WheelSequence, WheelTurn> OnWheelTurnAdded;
+	// public static event NoteRemovedEvent<WheelSequence, WheelTurn> OnWheelTurnRemoved;
+	// public static event NoteAddedEvent<LeverSequence, LeverNote> OnLeverNoteAdded;
+	// public static event NoteRemovedEvent<LeverSequence, LeverNote> OnLeverNoteRemoved;
 
     public static SaveManager Instance;
 

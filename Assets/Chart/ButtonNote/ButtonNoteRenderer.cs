@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(AudioSource))]
-public class ButtonNoteRenderer : NoteRenderer<ButtonNote>, IPointerClickHandler
+public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>, IPointerClickHandler
 {
     [SerializeField] RectTransform leftNote;
     [SerializeField] RectTransform rightNote;

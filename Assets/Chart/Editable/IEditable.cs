@@ -14,6 +14,13 @@ public interface IEditable
 public delegate void NoteAddedEvent<N>(N note) where N : Note;
 public delegate void NoteRemovedEvent<N>(N note) where N : Note;
 
+public interface IEditableNote<C, N> : IEditable
+where N : Note
+where C : IEditableNoteContainer<N>
+{
+    public C Container { get; }
+}
+
 public interface IEditableNoteContainer<NoteType> : INoteContainer<NoteType>, IEditable
 where NoteType : Note
 {

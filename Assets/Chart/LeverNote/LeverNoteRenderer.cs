@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(AudioSource))]
-public class LeverNoteRenderer : NoteRenderer<LeverNote>
+public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSequence>
 {
     [Header("Sprites")]
     [SerializeField] private Image arrow;
@@ -27,15 +27,6 @@ public class LeverNoteRenderer : NoteRenderer<LeverNote>
     {
         base.Awake();
         audioSource = GetComponent<AudioSource>();
-
-        SaveManager.OnLeverNoteRemoved += RemoveNote;
-    }
-
-    protected override void OnDestroy()
-    {
-        base.OnDestroy();
-
-        SaveManager.OnLeverNoteRemoved -= RemoveNote;
     }
 
     protected override void OnNoteStarted()
@@ -73,10 +64,5 @@ public class LeverNoteRenderer : NoteRenderer<LeverNote>
             _ => throw new System.Exception($"Lever direction {Note.Pos} not supported."),
         };
         arrow.transform.rotation = Quaternion.Euler(0, 0, angle);
-    }
-
-    void RemoveNote(LeverSequence sequence, LeverNote leverNote)
-    {
-        if (leverNote == Note) Destroy(gameObject);
     }
 }

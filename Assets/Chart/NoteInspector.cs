@@ -5,7 +5,8 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
-public abstract class NoteInspector<NoteType> : MonoBehaviour where NoteType : Note
+public abstract class NoteInspector<NoteType> : MonoBehaviour
+where NoteType : Note, IEditableNote<EditableChart, Note>
 {
     public virtual NoteType Note { get; protected set; }
 
@@ -31,7 +32,8 @@ public abstract class NoteInspector<NoteType> : MonoBehaviour where NoteType : N
             var note = Note;
             try
             {
-                SaveManager.Instance.ChartPackage.RemoveNote(Note);
+                Note.Container.RemoveNote(Note);
+                // SaveManager.Instance.ChartPackage.RemoveNote(Note);
                 ShowHide(null);
             }
             catch (Exception e)
@@ -73,7 +75,7 @@ public abstract class NoteInspector<NoteType> : MonoBehaviour where NoteType : N
 
 public abstract class NoteContainerInspector<ContainerType, ChildType> : NoteInspector<ContainerType>
 where ChildType : Note
-where ContainerType : Note, IEditableNoteContainer<ChildType>
+where ContainerType : Note, IEditableNote<EditableChart, Note>, IEditableNoteContainer<ChildType>
 {
     public abstract class ChildInspector : MonoBehaviour
     {

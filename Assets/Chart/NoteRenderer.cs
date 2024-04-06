@@ -3,8 +3,20 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
+public abstract class NoteRenderer<NoteType> : NoteRenderer<NoteType, EditableChart, Note>
+where NoteType : Note, IEditableNote<EditableChart, Note>
+{}
+
+public abstract class NoteRenderer<NoteType, C> : NoteRenderer<NoteType, C, NoteType>
+where NoteType : Note, IEditableNote<C, NoteType>
+where C : IEditableNoteContainer<NoteType>
+{}
+
 [RequireComponent(typeof(RectTransform))]
-public abstract class NoteRenderer<NoteType> : MonoBehaviour where NoteType : Note
+public abstract class NoteRenderer<NoteType, C, N> : MonoBehaviour
+where NoteType : N, IEditableNote<C, N>
+where N : Note
+where C : IEditableNoteContainer<N>
 {
     protected Track Track;
     protected NoteType Note;
@@ -17,6 +29,8 @@ public abstract class NoteRenderer<NoteType> : MonoBehaviour where NoteType : No
     {
         Track = track;
         Note = note;
+        
+        Note.Container.OnNoteRemoved += DestroyOnNoteRemoved;
     }
 
     protected virtual void Awake()
@@ -24,13 +38,12 @@ public abstract class NoteRenderer<NoteType> : MonoBehaviour where NoteType : No
         rect = GetComponent<RectTransform>();
 
         SaveManager.OnChartLoaded += DestroyOnChartLoaded;
-        Chart.OnNoteRemoved += DestroyOnNoteRemoved;
     }
 
     protected virtual void OnDestroy()
     {
         SaveManager.OnChartLoaded -= DestroyOnChartLoaded;
-        Chart.OnNoteRemoved -= DestroyOnNoteRemoved;
+        Note.Container.OnNoteRemoved -= DestroyOnNoteRemoved;
     }
 
     // TODO: create UpdateOnPlayback that is called when the user drags the playback/zoom or during playback
@@ -54,7 +67,7 @@ public abstract class NoteRenderer<NoteType> : MonoBehaviour where NoteType : No
         Destroy(gameObject);
     }
 
-    void DestroyOnNoteRemoved(Note note)
+    void DestroyOnNoteRemoved(N note)
     {
         if (note == Note)
         {

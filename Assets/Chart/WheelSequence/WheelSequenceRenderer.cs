@@ -4,7 +4,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class WheelSequenceRenderer : NoteRenderer<WheelSequence>, IPointerClickHandler
+public class WheelSequenceRenderer : NoteRenderer<EditableWheelSequence>, IPointerClickHandler
 {
     [SerializeField] UILine linePrefab;
     [SerializeField] GameObject wheelTurnParticles;

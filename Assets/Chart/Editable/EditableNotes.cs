@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine.Assertions;
 
 
-public class EditableButtonNote : ButtonNote, IEditable
+public class EditableButtonNote : ButtonNote, IEditableNote<EditableChart, Note>
 {
 	public new EditableChart Container => base.Container as EditableChart;
 
@@ -31,7 +31,7 @@ public class EditableButtonNote : ButtonNote, IEditable
 }
 
 
-public class EditableWheelFlick : WheelFlick, IEditable
+public class EditableWheelFlick : WheelFlick, IEditableNote<EditableChart, Note>
 {
 	public new EditableChart Container => base.Container as EditableChart;
 
@@ -53,7 +53,7 @@ public class EditableWheelFlick : WheelFlick, IEditable
 }
 
 
-public class EditableWheelSequence : WheelSequence, IEditableNoteContainer<EditableWheelTurn>
+public class EditableWheelSequence : WheelSequence, IEditableNote<EditableChart, Note>, IEditableNoteContainer<EditableWheelTurn>
 {
 	public new EditableChart Container => base.Container as EditableChart;
 
@@ -141,7 +141,7 @@ public class EditableWheelSequence : WheelSequence, IEditableNoteContainer<Edita
 }
 
 
-public class EditableWheelTurn : WheelTurn, IEditable
+public class EditableWheelTurn : WheelTurn, IEditableNote<EditableWheelSequence, EditableWheelTurn>
 {
 	public new EditableWheelSequence Container => base.Container as EditableWheelSequence;
 
@@ -176,7 +176,7 @@ public class EditableWheelTurn : WheelTurn, IEditable
 
 
 
-public class EditableLeverSequence : LeverSequence, IEditableNoteContainer<EditableLeverNote>
+public class EditableLeverSequence : LeverSequence, IEditableNote<EditableChart, Note>, IEditableNoteContainer<EditableLeverNote>
 {
 	public new EditableChart Container => base.Container as EditableChart;
 
@@ -227,7 +227,7 @@ public class EditableLeverSequence : LeverSequence, IEditableNoteContainer<Edita
 }
 
 
-public class EditableLeverNote : LeverNote, IEditable
+public class EditableLeverNote : LeverNote, IEditableNote<EditableLeverSequence, EditableLeverNote>
 {
 	public new EditableLeverSequence Container => base.Container as EditableLeverSequence;
 
