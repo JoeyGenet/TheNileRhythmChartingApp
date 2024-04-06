@@ -3,11 +3,11 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class LeverNoteInspector : NoteContainerInspector<EditableLeverSequence, EditableLeverNote>.ChildInspector
+public class LeverNoteInspector : LeverSequenceInspector.ChildInspector
 {
     [SerializeField] TMP_InputField timeInput;
     [SerializeField] TMP_Dropdown posDropdown;
-    [SerializeField] Button deleteButton;
+    // [SerializeField] Button deleteButton;
 
     [Header("Colors")]
     [SerializeField] private Color leftColor;
@@ -16,7 +16,7 @@ public class LeverNoteInspector : NoteContainerInspector<EditableLeverSequence, 
     [SerializeField] private Color downColor;
     [SerializeField] private Color middleColor;
     
-    void Awake()
+    protected override void Awake()
     {
         timeInput.onValidateInput += (text, _, c) => c == '-' ? '\0' : c;
         timeInput.onValueChanged.AddListener(text =>
@@ -32,19 +32,19 @@ public class LeverNoteInspector : NoteContainerInspector<EditableLeverSequence, 
             Note.Pos = (LeverPos) value;
         });
 
-        deleteButton.onClick.AddListener(() =>
-        {
-            var note = Note;
-            try
-            {
-                Note.Container.RemoveNote(Note);
-            }
-            catch (Exception e)
-            {
-                UIManager.Instance.ShowAlert("Exception While Deleting Lever Note", $"Note {note} may not have been deleted.\n{e.Message}");
-                Debug.LogException(e);
-            }
-        });
+        // deleteButton.onClick.AddListener(() =>
+        // {
+        //     var note = Note;
+        //     try
+        //     {
+        //         Note.Container.RemoveNote(Note);
+        //     }
+        //     catch (Exception e)
+        //     {
+        //         UIManager.Instance.ShowAlert("Exception While Deleting Lever Note", $"Note {note} may not have been deleted.\n{e.Message}");
+        //         Debug.LogException(e);
+        //     }
+        // });
     }
 
     void Start()

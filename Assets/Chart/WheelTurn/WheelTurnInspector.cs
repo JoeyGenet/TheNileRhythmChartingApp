@@ -5,15 +5,13 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class WheelTurnInspector : MonoBehaviour
+public class WheelTurnInspector : WheelSequenceInspector.ChildInspector
 {
-    public EditableWheelTurn Note;
-
     [SerializeField] TMP_InputField deltaAngleInput;
     [SerializeField] TMP_InputField endTimeInput;
-    [SerializeField] Button deleteButton;
+    // [SerializeField] Button deleteButton;
     
-    void Awake()
+    protected override void Awake()
     {
         deltaAngleInput.onValueChanged.AddListener(text =>
         {
@@ -35,40 +33,27 @@ public class WheelTurnInspector : MonoBehaviour
             }
         });
 
-        deleteButton.onClick.AddListener(() =>
-        {
+        // deleteButton.onClick.AddListener(() =>
+        // {
 
-            var note = Note;
-            try
-            {
-                Note.Container.RemoveNote(Note);
-            }
-            catch (Exception e)
-            {
-                UIManager.Instance.ShowAlert("Exception While Deleting Wheel Turn", $"Note {note} may not have been deleted.\n{e.Message}");
-                Debug.LogException(e);
-            }
-        });
+        //     var note = Note;
+        //     try
+        //     {
+        //         Note.Container.RemoveNote(Note);
+        //     }
+        //     catch (Exception e)
+        //     {
+        //         UIManager.Instance.ShowAlert("Exception While Deleting Wheel Turn", $"Note {note} may not have been deleted.\n{e.Message}");
+        //         Debug.LogException(e);
+        //     }
+        // });
 
-        SaveManager.OnWheelTurnRemoved += RemoveNote;
-    }
-
-    void OnDestroy()
-    {
-        SaveManager.OnWheelTurnRemoved -= RemoveNote;
+        // SaveManager.OnWheelTurnRemoved += RemoveNote;
     }
 
     void Update()
     {
         if (!deltaAngleInput.isFocused) deltaAngleInput.SetTextWithoutNotify($"{Note.DeltaAngle}");
         if (!endTimeInput.isFocused) endTimeInput.SetTextWithoutNotify($"{Note.EndTime}");
-    }
-
-    void RemoveNote(WheelSequence sequence, WheelTurn note)
-    {
-        if (note == Note)
-        {
-            Destroy(gameObject);
-        }
     }
 }

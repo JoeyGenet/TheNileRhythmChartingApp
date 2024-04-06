@@ -80,10 +80,30 @@ where ContainerType : Note, IEditableNoteContainer<ChildType>
         public ChildType Note { get; private set; }
         public NoteContainerInspector<ContainerType, ChildType> Container { get; private set; }
 
+        [SerializeField] Button deleteButton;
+
         public virtual void Init(NoteContainerInspector<ContainerType, ChildType> container, ChildType note)
         {
             Container = container;
             Note = note;
+
+        }
+
+        protected virtual void Awake()
+        {
+            deleteButton.onClick.AddListener(() =>
+            {
+                var note = Note;
+                try
+                {
+                    Container.Note.RemoveNote(Note);
+                }
+                catch (Exception e)
+                {
+                    UIManager.Instance.ShowAlert($"Exception While Deleting {typeof(ChildType)}", $"Note {note} may not have been deleted.\n{e.Message}");
+                    Debug.LogException(e);
+                }
+            });
         }
     }
 
