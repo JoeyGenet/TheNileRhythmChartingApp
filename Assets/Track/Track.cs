@@ -37,13 +37,13 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         // VisualElement
         ChartManager.OnChartLoaded += Reload;
-        Chart.OnNoteAdded += AddNote;
+        ChartManager.OnNoteAdded += AddNote;
     }
 
     void OnDestroy()
     {
         ChartManager.OnChartLoaded -= Reload;
-        Chart.OnNoteAdded -= AddNote;
+        ChartManager.OnNoteAdded -= AddNote;
     }
 
     void Start()
@@ -54,7 +54,7 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
     void Reload(string _ = "")
     {
-        foreach (Note note in ChartManager.ChartPackage.Notes) AddNote(note);
+        foreach (Note note in ChartManager.SelectedChart.Notes) AddNote(note);
     }
 
     void ReloadBeatMarkers()
@@ -97,46 +97,46 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         if (UIManager.IsSelectingInputField) return;
         if (MouseToTrackPosition() is not (int pos, int time)) return;
         
-        Chart chart = ChartManager.ChartPackage;
+        var chart = ChartManager.SelectedChart;
 
         if (Input.GetKeyUp(KeyCode.Alpha1) || Input.GetKeyUp(KeyCode.B))
         {
-            chart.AddNote(new ButtonNote(chart, time, pos, null));
+            chart.AddNote(new EditableButtonNote(chart, time, pos, null));
         }
         if (Input.GetKeyUp(KeyCode.Alpha2) || Input.GetKeyUp(KeyCode.F))
         {
-            chart.AddNote(new WheelFlick(chart, time, pos < 50 ? LeftRight.Left : LeftRight.Right));
+            chart.AddNote(new EditableWheelFlick(chart, time, pos < 50 ? LeftRight.Left : LeftRight.Right));
         }
         if (Input.GetKeyUp(KeyCode.Alpha3) || Input.GetKeyUp(KeyCode.W))
         {
             // If placing inside an existing sequence or holding shift, add to the previous sequence. Otherwise create a new sequence
-            if (chart.GetNotesBefore(time).LastOrDefault(note => note is WheelSequence) is WheelSequence lastWheelSequence
+            if (chart.GetNotesBefore(time).LastOrDefault(note => note is EditableWheelSequence) is EditableWheelSequence lastWheelSequence
                 && (lastWheelSequence.EndTime > time || Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)))
             {
-                WheelTurn prevNote = lastWheelSequence.GetNotesBefore(time).LastOrDefault();
+                var prevNote = lastWheelSequence.GetNotesBefore(time).LastOrDefault() as EditableWheelTurn;
                 int prevEndAngle = prevNote == null ? WheelTurn.PosToAngle(lastWheelSequence.Pos)
                     : WheelTurn.WrapAngle(prevNote.StartAngle + prevNote.DeltaAngle);
                 int endAngle = WheelTurn.PosToAngle(pos);
-                lastWheelSequence.AddNote(new WheelTurn(lastWheelSequence, time, endAngle - prevEndAngle));
+                lastWheelSequence.AddNote(new EditableWheelTurn(lastWheelSequence, time, endAngle - prevEndAngle));
             }
             else
             {
-                chart.AddNote(new WheelSequence(chart, time, pos, new() { (0, time + ChartManager.ChartPackage.BeatToTime(1)) }));
+                chart.AddNote(new EditableWheelSequence(chart, time, pos, new() { (0, time + ChartManager.ChartPackage.BeatToTime(1)) }));
             }
         }
         if (Input.GetKeyUp(KeyCode.Alpha4) || Input.GetKeyUp(KeyCode.L))
         {
             // If placing inside an existing sequence or holding shift, add to the previous sequence. Otherwise create a new sequence
             LeftRight side = pos < 50 ? LeftRight.Left : LeftRight.Right;
-            if (chart.GetNotesBefore(time).LastOrDefault(note => note is LeverSequence seq && seq.Dir == side) is LeverSequence lastLeverSequence
+            if (chart.GetNotesBefore(time).LastOrDefault(note => note is EditableLeverSequence seq && seq.Dir == side) is EditableLeverSequence lastLeverSequence
                 && (lastLeverSequence.EndTime > time || Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)))
             {
                 LeverPos prevPos = lastLeverSequence.GetNotesBefore(time).Last().Pos;
-                lastLeverSequence.AddNote(new LeverNote(lastLeverSequence, time, prevPos == LeverPos.Middle ? LeverPos.Left : LeverPos.Middle));
+                lastLeverSequence.AddNote(new EditableLeverNote(lastLeverSequence, time, prevPos == LeverPos.Middle ? LeverPos.Left : LeverPos.Middle));
             }
             else
             {
-                chart.AddNote(new LeverSequence(chart, pos < 50 ? LeftRight.Left : LeftRight.Right, new() { (time, LeverPos.Left) }));
+                chart.AddNote(new EditableLeverSequence(chart, pos < 50 ? LeftRight.Left : LeftRight.Right, new() { (time, LeverPos.Left) }));
             }
         }
     }
@@ -171,7 +171,7 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     void AddNote(Note note)
     {
 		NoteRenderer<NoteType> instantiateNoteRenderer<NoteType>(NoteRenderer<NoteType> prefab, NoteType note, Transform parent)
-		where NoteType : Note
+		where NoteType : Note, IEditableNote<EditableChart, Note>
 		{
 			var noteRenderer = Instantiate(prefab, parent);
 
@@ -186,10 +186,10 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
 		MonoBehaviour _ = note switch
 		{
-			ButtonNote buttonNote => instantiateNoteRenderer(buttonNotePrefab, buttonNote, mainTrackArea),
-			WheelFlick wheelFlick => instantiateNoteRenderer(wheelFlickPrefab, wheelFlick, mainTrackArea),
-			LeverSequence leverSequence => instantiateNoteRenderer(leverSequencePrefab, leverSequence, leverTrackArea),
-			WheelSequence wheelSequence => instantiateNoteRenderer(wheelSequencePrefab, wheelSequence, mainTrackArea),
+			EditableButtonNote buttonNote => instantiateNoteRenderer(buttonNotePrefab, buttonNote, mainTrackArea),
+			EditableWheelFlick wheelFlick => instantiateNoteRenderer(wheelFlickPrefab, wheelFlick, mainTrackArea),
+			EditableLeverSequence leverSequence => instantiateNoteRenderer(leverSequencePrefab, leverSequence, leverTrackArea),
+			EditableWheelSequence wheelSequence => instantiateNoteRenderer(wheelSequencePrefab, wheelSequence, mainTrackArea),
 			_ => throw new Exception($"Spawning of note {note} not supported"),
 		};
     }

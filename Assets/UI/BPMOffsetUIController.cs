@@ -31,13 +31,13 @@ public class BPMOffsetUIController : MonoBehaviour
 	{
         if (int.TryParse(newOffset, out int offsetInt))
         {
-            ChartManager.ChartPackage.Offset = offsetInt;
+            ChartManager.ChartPackage.BPMOffset = offsetInt;
         }
 	}
 
     void Update()
     {
         if (!bpmInputField.isFocused) bpmInputField.text = $"{ChartManager.ChartPackage.BPM}";
-        if (!offsetInputField.isFocused) offsetInputField.text = $"{ChartManager.ChartPackage.Offset}";
+        if (!offsetInputField.isFocused) offsetInputField.text = $"{ChartManager.ChartPackage.BPMOffset}";
     }
 }

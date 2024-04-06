@@ -10,13 +10,16 @@ public static class ChartManager
 {
     public delegate void ChartLoadedEvent(string path);
     public delegate void ChartSavedEvent(string path);
+    public delegate void NoteAddedEvent(Note note);
+    public delegate void NoteRemovedEvent(Note note);
 	// public delegate void NoteAddedEvent<C, N>(C container, N note) where N : Note where C : INoteContainer<N>;
 	// public delegate void NoteRemovedEvent<C, N>(C container, N note) where N : Note where C : INoteContainer<N>;
 
     public static event ChartLoadedEvent OnChartLoaded;
     public static event ChartSavedEvent OnChartSaved;
-	// public static event NoteAddedEvent<Chart, Note> OnNoteAdded;
-	// public static event NoteRemovedEvent<Chart, Note> OnNoteRemoved;
+	public static event NoteAddedEvent OnNoteAdded; // When a note is added to the currently selected chart
+	public static event NoteRemovedEvent OnNoteRemoved; // When a note is removed from the currently selected chart
+    
 	// public static event NoteAddedEvent<WheelSequence, WheelTurn> OnWheelTurnAdded;
 	// public static event NoteRemovedEvent<WheelSequence, WheelTurn> OnWheelTurnRemoved;
 	// public static event NoteAddedEvent<LeverSequence, LeverNote> OnLeverNoteAdded;
@@ -25,6 +28,7 @@ public static class ChartManager
     public static EditableChartPackage ChartPackage = new();
     public static string ChartPath { get; private set; } = null;
     public static string ChartDir => ChartPath == null ? null : Path.GetDirectoryName(ChartPath);
+    public static EditableChart SelectedChart { get; }
 
     // public bool HasChanges = true;
 

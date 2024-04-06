@@ -42,7 +42,7 @@ public class PlaybackManager : MonoBehaviour
 
     public AudioClip CurrentSong => audioSource.clip;
     public int CurrentSongLength => CurrentSong == null
-        ? ChartManager.ChartPackage.Notes.Aggregate(10000, (a, n) => Math.Max(a, n.EndTime))
+        ? ChartManager.SelectedChart.Notes.Aggregate(10000, (a, n) => Math.Max(a, n.EndTime))
         : (int) (CurrentSong.length * 1000);
     
     AudioSource audioSource;

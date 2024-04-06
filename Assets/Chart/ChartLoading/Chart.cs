@@ -22,6 +22,8 @@ public class Chart : INoteContainer<Note>
 
 	public bool AddNote(Note note) => notes.Add(note);
 
+	public IReadOnlyCollection<Note> GetNotesBefore(int time, bool inclusive = true) 
+		=> notes.GetViewBetween(DummyNote.Min, new DummyNote(time, inclusive ? int.MaxValue : int.MinValue));
 
 	public Chart(ChartPackage package)
 	{

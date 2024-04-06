@@ -37,7 +37,7 @@ public class SaveUIController : MonoBehaviour
         string path = ChartManager.ChartPath;
         bool hasPath = !string.IsNullOrEmpty(path);
         if (!hasPath) chartPathText.text = defaultChartPathText;
-        else chartPathText.text = path + (ChartManager.HasChanges ? "*" : "");
+        else chartPathText.text = path + (ChartManager.SelectedChart.HasChanges ? "*" : "");
 
         saveButton.interactable = hasPath;
     }
@@ -57,7 +57,7 @@ public class SaveUIController : MonoBehaviour
             {
                 ChartManager.LoadChart(paths[0]);
             }
-            catch (ChartParser.ChartParseException e)
+            catch (FileParseException e)
             {
                 UIManager.Instance.ShowAlert("Error Loading Chart", $"Loading from {paths[0]}.\n{e.Message}");
                 Debug.LogException(e.Cause);

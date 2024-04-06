@@ -7,6 +7,7 @@ using System.Text;
 using Unity.VisualScripting;
 using UnityEngine;
 
+// TODO: instead of IEditableNoteContainer<Note>, use IEditableNoteContainer<IEditableNote>
 public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
 {
     public bool HasChanges { get; private set; }

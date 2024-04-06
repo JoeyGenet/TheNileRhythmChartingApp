@@ -33,8 +33,8 @@ public class UIManager : MonoBehaviour
         ChartManager.OnChartLoaded += DeselectOnChartLoaded;
         ChartManager.OnNoteAdded += SelectNoteOnNoteAdded;
         ChartManager.OnNoteRemoved += DeselectNoteOnNoteRemoved;
-        ChartManager.OnLeverNoteAdded += SelectNoteOnNoteAdded;
-        ChartManager.OnWheelTurnAdded += SelectNoteOnNoteAdded;
+        // ChartManager.OnLeverNoteAdded += SelectNoteOnNoteAdded;
+        // ChartManager.OnWheelTurnAdded += SelectNoteOnNoteAdded;
         // TODO: select the sequence when a lever note or wheel turn is removed
     }
 
@@ -43,8 +43,8 @@ public class UIManager : MonoBehaviour
         ChartManager.OnChartLoaded -= DeselectOnChartLoaded;
         ChartManager.OnNoteAdded -= SelectNoteOnNoteAdded;
         ChartManager.OnNoteRemoved -= DeselectNoteOnNoteRemoved;
-        ChartManager.OnLeverNoteAdded -= SelectNoteOnNoteAdded;
-        ChartManager.OnWheelTurnAdded -= SelectNoteOnNoteAdded;
+        // ChartManager.OnLeverNoteAdded -= SelectNoteOnNoteAdded;
+        // ChartManager.OnWheelTurnAdded -= SelectNoteOnNoteAdded;
     }
 
     public AlertDialog ShowAlert(string title, string message)
@@ -59,6 +59,6 @@ public class UIManager : MonoBehaviour
 
     public void SelectNote(Note note) => OnNoteSelected?.Invoke(note);
 
-    public void SelectNoteOnNoteAdded<C, N>(C container, N note) where N : Note => SelectNote(note);
-    void DeselectNoteOnNoteRemoved<C, N>(C container, N note) => SelectNote(null);
+    public void SelectNoteOnNoteAdded(Note note) => SelectNote(note);
+    void DeselectNoteOnNoteRemoved(Note note) => SelectNote(null);
 }
