@@ -22,7 +22,7 @@ public class PlaybackManager : MonoBehaviour
         ? lastSyncTimeInChart
         : (int)(Time.time * 1000) - lastSyncTime + lastSyncTimeInChart;
 
-    public float BeatsInChart => SaveManager.Instance.ChartPackage.TimeToBeat(MillisecondsInChart);
+    public float BeatsInChart => ChartManager.ChartPackage.TimeToBeat(MillisecondsInChart);
 
     int offset;
     public int Offset
@@ -42,7 +42,7 @@ public class PlaybackManager : MonoBehaviour
 
     public AudioClip CurrentSong => audioSource.clip;
     public int CurrentSongLength => CurrentSong == null
-        ? SaveManager.Instance.ChartPackage.Notes.Aggregate(10000, (a, n) => Math.Max(a, n.EndTime))
+        ? ChartManager.ChartPackage.Notes.Aggregate(10000, (a, n) => Math.Max(a, n.EndTime))
         : (int) (CurrentSong.length * 1000);
     
     AudioSource audioSource;

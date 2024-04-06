@@ -25,13 +25,13 @@ public class BeatMarker : MonoBehaviour
     {
         float beatsInChart = PlaybackManager.Instance.BeatsInChart;
         float beat = Mathf.Ceil((beatsInChart-Beat) / BeatWrap) * BeatWrap + Beat;
-        int time = SaveManager.Instance.ChartPackage.BeatToTime(beat);
+        int time = ChartManager.ChartPackage.BeatToTime(beat);
         Vector2 uiPos = PlaybackManager.Instance.TrackToUIPosition(50, time);
         rect.anchorMax = new Vector2(rect.anchorMax.x, uiPos.y);
         rect.anchorMin = new Vector2(rect.anchorMin.x, uiPos.y);
 
         // Hide if view is too big to wrap around fully
-        image.enabled = SaveManager.Instance.ChartPackage.BeatToTime(BeatWrap) > PlaybackManager.Instance.ViewSize;
+        image.enabled = ChartManager.ChartPackage.BeatToTime(BeatWrap) > PlaybackManager.Instance.ViewSize;
         
     }
 }

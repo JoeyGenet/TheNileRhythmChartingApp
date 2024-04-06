@@ -41,7 +41,7 @@ public class WheelSequenceInspector : NoteContainerInspector<EditableWheelSequen
 
     protected override EditableWheelTurn NewChildNote()
     {
-        int endTime = Note.EndTime + SaveManager.Instance.ChartPackage.BeatToTime(1); // place 1 beat after last note
+        int endTime = Note.EndTime + ChartManager.ChartPackage.BeatToTime(1); // place 1 beat after last note
         // TODO: maybe place same distance as prev 2 notes?
         return new EditableWheelTurn(Note, endTime, 0);
     }

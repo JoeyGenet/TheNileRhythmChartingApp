@@ -64,31 +64,31 @@ public class EditableChartPackage : ChartPackage, IEditable
 
     string imageCache = null;
     string songCache = null;
-    readonly Dictionary<Chart, string> chartNames = new();
+    readonly Dictionary<EditableChart, string> chartNames = new();
+
+    protected override async Task LoadCoverImage(ZipArchiveEntry entry)
+    {
+        imageCache = await entry.ExtractToTempPath("ChartPackageCache");
+        using Stream stream = entry.Open();
+        coverImage = await FileManager.OpenTexture(stream);
+    }
+    public async Task SetCoverImage(string path)
+    {
+        imageCache = FileManager.CopyToTempPath(path, "ChartPackageCache");
+        using Stream stream = File.OpenRead(path);
+        coverImage = await FileManager.OpenTexture(stream);
+        SetChanged();
+    }
 
     protected override async Task LoadSong(ZipArchiveEntry entry)
     {
-        songCache = entry.ExtractToTempPath("ChartPackageCache");
+        songCache = await entry.ExtractToTempPath("ChartPackageCache");
         songClip = await FileManager.OpenAudioClip(songCache);
     }
     public async Task SetSong(string path)
     {
         songCache = FileManager.CopyToTempPath(path, "ChartPackageCache");
         songClip = await FileManager.OpenAudioClip(path);
-        SetChanged();
-    }
-
-    protected override void LoadCoverImage(ZipArchiveEntry entry)
-    {
-        imageCache = entry.ExtractToTempPath("ChartPackageCache");
-        using Stream stream = entry.Open();
-        coverImage = FileManager.OpenTexture(stream);
-    }
-    public void SetCoverImage(string path)
-    {
-        imageCache = FileManager.CopyToTempPath(path, "ChartPackageCache");
-        using Stream stream = File.OpenRead(path);
-        coverImage = FileManager.OpenTexture(stream);
         SetChanged();
     }
 
@@ -100,9 +100,6 @@ public class EditableChartPackage : ChartPackage, IEditable
         chartNames[chart] = entry.Name;
     }
 
-    public EditableChartPackage() : base() {}
-    public EditableChartPackage(Stream stream) : base(stream) {}
-
     public void Save(Stream stream)
     {
         using var archive = new ZipArchive(stream, ZipArchiveMode.Create, leaveOpen: true);
@@ -110,7 +107,7 @@ public class EditableChartPackage : ChartPackage, IEditable
         var imageEntry = archive.CreateEntryFromFile(imageCache, Path.GetFileName(imageCache));
         var songEntry = archive.CreateEntryFromFile(songCache, Path.GetFileName(songCache));
 
-        foreach (EditableChart chart in charts)
+        foreach (EditableChart chart in Charts)
         {
             var chartEntry = archive.CreateEntry(chartNames[chart]);
             using var chartStream = chartEntry.Open();
@@ -134,7 +131,6 @@ public class EditableChartPackage : ChartPackage, IEditable
             writer.WriteLine($"Gain: {Gain}");
             writer.WriteLine($"Start: {SongStart}");
             writer.WriteLine($"End: {SongEnd}");
-            writer.WriteLine();
         }
     }
 }

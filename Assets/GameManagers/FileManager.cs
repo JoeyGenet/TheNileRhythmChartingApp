@@ -56,11 +56,11 @@ public static class FileManager
     //     return DownloadHandlerTexture.GetContent(uwr);
     // }
 
-    public static Texture2D OpenTexture(Stream stream)
+    public static async Task<Texture2D> OpenTexture(Stream stream)
     {
         var texture = new Texture2D(1, 1);
         using var memStream = new MemoryStream();
-        stream.CopyTo(memStream);
+        await stream.CopyToAsync(memStream);
         texture.LoadImage(memStream.ToArray());
         return texture;
     }
@@ -105,21 +105,17 @@ public static class FileManager
         return tempFilePath;
     }
 
-    public static string ExtractToTempPath(this ZipArchiveEntry entry, string path = null)
+    public static async Task<string> ExtractToTempPath(this ZipArchiveEntry entry, string path = null)
     {
         string tempFilePath = GetTempPath(path, entry.Name);
-        entry.ExtractToFile(tempFilePath, overwrite: true);
+        using (var stream = entry.Open())
+        {
+            using var fileStream = File.Open(tempFilePath, FileMode.Create);
+            await stream.CopyToAsync(fileStream, 4096);
+        }
+        // await Task.Run(() => entry.ExtractToFile(tempFilePath, overwrite: true));
         return tempFilePath;
     }
-    
-
-    // public static async Task<AudioClip> OpenAudioClip(this ZipArchiveEntry entry)
-    // {
-    //     string tempFilePath = entry.ExtractToTempPath("AudioClips");
-    //     AudioClip clip = await OpenAudioClip(tempFilePath);
-    //     File.Delete(tempFilePath);
-    //     return clip;
-    // }
 
 
     public static ZipArchiveEntry TryGetEntry(this ZipArchive archive, string path, string fileDescription = "entry") 

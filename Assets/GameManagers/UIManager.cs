@@ -30,21 +30,21 @@ public class UIManager : MonoBehaviour
     {
         Instance = this;
 
-        SaveManager.OnChartLoaded += DeselectOnChartLoaded;
-        SaveManager.OnNoteAdded += SelectNoteOnNoteAdded;
-        SaveManager.OnNoteRemoved += DeselectNoteOnNoteRemoved;
-        SaveManager.OnLeverNoteAdded += SelectNoteOnNoteAdded;
-        SaveManager.OnWheelTurnAdded += SelectNoteOnNoteAdded;
+        ChartManager.OnChartLoaded += DeselectOnChartLoaded;
+        ChartManager.OnNoteAdded += SelectNoteOnNoteAdded;
+        ChartManager.OnNoteRemoved += DeselectNoteOnNoteRemoved;
+        ChartManager.OnLeverNoteAdded += SelectNoteOnNoteAdded;
+        ChartManager.OnWheelTurnAdded += SelectNoteOnNoteAdded;
         // TODO: select the sequence when a lever note or wheel turn is removed
     }
 
     void OnDestroy()
     {
-        SaveManager.OnChartLoaded -= DeselectOnChartLoaded;
-        SaveManager.OnNoteAdded -= SelectNoteOnNoteAdded;
-        SaveManager.OnNoteRemoved -= DeselectNoteOnNoteRemoved;
-        SaveManager.OnLeverNoteAdded -= SelectNoteOnNoteAdded;
-        SaveManager.OnWheelTurnAdded -= SelectNoteOnNoteAdded;
+        ChartManager.OnChartLoaded -= DeselectOnChartLoaded;
+        ChartManager.OnNoteAdded -= SelectNoteOnNoteAdded;
+        ChartManager.OnNoteRemoved -= DeselectNoteOnNoteRemoved;
+        ChartManager.OnLeverNoteAdded -= SelectNoteOnNoteAdded;
+        ChartManager.OnWheelTurnAdded -= SelectNoteOnNoteAdded;
     }
 
     public AlertDialog ShowAlert(string title, string message)

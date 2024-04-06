@@ -4,7 +4,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
-using TMPro;
 using UnityEngine;
 
 public class ChartPackageLoadException : Exception
@@ -57,15 +56,15 @@ public class ChartPackage
 	public int BeatToTime(float beat) => (int) (beat * 60000f / BPM + BPMOffset);
 	public float TimeToBeat(int time) => (time - BPMOffset) * BPM / 60000f;
 
-    protected virtual void LoadCoverImage(ZipArchiveEntry entry)
+    protected virtual async Task LoadCoverImage(ZipArchiveEntry entry)
     {
-        using Stream stream = entry.Open();
-        coverImage = FileManager.OpenTexture(stream);
+        using var stream = entry.Open();
+        coverImage = await FileManager.OpenTexture(stream);
     }
 
     protected virtual async Task LoadSong(ZipArchiveEntry entry)
     {
-        string tempFilePath = entry.ExtractToTempPath("AudioClips");
+        string tempFilePath = await entry.ExtractToTempPath("AudioClips");
         songClip = await FileManager.OpenAudioClip(tempFilePath);
         File.Delete(tempFilePath);
     }
@@ -76,32 +75,31 @@ public class ChartPackage
         charts.Add(new Chart(this, stream));
     }
 
-    public ChartPackage() {}
-
-    public ChartPackage(Stream stream)
+    public virtual async Task Load(Stream stream)
     {
         using var archive = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true);
-
 
         // Parse config
         ZipArchiveEntry configEntry = archive.Entries
             .FirstOrDefault(entry => FileManager.GetExtension(entry.Name).ToLower() == "nr")
             ?? throw new ChartPackageLoadException("Could not find config file that ends in '.nr'");
-        string rootPath = configEntry.FullName[..^configEntry.Name.Length];
 
         var parser = new FileParser();
+
+        string coverImagePath = null;
+        string songPath = null;
 
         parser["Metadata"] += (line, args) => parser.KeyValue(new()
         {
             ["Title"] = val => title = val,
             ["Artist"] = val => artist = val,
             ["Charter"] = val => charter = val,
-            ["CoverImage"] = filepath => LoadCoverImage(archive.TryGetEntry(rootPath + filepath, "cover image")),
+            ["CoverImage"] = filepath => coverImagePath = filepath,
         });
 
         parser["Song"] = (line, args) => parser.KeyValue(new()
         {
-            ["SongFile"] = filepath => _ = LoadSong(archive.TryGetEntry(rootPath + filepath, "song file")),
+            ["SongFile"] = filepath => songPath = filepath,
             ["BPM"] = val => bpm = uint.Parse(val),
             ["BPMOffset"] = val => bpmOffset = int.Parse(val),
             ["Gain"] = val => gain = float.Parse(val),
@@ -111,8 +109,12 @@ public class ChartPackage
 
         using (var configStream = configEntry.Open())
         {
-            parser.Run(configStream);
+            await Task.Run(() => parser.Run(configStream));
         }
+
+        string rootPath = configEntry.FullName[..^configEntry.Name.Length];
+        await LoadCoverImage(archive.TryGetEntry(rootPath + coverImagePath, "cover image"));
+        await LoadSong(archive.TryGetEntry(rootPath + songPath, "song file"));
 
 
         // Load charts
@@ -120,7 +122,7 @@ public class ChartPackage
         {
             if (FileManager.GetExtension(entry.Name) == "nrchart")
             {
-                LoadChart(entry);
+                await Task.Run(() => LoadChart(entry));
             }
         }
         if (charts.Count == 0)

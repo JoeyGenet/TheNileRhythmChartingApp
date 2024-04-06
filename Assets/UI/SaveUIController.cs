@@ -34,17 +34,17 @@ public class SaveUIController : MonoBehaviour
     void Update()
     {
         // Update path text
-        string path = SaveManager.Instance.ChartPath;
+        string path = ChartManager.ChartPath;
         bool hasPath = !string.IsNullOrEmpty(path);
         if (!hasPath) chartPathText.text = defaultChartPathText;
-        else chartPathText.text = path + (SaveManager.Instance.HasChanges ? "*" : "");
+        else chartPathText.text = path + (ChartManager.HasChanges ? "*" : "");
 
         saveButton.interactable = hasPath;
     }
 
     void LoadChart()
     {
-        StandaloneFileBrowser.OpenFilePanelAsync("Load Chart", SaveManager.Instance.ChartDir, "", false, paths =>
+        StandaloneFileBrowser.OpenFilePanelAsync("Load Chart", ChartManager.ChartDir, "", false, paths =>
         {
             if (paths.Length == 0 || string.IsNullOrEmpty(paths[0])) return; // User pressed cancel. Don't load
             if (!File.Exists(paths[0]))
@@ -55,7 +55,7 @@ public class SaveUIController : MonoBehaviour
 
             try 
             {
-                SaveManager.Instance.LoadChart(paths[0]);
+                ChartManager.LoadChart(paths[0]);
             }
             catch (ChartParser.ChartParseException e)
             {
@@ -74,7 +74,7 @@ public class SaveUIController : MonoBehaviour
     {
         try 
         {
-            SaveManager.Instance.SaveChart(path);
+            ChartManager.SaveChart(path);
         }
         catch (Exception e)
         {
@@ -85,17 +85,17 @@ public class SaveUIController : MonoBehaviour
 
     void SaveChart()
     {
-        if (string.IsNullOrEmpty(SaveManager.Instance.ChartPath))
+        if (string.IsNullOrEmpty(ChartManager.ChartPath))
         {
             UIManager.Instance.ShowAlert("Cannot Save Chart", "Load a chart first before saving it.");
             return;
         }
-        TrySaveChart(SaveManager.Instance.ChartPath);
+        TrySaveChart(ChartManager.ChartPath);
     }
 
     void SaveChartAs()
     {
-        StandaloneFileBrowser.SaveFilePanelAsync("Save Chart As", SaveManager.Instance.ChartDir, "MyChart", "txt", path => 
+        StandaloneFileBrowser.SaveFilePanelAsync("Save Chart As", ChartManager.ChartDir, "MyChart", "txt", path => 
         {
             if (string.IsNullOrEmpty(path)) return; // User pressed cancel. Don't save.
             TrySaveChart(path);

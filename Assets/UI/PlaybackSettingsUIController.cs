@@ -52,7 +52,7 @@ public class PlaybackSettingsUIController : MonoBehaviour
 
     void LoadSong()
     {
-        StandaloneFileBrowser.OpenFilePanelAsync("Load Song", SaveManager.Instance.ChartDir, "", false, async paths =>
+        StandaloneFileBrowser.OpenFilePanelAsync("Load Song", ChartManager.ChartDir, "", false, async paths =>
         {
             if (paths.Length == 0 || string.IsNullOrEmpty(paths[0])) return; // User pressed cancel. Don't load
             if (!File.Exists(paths[0]))

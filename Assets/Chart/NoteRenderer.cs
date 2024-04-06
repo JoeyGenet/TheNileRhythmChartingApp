@@ -37,12 +37,12 @@ where C : IEditableNoteContainer<N>
     {
         rect = GetComponent<RectTransform>();
 
-        SaveManager.OnChartLoaded += DestroyOnChartLoaded;
+        ChartManager.OnChartLoaded += DestroyOnChartLoaded;
     }
 
     protected virtual void OnDestroy()
     {
-        SaveManager.OnChartLoaded -= DestroyOnChartLoaded;
+        ChartManager.OnChartLoaded -= DestroyOnChartLoaded;
         Note.Container.OnNoteRemoved -= DestroyOnNoteRemoved;
     }
 
