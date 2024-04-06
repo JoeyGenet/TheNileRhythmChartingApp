@@ -22,8 +22,6 @@ public class LeverSequenceInspector : NoteContainerInspector<EditableLeverSequen
     // [SerializeField] LeverNoteInspector leverNoteInspectorPrefab;
     // [SerializeField] Button addNoteButton;
 
-    readonly Dictionary<EditableLeverNote, LeverNoteInspector> leverNoteInspectors = new();
-
     protected override void Awake()
     {
         base.Awake();

@@ -71,34 +71,27 @@ public abstract class NoteInspector<NoteType> : MonoBehaviour where NoteType : N
 }
 
 
-public abstract class ChildNoteInspector<ContainerType, NoteType> : NoteInspector<NoteType>
-where NoteType : Note
-where ContainerType : Note, IEditableNoteContainer<NoteType>
+public abstract class NoteContainerInspector<ContainerType, ChildType> : NoteInspector<ContainerType>
+where ChildType : Note
+where ContainerType : Note, IEditableNoteContainer<ChildType>
 {
-    public NoteContainerInspector<ContainerType, NoteType> Container { get; private set; }
-
-    public void Init(NoteContainerInspector<ContainerType, NoteType> container, NoteType note)
+    public abstract class ChildInspector : MonoBehaviour
     {
-        Container = container;
-        Note = note;
+        public ChildType Note { get; private set; }
+        public NoteContainerInspector<ContainerType, ChildType> Container { get; private set; }
+
+        public virtual void Init(NoteContainerInspector<ContainerType, ChildType> container, ChildType note)
+        {
+            Container = container;
+            Note = note;
+        }
     }
 
-    protected override void Awake() {}
-    protected override void OnDestroy() {}
-    protected sealed override void OnShow() {}
-    protected sealed override void ShowHide(Note note) {}
-}
-
-
-public abstract class NoteContainerInspector<NoteType, ChildType> : NoteInspector<NoteType>
-where ChildType : Note
-where NoteType : Note, IEditableNoteContainer<ChildType>
-{
     [SerializeField] RectTransform childInspectorsParent;
-    [SerializeField] ChildNoteInspector<NoteType, ChildType> childInspectorPrefab;
+    [SerializeField] ChildInspector childInspectorPrefab;
     [SerializeField] Button addNoteButton;
 
-    readonly Dictionary<ChildType, ChildNoteInspector<NoteType, ChildType>> childInspectors = new();
+    readonly Dictionary<ChildType, ChildInspector> childInspectors = new();
 
     // protected virtual void OnNoteAdded(ChildType note) {}
     // protected virtual void OnNoteRemoved(ChildType note) {}
@@ -154,7 +147,7 @@ where NoteType : Note, IEditableNoteContainer<ChildType>
 
     protected override void ShowHide(Note note)
     {
-        if (note is NoteType myNote)
+        if (note is ContainerType myNote)
         {
             foreach (var (childNote, inspector) in childInspectors)
             {

@@ -1,11 +1,9 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class LeverNoteInspector : ChildNoteInspector<EditableLeverSequence, EditableLeverNote>
+public class LeverNoteInspector : NoteContainerInspector<EditableLeverSequence, EditableLeverNote>.ChildInspector
 {
     [SerializeField] TMP_InputField timeInput;
     [SerializeField] TMP_Dropdown posDropdown;
@@ -18,10 +16,8 @@ public class LeverNoteInspector : ChildNoteInspector<EditableLeverSequence, Edit
     [SerializeField] private Color downColor;
     [SerializeField] private Color middleColor;
     
-    protected override void Awake()
+    void Awake()
     {
-        base.Awake();
-
         timeInput.onValidateInput += (text, _, c) => c == '-' ? '\0' : c;
         timeInput.onValueChanged.AddListener(text =>
         {
@@ -56,10 +52,8 @@ public class LeverNoteInspector : ChildNoteInspector<EditableLeverSequence, Edit
         posDropdown.value = (int) Note.Pos;
     }
 
-    protected override void Update()
-    {
-        base.Update();
-        
+    void Update()
+    {   
         if (!timeInput.isFocused) timeInput.SetTextWithoutNotify($"{Note.StartTime}");
 
         float angle;
