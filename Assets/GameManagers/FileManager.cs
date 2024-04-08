@@ -92,7 +92,7 @@ public static class FileManager
 
     public static string CopyToTempPath(string source, string path = null)
     {
-        string tempFilePath = GetTempPath(path, Path.GetFileName(path));
+        string tempFilePath = GetTempPath(path, Path.GetFileName(source));
         File.Copy(source, tempFilePath, overwrite: true);
         return tempFilePath;
     }
@@ -116,9 +116,4 @@ public static class FileManager
         // await Task.Run(() => entry.ExtractToFile(tempFilePath, overwrite: true));
         return tempFilePath;
     }
-
-
-    public static ZipArchiveEntry TryGetEntry(this ZipArchive archive, string path, string fileDescription = "entry") 
-        => archive.Entries.FirstOrDefault(entry => entry.FullName == path)
-        ?? throw new ChartPackageLoadException($"Could not find {fileDescription} {path} in archive.");
 }

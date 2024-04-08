@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Unity.VisualScripting;
 using UnityEngine;
 
 // TODO: instead of IEditableNoteContainer<Note>, use IEditableNoteContainer<IEditableNote>
@@ -15,34 +14,48 @@ public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
 
     public event NoteAddedEvent<Note> OnNoteAdded;
     public event NoteRemovedEvent<Note> OnNoteRemoved;
-	
-	public new int DifficultyRating
+    public event NoteMovedEvent<Note> OnNoteMoved;
+
+	public new EditableChartPackage Package => base.Package as EditableChartPackage;
+
+    public new int DifficultyRating
     {
         get => difficultyRating;
-        set => this.RegisterChange(ref difficultyRating, value);
+        set => this.RegisterChange(ref difficultyRating, Math.Clamp(value, 0, 16));
     }
 	public new string DifficultyName
     {
         get => difficultyName;
-        set => this.RegisterChange(ref difficultyName, value.Trim());
+        set
+		{
+			// Add a number after the difficulty name so it doesn't conflict with other difficulties
+            int id = 0;
+            string name;
+			var chartNames = Package.Charts.Select(c => c == this ? "" : c.difficultyName).ToHashSet();
+            while (chartNames.Contains(name = value.Trim() + (id == 0 ? "" : $" {id}"))) id++;
+
+			this.RegisterChange(ref difficultyName, name);
+		}
     }
 
-    public EditableChart(ChartPackage package) : base(package) {}
-    public EditableChart(ChartPackage package, Stream stream) : base(package, stream) {}
+    public EditableChart(EditableChartPackage package) : base(package) {}
+    public EditableChart(EditableChartPackage package, Stream stream) : base(package, stream) {}
 
 	public bool ContainsNote(Note note) => notes.Contains(note);
 
-    public new bool AddNote(Note note) => AddNote(note, true);
-    public bool AddNote(Note note, bool notify) => this.RegisterChange(
+    public new bool AddNote(Note note) => this.RegisterChange(
 		() => notes.Add(note),
-		notify,
 		() => OnNoteAdded?.Invoke(note)
 	);
 
-    public bool RemoveNote(Note note, bool notify = true) => this.RegisterChange(
+    public bool RemoveNote(Note note) => this.RegisterChange(
 		() => notes.Remove(note),
-		notify,
 		() => OnNoteRemoved?.Invoke(note)
+	);
+
+    public bool UpdateNote(Note note) => this.RegisterChange(
+		() => notes.Remove(note) && notes.Add(note),
+		onChanged: () => OnNoteMoved?.Invoke(note)
 	);
 
 	public void Save(Stream stream)
@@ -86,5 +99,8 @@ public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
 			};
 			writer.WriteLine(line);
 		}
+
+		HasChanges = false;
 	}
+
 }

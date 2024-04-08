@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
-public class NoteInspectors : MonoBehaviour
+public class NoteInspectorsUIController : MonoBehaviour
 {
     [SerializeField] ButtonNoteInspector buttonNoteInspector;
     [SerializeField] WheelFlickInspector wheelFlickInspector;

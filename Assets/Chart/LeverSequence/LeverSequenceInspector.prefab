@@ -208,6 +208,7 @@ GameObject:
   - component: {fileID: 8449564112479849852}
   - component: {fileID: 7720662967655004283}
   - component: {fileID: 6032575217173581780}
+  - component: {fileID: 3977860875122743799}
   m_Layer: 5
   m_Name: LeverSequenceInspector
   m_TagString: Untagged
@@ -252,8 +253,8 @@ MonoBehaviour:
   childInspectorsParent: {fileID: 5757337584334113292}
   childInspectorPrefab: {fileID: 7708662840672529484, guid: ea2982511195447afa40d6175df160f7, type: 3}
   addNoteButton: {fileID: 4274807197606273979}
-  leftToggle: {fileID: 1941380870234053823}
-  rightToggle: {fileID: 6096701204810552578}
+  leftToggle: {fileID: 0}
+  rightToggle: {fileID: 0}
 --- !u!114 &6032575217173581780
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -274,12 +275,32 @@ MonoBehaviour:
   m_ChildAlignment: 0
   m_Spacing: 3
   m_ChildForceExpandWidth: 1
-  m_ChildForceExpandHeight: 0
+  m_ChildForceExpandHeight: 1
   m_ChildControlWidth: 1
   m_ChildControlHeight: 1
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &3977860875122743799
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5609275334349011549}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_IgnoreLayout: 0
+  m_MinWidth: -1
+  m_MinHeight: -1
+  m_PreferredWidth: -1
+  m_PreferredHeight: 450
+  m_FlexibleWidth: -1
+  m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!1 &5969827558703976293
 GameObject:
   m_ObjectHideFlags: 0
@@ -1497,17 +1518,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 4168138413036441562, guid: c155e16a3ff5e4b209546d3d9d242100, type: 3}
   m_PrefabInstance: {fileID: 4284081465205502966}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1941380870234053823 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2415397216524087113, guid: c155e16a3ff5e4b209546d3d9d242100, type: 3}
-  m_PrefabInstance: {fileID: 4284081465205502966}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9085046f02f69544eb97fd06b6048fe2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1001 &5175507578399981445
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2223,9 +2233,9 @@ MonoBehaviour:
   m_MinWidth: -1
   m_MinHeight: -1
   m_PreferredWidth: -1
-  m_PreferredHeight: 320
+  m_PreferredHeight: -1
   m_FlexibleWidth: -1
-  m_FlexibleHeight: -1
+  m_FlexibleHeight: 10000
   m_LayoutPriority: 1
 --- !u!1 &4597224842195258847 stripped
 GameObject:
@@ -2585,17 +2595,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 4168138413036441562, guid: c155e16a3ff5e4b209546d3d9d242100, type: 3}
   m_PrefabInstance: {fileID: 8439432930162342475}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &6096701204810552578 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2415397216524087113, guid: c155e16a3ff5e4b209546d3d9d242100, type: 3}
-  m_PrefabInstance: {fileID: 8439432930162342475}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9085046f02f69544eb97fd06b6048fe2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1001 &8698850968980892357
 PrefabInstance:
   m_ObjectHideFlags: 0

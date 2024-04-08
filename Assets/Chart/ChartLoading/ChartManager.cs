@@ -3,7 +3,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using SFB;
 using UnityEngine;
 
 public static class ChartManager
@@ -12,45 +11,53 @@ public static class ChartManager
     public delegate void ChartSavedEvent(string path);
     public delegate void NoteAddedEvent(Note note);
     public delegate void NoteRemovedEvent(Note note);
-	// public delegate void NoteAddedEvent<C, N>(C container, N note) where N : Note where C : INoteContainer<N>;
-	// public delegate void NoteRemovedEvent<C, N>(C container, N note) where N : Note where C : INoteContainer<N>;
 
     public static event ChartLoadedEvent OnChartLoaded;
     public static event ChartSavedEvent OnChartSaved;
 	public static event NoteAddedEvent OnNoteAdded; // When a note is added to the currently selected chart
 	public static event NoteRemovedEvent OnNoteRemoved; // When a note is removed from the currently selected chart
-    
-	// public static event NoteAddedEvent<WheelSequence, WheelTurn> OnWheelTurnAdded;
-	// public static event NoteRemovedEvent<WheelSequence, WheelTurn> OnWheelTurnRemoved;
-	// public static event NoteAddedEvent<LeverSequence, LeverNote> OnLeverNoteAdded;
-	// public static event NoteRemovedEvent<LeverSequence, LeverNote> OnLeverNoteRemoved;
 
-    public static EditableChartPackage ChartPackage = new();
+    public static EditableChartPackage ChartPackage { get; private set; } = new();
     public static string ChartPath { get; private set; } = null;
     public static string ChartDir => ChartPath == null ? null : Path.GetDirectoryName(ChartPath);
-    public static EditableChart SelectedChart { get; }
+    public static EditableChart SelectedChart { get; private set; }
 
-    // public bool HasChanges = true;
+    static ChartManager()
+    {
+        SetChartPackage(new EditableChartPackage());
+    }
 
-    // void Awake()
-    // {
-    //     Instance = this;
-    //     // Chart.AddNote(new WheelSequence(Chart, 1000, 50, new() { 180, -180 }, new() { 2000, 3000 }));
-    //     // Chart.AddNote(new WheelSequence(null, 1000, 25, new() { 90, 0, -90 }, new() { 2000, 3000, 4000 }));
-    //     // Chart.AddNote(new WheelSequence(null, 1000, 100, new() { -180, -180, -180 }, new() { 2000, 3000, 4000 }));
-    //     // W 115159 50 -45 115553 90 115948 -45 116343 89 116738 -44 117132 90 117527 -45 117922
-    //     // Chart.AddNote(new WheelSequence(null, 1000, 75, new() { (90, 2000), (-45, 2000) }));
-    // }
+    static void SetChartPackage(EditableChartPackage pkg)
+    {
+        ChartPackage = pkg;
+        if (pkg.Charts.Count == 0)
+        {
+            SelectedChart = ChartPackage.AddChart();
+        }
+        else if (SelectedChart != null) // Find the chart that most closely matches the current chart's difficulty
+        {
+            var newSelectedChart = pkg.Charts.FirstOrDefault(c => c.DifficultyName == SelectedChart.DifficultyName);
+            newSelectedChart ??= pkg.Charts.OrderBy(c => Math.Abs(c.DifficultyRating - SelectedChart.DifficultyRating)).FirstOrDefault();
+            newSelectedChart ??= ChartPackage.Charts[0];
+            SelectedChart = newSelectedChart;
+        }
+        else
+        {
+            SelectedChart = ChartPackage.Charts[0];
+        }
+    }
 
     public static async void LoadChart(string path)
     {
+        var pkg = new EditableChartPackage();
         using (var stream = File.OpenRead(path))
         {
-            ChartPackage = new EditableChartPackage();
-            await ChartPackage.Load(stream);
+            await pkg.Load(stream);
         }
+        SetChartPackage(pkg);
+
         ChartPath = path;
-        // HasChanges = false;
+
         OnChartLoaded?.Invoke(path);
     }
 

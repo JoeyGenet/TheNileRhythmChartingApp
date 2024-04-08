@@ -13,7 +13,7 @@ public interface IEditable
 
 public delegate void NoteAddedEvent<N>(N note) where N : Note;
 public delegate void NoteRemovedEvent<N>(N note) where N : Note;
-public delegate void NoteOrderChangedEvent();
+public delegate void NoteMovedEvent<N>(N note) where N : Note;
 
 public interface IEditableNote<out C, N> : IEditable
 where N : Note
@@ -27,61 +27,47 @@ where NoteType : Note
 {
 	public event NoteAddedEvent<NoteType> OnNoteAdded;
 	public event NoteRemovedEvent<NoteType> OnNoteRemoved;
-	public event NoteOrderChangedEvent OnOrderChanged;
+	public event NoteMovedEvent<NoteType> OnNoteMoved;
 
-	bool AddNote(NoteType note, bool notify = true);
-	bool RemoveNote(NoteType note, bool notify = true);
+	bool AddNote(NoteType note);
+	bool RemoveNote(NoteType note);
+	bool UpdateNote(NoteType note); // Updates the note's sorting position
     bool ContainsNote(NoteType note);
 }
 
 public static class IEditableExtensions
 {
-    public static bool RegisterChange<T>(this IEditable editable, ref T value, T newValue,
-                                        bool notify = true, Action notifyAction = null)
+    public static bool RegisterChange<T>(this IEditable editable, ref T value, T newValue, Action onChanged = null)
     {
         if (newValue.Equals(value)) return false;
         value = newValue;
-        if (notify)
-        {
-            editable.SetChanged();
-            notifyAction?.Invoke();
-        }
+        editable.SetChanged();
+        onChanged?.Invoke();
         return true;
     }
 
     public static bool RegisterSortingChange<T, E, N>(this E editable, IEditableNoteContainer<N> container,
-                                        ref T value, T newValue,
-                                        bool notify = true, Action notifyAction = null)
+                                        ref T value, T newValue, Action onChanged = null)
     where N : Note
     where E : IEditable, N
     {
         if (newValue.Equals(value)) return false;
-        container.RemoveNote(editable, notify);
         value = newValue;
-        container.AddNote(editable, notify);
-        if (notify)
-        {
-            editable.SetChanged();
-            notifyAction?.Invoke();
-        }
+        container.UpdateNote(editable);
+        editable.SetChanged();
+        onChanged?.Invoke();
         return true;
     }
 
-	public static bool RegisterChange(this IEditable editable, Func<bool> changeAction, bool notify = true, Action notifyAction = null)
+	public static bool RegisterChange(this IEditable editable, Func<bool> changeAction, Action onChanged = null)
 	{
 		if (!changeAction()) return false;
-		if (notify)
-		{
-			editable.SetChanged();
-			notifyAction?.Invoke();
-		}
+        editable.SetChanged();
+        onChanged?.Invoke();
 		return true;
 	}
 
     public static bool RemoveSelf<N>(this IEditableNote<IEditableNoteContainer<N>, N> note)
     where N : Note
         => note.Container.RemoveNote(note as N);
-    
-    // public static bool RemoveSelf<T>(this Note note)
-
 }

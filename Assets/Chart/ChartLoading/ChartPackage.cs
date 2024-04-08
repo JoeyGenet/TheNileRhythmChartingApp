@@ -10,6 +10,10 @@ public class ChartPackageLoadException : Exception
 {
     public ChartPackageLoadException(string message) : base(message) {}
 }
+public class MissingElementException : ChartPackageLoadException
+{
+    public MissingElementException(string message) : base(message) {}
+}
 
 /// <summary>
 /// Handles reading from a collection of charts of different difficulties and the same song
@@ -75,64 +79,102 @@ public class ChartPackage
         charts.Add(new Chart(this, stream));
     }
 
+
     public virtual async Task Load(Stream stream)
     {
         using var archive = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true);
 
-        // Parse config
-        ZipArchiveEntry configEntry = archive.Entries
-            .FirstOrDefault(entry => FileManager.GetExtension(entry.Name).ToLower() == "nr")
-            ?? throw new ChartPackageLoadException("Could not find config file that ends in '.nr'");
+        ZipArchiveEntry tryGetEntry(string path, string fileDescription = "entry") 
+            => archive.Entries.FirstOrDefault(entry => entry.FullName == path)
+            ?? throw new ChartPackageLoadException($"Could not find {fileDescription} {path} in archive.");
 
-        var parser = new FileParser();
-
-        string coverImagePath = null;
-        string songPath = null;
-
-        parser["Metadata"] += (line, args) => parser.KeyValue(new()
+        Exception firstException = null;
+        void wrapException(Action a)
         {
-            ["Title"] = val => title = val,
-            ["Artist"] = val => artist = val,
-            ["Charter"] = val => charter = val,
-            ["CoverImage"] = filepath => coverImagePath = filepath,
-        });
-
-        parser["Song"] = (line, args) => parser.KeyValue(new()
+            try { a(); }
+            catch (Exception e) { firstException = e; }
+        }
+        T wrapExceptionFunc<T>(Func<T> a)
         {
-            ["SongFile"] = filepath => songPath = filepath,
-            ["BPM"] = val => bpm = uint.Parse(val),
-            ["BPMOffset"] = val => bpmOffset = int.Parse(val),
-            ["Gain"] = val => gain = float.Parse(val),
-            ["Start"] = val => songStart = int.Parse(val),
-            ["End"] = val => songEnd = int.Parse(val),
-        });
-
-        using (var configStream = configEntry.Open())
+            try { return a(); }
+            catch (Exception e) { firstException = e; }
+            return default(T);
+        }
+        async Task wrapExceptionAsync(Func<Task> a)
         {
-            await Task.Run(() => parser.Run(configStream));
+            try { await a(); }
+            catch (Exception e) { firstException = e; }
         }
 
-        string rootPath = configEntry.FullName[..^configEntry.Name.Length];
-        await LoadCoverImage(archive.TryGetEntry(rootPath + coverImagePath, "cover image"));
-        await LoadSong(archive.TryGetEntry(rootPath + songPath, "song file"));
 
+        // Parse config
+        await wrapExceptionAsync(async () =>
+        {
+            var configEntry = archive.Entries
+                .FirstOrDefault(entry => FileManager.GetExtension(entry.Name).ToLower() == "nr")
+                ?? throw new MissingElementException("Missing config file ending in '.nr'");
+
+            string coverImagePath = null;
+            string songPath = null;
+            
+            var parser = new FileParser();
+
+            parser["Metadata"] = (line, args) => parser.KeyValue(new()
+            {
+                ["Title"] = val => title = val,
+                ["Artist"] = val => artist = val,
+                ["Charter"] = val => charter = val,
+                ["CoverImage"] = filepath => coverImagePath = filepath,
+            });
+
+            parser["Song"] = (line, args) => parser.KeyValue(new()
+            {
+                ["SongFile"] = filepath => songPath = filepath,
+                ["BPM"] = val => bpm = uint.Parse(val),
+                ["BPMOffset"] = val => bpmOffset = int.Parse(val),
+                ["Gain"] = val => gain = float.Parse(val),
+                ["Start"] = val => songStart = int.Parse(val),
+                ["End"] = val => songEnd = int.Parse(val),
+            });
+
+            wrapException(() =>
+            {
+                using var configStream = configEntry.Open();
+                parser.Run(configStream);
+            });
+
+            string rootPath = configEntry.FullName[..^configEntry.Name.Length];
+
+            await wrapExceptionAsync(() =>
+            {
+                if (coverImagePath == null) throw new MissingElementException("Missing cover image");
+                return LoadCoverImage(tryGetEntry(rootPath + coverImagePath, "cover image"));
+            });
+            await wrapExceptionAsync(() =>
+            {
+                if (songPath == null) throw new MissingElementException("Missing song");
+                return LoadSong(tryGetEntry(rootPath + songPath, "song file"));
+            });
+        });
 
         // Load charts
         foreach (ZipArchiveEntry entry in archive.Entries)
         {
             if (FileManager.GetExtension(entry.Name) == "nrchart")
             {
-                await Task.Run(() => LoadChart(entry));
+                wrapException(() => LoadChart(entry));
             }
         }
         if (charts.Count == 0)
         {
-            throw new ChartPackageLoadException("Chart package has no charts/difficulties");
+            firstException ??= new MissingElementException("Missing chart files ending in '.nrchart'");
         }
         else
         {
             charts.Sort((a, b) => a.DifficultyRating.CompareTo(b.DifficultyRating));
         }
+
+        if (firstException != null) throw firstException;
     }
 
     // public static async Task<ChartPackage> Load(string path)

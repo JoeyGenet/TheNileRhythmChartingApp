@@ -73,6 +73,8 @@ public class UIManager : MonoBehaviour
         Instance = this;
 
 
+        // TODO: in the future may want to move this into NoteInspector, 
+        // and add a button like with NoteContainerInspector.ChildInspector
         deleteSelectedNoteEvent.Event.AddListener(() =>
         {
             if (selectedNote is IEditableNote<EditableChart, Note> editableNote)

@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
+using Unity.VisualScripting;
 using UnityEngine;
 
 /// <summary>
@@ -11,8 +12,14 @@ using UnityEngine;
 /// </summary>
 public class EditableChartPackage : ChartPackage, IEditable
 {
+    public delegate void ChartAddedEvent(EditableChart note);
+    public delegate void ChartRemovedEvent(EditableChart note);
+
+    public event ChartAddedEvent OnChartAdded;
+    public event ChartRemovedEvent OnChartRemoved;
+
     public bool ConfigHasChanges { get; private set; }
-    public bool HasChanges => ConfigHasChanges; // TODO: also be true if any chart has changes
+    public bool HasChanges => ConfigHasChanges || Charts.Any(c => c.HasChanges); // TODO: also be true if any chart has changes
     public void SetChanged() => ConfigHasChanges = true;
 
     // Metadata
@@ -36,7 +43,7 @@ public class EditableChartPackage : ChartPackage, IEditable
     public new uint BPM
     {
         get => bpm;
-        set => this.RegisterChange(ref bpm, value);
+        set => this.RegisterChange(ref bpm, Math.Max(value, 1));
     }
     public new int BPMOffset
     {
@@ -60,11 +67,13 @@ public class EditableChartPackage : ChartPackage, IEditable
     }
 
     // readonly List<EditableChart> charts = new();
-    public new IReadOnlyList<EditableChart> Charts => charts as IReadOnlyList<EditableChart>;
+    public new IReadOnlyList<EditableChart> Charts => charts.Cast<EditableChart>().ToList();
 
     string imageCache = null;
     string songCache = null;
-    readonly Dictionary<EditableChart, string> chartNames = new();
+
+    public string ImageName => imageCache == null ? null : Path.GetFileName(imageCache);
+    public string SongName => songCache == null ? null : Path.GetFileName(songCache);
 
     protected override async Task LoadCoverImage(ZipArchiveEntry entry)
     {
@@ -97,19 +106,76 @@ public class EditableChartPackage : ChartPackage, IEditable
         using var stream = entry.Open();
         var chart = new EditableChart(this, stream); // TODO: change to editable chart
         charts.Add(chart);
-        chartNames[chart] = entry.Name;
+    }
+
+    public EditableChart AddChart()
+    {
+        var chart = new EditableChart(this);
+
+        bool hasDifficulty(string name) => charts.Exists(c => c.DifficultyName == name);
+
+        if (!hasDifficulty("Master"))
+        {
+            if (hasDifficulty("Expert")) chart.DifficultyName = "Master";
+            else if (hasDifficulty("Hard")) chart.DifficultyName = "Expert";
+            else if (hasDifficulty("Medium")) chart.DifficultyName = "Hard";
+            else if (hasDifficulty("Easy")) chart.DifficultyName = "Medium";
+            else chart.DifficultyName = "Easy";
+        }
+        else
+        {
+            if (!hasDifficulty("Expert")) chart.DifficultyName = "Expert";
+            else if (!hasDifficulty("Hard")) chart.DifficultyName = "Hard";
+            else if (!hasDifficulty("Medium")) chart.DifficultyName = "Medium";
+            else if (!hasDifficulty("Easy")) chart.DifficultyName = "Easy";
+            else chart.DifficultyName = $"Unnamed {charts.Count-4}";
+        }
+
+        chart.DifficultyRating = chart.DifficultyName switch
+        {
+            "Easy" => 1,
+            "Medium" => 5,
+            "Hard" => 9,
+            "Expert" => 12,
+            "Master" => 14,
+            _ => 1
+        };
+
+        charts.Add(chart);
+        SetChanged();
+        OnChartAdded?.Invoke(chart);
+        return chart;
+    }
+
+    public bool RemoveChart(EditableChart chart) => this.RegisterChange(
+        () => charts.Remove(chart),
+        () => OnChartRemoved?.Invoke(chart)
+    );
+
+    public override async Task Load(Stream stream)
+    {
+        try
+        {
+            await base.Load(stream);
+        }
+        catch (MissingElementException) {} // It's fine for chart editor to have a pkg without a chart
     }
 
     public void Save(Stream stream)
     {
         using var archive = new ZipArchive(stream, ZipArchiveMode.Create, leaveOpen: true);
 
-        var imageEntry = archive.CreateEntryFromFile(imageCache, Path.GetFileName(imageCache));
-        var songEntry = archive.CreateEntryFromFile(songCache, Path.GetFileName(songCache));
+        var imageEntry = imageCache == null ? null : archive.CreateEntryFromFile(imageCache, ImageName);
+        var songEntry = songCache == null ? null : archive.CreateEntryFromFile(songCache, SongName);
 
+        var chartNames = new HashSet<string>();
         foreach (EditableChart chart in Charts)
         {
-            var chartEntry = archive.CreateEntry(chartNames[chart]);
+            int id = 0;
+            string name;
+            while (chartNames.Contains(name = chart.DifficultyName + (id == 0 ? "" : id) + ".nrchart")) id++;
+
+            var chartEntry = archive.CreateEntry(name);
             using var chartStream = chartEntry.Open();
             chart.Save(stream);
         }
@@ -121,16 +187,18 @@ public class EditableChartPackage : ChartPackage, IEditable
             writer.WriteLine($"Title: {Title}");
             writer.WriteLine($"Artist: {Artist}");
             writer.WriteLine($"Charter: {Charter}");
-            writer.WriteLine($"CoverImage: {imageEntry.Name}");
+            if (imageEntry != null) writer.WriteLine($"CoverImage: {imageEntry.Name}");
             writer.WriteLine();
 
             writer.WriteLine("[Song]");
-            writer.WriteLine($"SongFile: {songEntry.Name}");
+            if (songEntry != null) writer.WriteLine($"SongFile: {songEntry.Name}");
             writer.WriteLine($"BPM: {BPM}");
             writer.WriteLine($"BPMOffset: {BPMOffset}");
             writer.WriteLine($"Gain: {Gain}");
             writer.WriteLine($"Start: {SongStart}");
             writer.WriteLine($"End: {SongEnd}");
         }
+
+        ConfigHasChanges = false;
     }
 }

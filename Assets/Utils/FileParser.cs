@@ -12,6 +12,7 @@ public class FileParseException : Exception
     public readonly Exception Cause;
 
     public override string Message => $"Exception caused by line {LineNum} \"{Line}\". Error message: {Cause.Message}";
+    public override string StackTrace => Cause.StackTrace + "\n" + base.StackTrace;
 
     public FileParseException(uint lineNum, string line, Exception cause)
     {

@@ -53,10 +53,8 @@ public class WheelFlickInspector : NoteInspector<EditableWheelFlick>
         else if (Note.Dir == LeftRight.Right) rightToggle.SendEvent(notify: false, playAudio: false);
     }
 
-    protected override void Update()
+    void Update()
     {
-        base.Update();
-
         if (Note == null) return;
 
         if (!timeInput.isFocused) timeInput.SetTextWithoutNotify($"{Note.StartTime}");

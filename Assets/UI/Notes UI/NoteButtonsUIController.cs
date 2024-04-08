@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class NoteButtons : MonoBehaviour
+public class NoteButtonsUIController : MonoBehaviour
 {
     [SerializeField] Toggle buttonNoteToggle;
     [SerializeField] Toggle wheelFlickToggle;

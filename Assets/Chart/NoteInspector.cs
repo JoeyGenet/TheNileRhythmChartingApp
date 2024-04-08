@@ -20,7 +20,7 @@ where NoteType : Note, IEditableNote<EditableChart, Note>
 
 
 public abstract class NoteContainerInspector<ContainerType, ChildType> : NoteInspector<ContainerType>
-where ChildType : Note
+where ChildType : Note, IEditableNote<ContainerType, ChildType>
 where ContainerType : Note, IEditableNote<EditableChart, Note>, IEditableNoteContainer<ChildType>
 {
     public abstract class ChildInspector : MonoBehaviour
@@ -44,7 +44,13 @@ where ContainerType : Note, IEditableNote<EditableChart, Note>, IEditableNoteCon
                 var note = Note;
                 try
                 {
-                    Container.Note.RemoveNote(Note);
+                    Note.RemoveSelf();
+
+                    // If last note in container, remove the container
+                    if (Container.Note.Notes.Count == 0)
+                    {
+                        Container.Note.RemoveSelf();
+                    }
                 }
                 catch (Exception e)
                 {
@@ -96,14 +102,15 @@ where ContainerType : Note, IEditableNote<EditableChart, Note>, IEditableNoteCon
         var childInspector = Instantiate(childInspectorPrefab, childInspectorsParent);
         childInspector.Init(this, note);
         childInspectors[note] = childInspector;
-        UpdateChildInspectorOrder();
+        UpdateChildInspectorPosition(note);
     }
 
-    void UpdateChildInspectorOrder()
+    void UpdateChildInspectorPosition(ChildType note)
     {
-        foreach (var (leverNote, i) in Note.Notes.Select((note, i) => (note, i)))
+        var found = Note.Notes.Select((note, i) => (note, i)).FirstOrDefault(v => v.note == note);
+        if (found.note != null)
         {
-            childInspectors[leverNote].transform.SetSiblingIndex(i);
+            childInspectors[note].transform.SetSiblingIndex(found.i);
         }
     }
 
@@ -116,6 +123,10 @@ where ContainerType : Note, IEditableNote<EditableChart, Note>, IEditableNoteCon
                 childInspectors.Remove(childNote);
                 Destroy(inspector.gameObject);
             }
+            for (int i = childInspectorsParent.childCount-1; i >= 0; i--)
+            {
+                Destroy(childInspectorsParent.GetChild(i).gameObject);
+            }
             foreach (ChildType childNote in Note.Notes)
             {
                 AddChildInspector(childNote);
@@ -123,11 +134,13 @@ where ContainerType : Note, IEditableNote<EditableChart, Note>, IEditableNoteCon
 
             note.OnNoteAdded += AddChildInspector;
             note.OnNoteRemoved += RemoveChildInspector;
+            note.OnNoteMoved += UpdateChildInspectorPosition;
         }
         else
         {
             Note.OnNoteAdded -= AddChildInspector;
             Note.OnNoteRemoved -= RemoveChildInspector;
+            note.OnNoteMoved -= UpdateChildInspectorPosition;
         }
 
         base.Show(note);

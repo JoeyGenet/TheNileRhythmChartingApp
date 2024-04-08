@@ -46,10 +46,8 @@ public class WheelSequenceInspector : NoteContainerInspector<EditableWheelSequen
         return new EditableWheelTurn(Note, endTime, 0);
     }
 
-    protected override void Update()
+    void Update()
     {
-        base.Update();
-
         if (Note == null) return;
 
         if (!startTimeInput.isFocused) startTimeInput.SetTextWithoutNotify($"{Note.StartTime}");
