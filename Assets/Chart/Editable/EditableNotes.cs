@@ -62,11 +62,12 @@ public class EditableWheelSequence : WheelSequence, IEditableNote<EditableChart,
 
     public event NoteAddedEvent<EditableWheelTurn> OnNoteAdded;
     public event NoteRemovedEvent<EditableWheelTurn> OnNoteRemoved;
+    public event NoteOrderChangedEvent OnOrderChanged;
 
-	public new int StartTime
+    public new int StartTime
 	{
 		get => time;
-		set => this.RegisterSortingChange(Container, ref time, value);
+		set => this.RegisterSortingChange(Container, ref time, value, true, () => OnOrderChanged?.Invoke());
 	}
 	public new int Pos
 	{

@@ -49,6 +49,6 @@ public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerClic
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        UIManager.Instance.SelectNote(Note);
+        UIManager.SelectedNote = Note;
     }
 }

@@ -1,20 +1,62 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
+// Tells what the cursor does in the UI
+public enum UICursorMode
+{
+    None = 0,
+    ButtonNote = 1,
+    WheelFlick = 2,
+    WheelTurn = 3,
+    LeverNote = 4,
+}
+
 public class UIManager : MonoBehaviour
 {
-    public delegate void NoteSelectedEvent(Note note);
+    public delegate void NoteSelectedEvent(Note previousNote, Note newNote);
+    public delegate void CursorModeChangedEvent(UICursorMode previousMode, UICursorMode newMode);
     
     public static event NoteSelectedEvent OnNoteSelected;
+    public static event CursorModeChangedEvent OnCursorModeChanged;
 
     public static UIManager Instance;
 
+    [SerializeField] EventRelay deleteSelectedNoteEvent;
+
     [Header("Alert Dialog")]
     [SerializeField] AlertDialog alertDialogPrefab;
+
+    Note selectedNote;
+    public static Note SelectedNote
+    {
+        get => Instance.selectedNote;
+        set
+        {
+            if (Instance.selectedNote != value)
+            {
+                Note prevNote = Instance.selectedNote;
+                Instance.selectedNote = value;
+                OnNoteSelected?.Invoke(prevNote, value);
+            }
+        }
+    }
+
+    UICursorMode cursorMode;
+    public static UICursorMode CursorMode
+    {
+        get => Instance.cursorMode;
+        set
+        {
+            if (Instance.cursorMode != value)
+            {
+                var prevMode = Instance.cursorMode;
+                Instance.cursorMode = value;
+                OnCursorModeChanged?.Invoke(prevMode, value);
+            }
+        }
+    }
 
     public static bool IsSelectingInputField
     {
@@ -22,13 +64,26 @@ public class UIManager : MonoBehaviour
         {
             GameObject selectedObj = EventSystem.current.currentSelectedGameObject;
             return selectedObj != null && 
-                (selectedObj.GetComponent<InputField>() != null || selectedObj.GetComponent<TMP_InputField>());
+                (selectedObj.GetComponent<InputField>() != null || selectedObj.GetComponent<TMP_InputField>() != null);
         }
     }
 
     void Awake()
     {
         Instance = this;
+
+
+        deleteSelectedNoteEvent.Event.AddListener(() =>
+        {
+            if (selectedNote is IEditableNote<EditableChart, Note> editableNote)
+            {
+                editableNote.RemoveSelf();
+            }
+            else
+            {
+                Debug.LogWarning($"Deleting of note {selectedNote} not supported");
+            }
+        });
 
         ChartManager.OnChartLoaded += DeselectOnChartLoaded;
         ChartManager.OnNoteAdded += SelectNoteOnNoteAdded;
@@ -55,10 +110,7 @@ public class UIManager : MonoBehaviour
         return alert;
     }
 
-    public void DeselectOnChartLoaded(string chart) => SelectNote(null);
-
-    public void SelectNote(Note note) => OnNoteSelected?.Invoke(note);
-
-    public void SelectNoteOnNoteAdded(Note note) => SelectNote(note);
-    void DeselectNoteOnNoteRemoved(Note note) => SelectNote(null);
+    public void DeselectOnChartLoaded(string chart) => SelectedNote = null;// SelectNote(null);
+    public void SelectNoteOnNoteAdded(Note note) => SelectedNote = note;// SelectNote(note);
+    void DeselectNoteOnNoteRemoved(Note note) => SelectedNote = null;// SelectNote(null);
 }

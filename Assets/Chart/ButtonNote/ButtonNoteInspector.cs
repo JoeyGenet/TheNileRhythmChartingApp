@@ -10,10 +10,8 @@ public class ButtonNoteInspector : NoteInspector<EditableButtonNote>
     [SerializeField] TMP_InputField leftPosInput;
     [SerializeField] TMP_InputField rightPosInput;
 
-    protected override void Awake()
+    void Awake()
     {
-        base.Awake();
-
         timeInput.onValidateInput += (text, _, c) => c == '-' ? '\0' : c;
         timeInput.onValueChanged.AddListener(text =>
         {
@@ -52,10 +50,8 @@ public class ButtonNoteInspector : NoteInspector<EditableButtonNote>
         });   
     }
 
-    protected override void Update()
+    void Update()
     {
-        base.Update();
-
         if (Note == null) return;
         
         if (!timeInput.isFocused) timeInput.SetTextWithoutNotify($"{Note.StartTime}");

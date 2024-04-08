@@ -12,6 +12,7 @@ using UnityEngine.UI;
 public class EventRelay : MonoBehaviour
 {
     public List<Button> buttons;
+    public List<Toggle> toggles;
     public List<EventRelay> subRelays;
     public List<KeyCode> keyBinds;
     public List<AudioClip> audioClips;
@@ -26,6 +27,13 @@ public class EventRelay : MonoBehaviour
         {
             button.onClick.AddListener(SendEvent);
         }
+        foreach (Toggle toggle in toggles)
+        {
+            toggle.onValueChanged.AddListener(on =>
+            {
+                if (on) SendEvent();
+            });
+        }
         foreach (EventRelay buttonGroup in subRelays)
         {
             buttonGroup.Event.AddListener(SendEvent);
@@ -36,7 +44,7 @@ public class EventRelay : MonoBehaviour
     {
         foreach (KeyCode keyBind in keyBinds)
         {
-            if (Input.GetKeyUp(keyBind))
+            if (Input.GetKeyUp(keyBind) && !UIManager.IsSelectingInputField)
             {
                 SendEvent();
             }
@@ -51,15 +59,26 @@ public class EventRelay : MonoBehaviour
     public void AddListener(UnityAction call) => Event.AddListener(call);
     public void RemoveListener(UnityAction call) => Event.RemoveListener(call);
 
-    void SendEvent()
+    void SendEvent() => SendEvent(true, true);
+    public void SendEvent(bool notify = true, bool playAudio = true)
     {
-        Event?.Invoke();
-        foreach (var audioClip in audioClips)
+        if (notify)
         {
-            var audioSource = gameObject.AddComponent<AudioSource>();
-            audioSource.clip = audioClip;
-            audioSource.loop = false;
-            audioSource.Play();
+            Event?.Invoke();
+        }
+        foreach (Toggle toggle in toggles)
+        {
+            if (!toggle.isOn) toggle.isOn = true;
+        }
+        if (playAudio)
+        {
+            foreach (var audioClip in audioClips)
+            {
+                var audioSource = gameObject.AddComponent<AudioSource>();
+                audioSource.clip = audioClip;
+                audioSource.loop = false;
+                audioSource.Play();
+            }
         }
     }
 }

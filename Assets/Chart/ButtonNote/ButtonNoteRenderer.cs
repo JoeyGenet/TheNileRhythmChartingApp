@@ -42,6 +42,6 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>, IPointerClic
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        UIManager.Instance.SelectNote(Note);
+        UIManager.SelectedNote = Note;
     }
 }

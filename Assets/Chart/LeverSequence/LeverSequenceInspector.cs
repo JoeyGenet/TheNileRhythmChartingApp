@@ -8,14 +8,17 @@ using UnityEngine.UI;
 public class LeverSequenceInspector : NoteContainerInspector<EditableLeverSequence, EditableLeverNote>
 {
     [Header("Left Right Position")]
-    [SerializeField] Button leftButton;
-    [SerializeField] Button rightButton;
+    [SerializeField] EventRelay leftToggle;
+    [SerializeField] EventRelay rightToggle;
 
-    [SerializeField] Image leftButtonBorder;
-    [SerializeField] Image rightButtonBorder;
+    // [SerializeField] Button leftButton;
+    // [SerializeField] Button rightButton;
 
-    [SerializeField] Color leftButtonHighlight;
-    [SerializeField] Color rightButtonHighlight;
+    // [SerializeField] Image leftButtonBorder;
+    // [SerializeField] Image rightButtonBorder;
+
+    // [SerializeField] Color leftButtonHighlight;
+    // [SerializeField] Color rightButtonHighlight;
 
     // [Header("Lever Notes")]
     // [SerializeField] RectTransform leverNoteInspectorsParent;
@@ -26,25 +29,30 @@ public class LeverSequenceInspector : NoteContainerInspector<EditableLeverSequen
     {
         base.Awake();
 
-        leftButton.onClick.AddListener(() =>
-        {
-            Note.Dir = LeftRight.Left;
-            leftButtonBorder.color = leftButtonHighlight;
-            rightButtonBorder.color = Color.black;
-        });
-        rightButton.onClick.AddListener(() =>
-        {
-            Note.Dir = LeftRight.Right;
-            rightButtonBorder.color = rightButtonHighlight;
-            leftButtonBorder.color = Color.black;
-        });
+        leftToggle.Event.AddListener(() => Note.Dir = LeftRight.Left);
+        rightToggle.Event.AddListener(() => Note.Dir = LeftRight.Right);
+
+        // leftButton.onClick.AddListener(() =>
+        // {
+        //     Note.Dir = LeftRight.Left;
+        //     leftButtonBorder.color = leftButtonHighlight;
+        //     rightButtonBorder.color = Color.black;
+        // });
+        // rightButton.onClick.AddListener(() =>
+        // {
+        //     Note.Dir = LeftRight.Right;
+        //     rightButtonBorder.color = rightButtonHighlight;
+        //     leftButtonBorder.color = Color.black;
+        // });
     }
 
-    protected override void OnShow()
+    void OnEnable()
     {
         // Update left right
-        if (Note.Dir == LeftRight.Left) leftButton.onClick.Invoke();
-        else if (Note.Dir == LeftRight.Right) rightButton.onClick.Invoke();
+        if (Note.Dir == LeftRight.Left) leftToggle.SendEvent(notify: false, playAudio: false);
+        else if (Note.Dir == LeftRight.Right) rightToggle.SendEvent(notify: false, playAudio: false);
+        // if (Note.Dir == LeftRight.Left) leftButton.onClick.Invoke();
+        // else if (Note.Dir == LeftRight.Right) rightButton.onClick.Invoke();
     }
 
     protected override EditableLeverNote NewChildNote()

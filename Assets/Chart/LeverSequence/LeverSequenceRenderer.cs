@@ -51,6 +51,6 @@ public class LeverSequenceRenderer : NoteRenderer<EditableLeverSequence>, IPoint
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        UIManager.Instance.SelectNote(Note);
+        UIManager.SelectedNote = Note;
     }
 }

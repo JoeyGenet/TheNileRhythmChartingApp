@@ -13,8 +13,9 @@ public interface IEditable
 
 public delegate void NoteAddedEvent<N>(N note) where N : Note;
 public delegate void NoteRemovedEvent<N>(N note) where N : Note;
+public delegate void NoteOrderChangedEvent();
 
-public interface IEditableNote<C, N> : IEditable
+public interface IEditableNote<out C, N> : IEditable
 where N : Note
 where C : IEditableNoteContainer<N>
 {
@@ -26,6 +27,7 @@ where NoteType : Note
 {
 	public event NoteAddedEvent<NoteType> OnNoteAdded;
 	public event NoteRemovedEvent<NoteType> OnNoteRemoved;
+	public event NoteOrderChangedEvent OnOrderChanged;
 
 	bool AddNote(NoteType note, bool notify = true);
 	bool RemoveNote(NoteType note, bool notify = true);
@@ -54,9 +56,9 @@ public static class IEditableExtensions
     where E : IEditable, N
     {
         if (newValue.Equals(value)) return false;
-        container.RemoveNote(editable, notify: false);
+        container.RemoveNote(editable, notify);
         value = newValue;
-        container.AddNote(editable, notify: false);
+        container.AddNote(editable, notify);
         if (notify)
         {
             editable.SetChanged();
@@ -75,4 +77,11 @@ public static class IEditableExtensions
 		}
 		return true;
 	}
+
+    public static bool RemoveSelf<N>(this IEditableNote<IEditableNoteContainer<N>, N> note)
+    where N : Note
+        => note.Container.RemoveNote(note as N);
+    
+    // public static bool RemoveSelf<T>(this Note note)
+
 }
