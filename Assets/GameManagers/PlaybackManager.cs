@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Audio;
 using UnityEngine.Networking;
 
 [RequireComponent(typeof(AudioSource))]
@@ -18,13 +19,15 @@ public class PlaybackManager : MonoBehaviour
     [Tooltip("How often (in ms) the song playback is synced with the game time")]
     [SerializeField] int syncInterval = 500;
 
+    [SerializeField] AudioMixer audioMixer;
+
     public int MillisecondsInChart => IsPaused 
         ? lastSyncTimeInChart
         : (int)(Time.time * 1000) - lastSyncTime + lastSyncTimeInChart;
 
     public float BeatsInChart => ChartManager.ChartPackage.TimeToBeat(MillisecondsInChart);
 
-    int offset;
+    int offset = 0;
     public int Offset
     {
         get => offset;
@@ -35,16 +38,15 @@ public class PlaybackManager : MonoBehaviour
         }
     }
 
+    public float MasterVolume = 1;
+
     public uint VerticalViewSize = 5000; // Number of milliseconds the view contains
     public float HorizontalViewSize = 1;
 
-    public string SongPath { get; private set; } = null;
-    public string SongDir => SongPath == null ? null : Path.GetDirectoryName(SongPath);
-
-    public AudioClip CurrentSong => audioSource.clip;
-    public int CurrentSongLength => CurrentSong == null
-        ? ChartManager.SelectedChart.Notes.Aggregate(10000, (a, n) => Math.Max(a, n.EndTime))
-        : (int) (CurrentSong.length * 1000);
+    // public AudioClip CurrentSong => audioSource.clip;
+    // public int CurrentSongLength => CurrentSong == null
+    //     ? ChartManager.SelectedChart.Notes.Aggregate(10000, (a, n) => Math.Max(a, n.EndTime))
+    //     : (int) (CurrentSong.length * 1000);
     
     AudioSource audioSource;
 
@@ -57,64 +59,32 @@ public class PlaybackManager : MonoBehaviour
 
     void Update()
     {
+        audioSource.clip = ChartManager.ChartPackage.SongClip;
+        uint songLength = ChartManager.ChartPackage.SongLength;
+
         if (!IsPaused)
         {
             int currentTime = (int)(Time.time * 1000);
             if (currentTime - lastSyncTime > syncInterval)
             {
-                lastSyncTimeInChart = CurrentSong != null ? (int) (audioSource.time * 1000) + Offset : MillisecondsInChart;
+                lastSyncTimeInChart = audioSource.clip != null ? (int) (audioSource.time * 1000) + Offset : MillisecondsInChart;
                 lastSyncTime = currentTime;
             }
-            if (MillisecondsInChart > CurrentSongLength)
+            if (MillisecondsInChart > songLength)
             {
-                SetTimestamp(CurrentSongLength);
+                SetTimestamp((int) songLength);
                 Pause();
             }
         }
-    }
-    
-    public void ClearSong()
-    {
-        audioSource.clip = null;
-        SongPath = null;
-        Pause();
-        SetTimestamp(0);
-    }
 
-    public async Task LoadSong(string path)
-    {
-        var audioType = path[(path.LastIndexOf('.') + 1)..].ToLower() switch
-        {
-            "wav" => AudioType.WAV,
-            "mp3" or "mp2" => AudioType.MPEG,
-            "ogg" => AudioType.OGGVORBIS,
-            "aiff" => AudioType.AIFF,
-            _ => throw new Exception($"The audio file format of {path} is not supported"),
-        };
-
-        using UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip("file://" + path, audioType);
-        uwr.SendWebRequest();
-
-        while (!uwr.isDone) await Task.Delay(5);
-        audioSource.clip = null;
-
-        if (uwr.result != UnityWebRequest.Result.Success)
-        {
-            throw new Exception(uwr.error);
-        }
-        else
-        {
-            audioSource.clip = DownloadHandlerAudioClip.GetContent(uwr);
-            SongPath = path;
-            Pause();
-            SetTimestamp(0);
-        }
+        audioMixer.SetFloat("SongGain", ChartManager.ChartPackage.Gain);
+        audioMixer.SetFloat("MasterVolume", 20 * Mathf.Log10(Mathf.Max(MasterVolume, 0.0001f)));
     }
 
     public void SetTimestamp(int time)
     {
-        time = Math.Clamp(time, 0, CurrentSongLength);
-        if (CurrentSong != null)
+        time = Math.Clamp(time, 0, (int) ChartManager.ChartPackage.SongLength);
+        if (audioSource.clip != null)
         {
             audioSource.time = (time - Offset) / 1000f;
         }
@@ -125,7 +95,7 @@ public class PlaybackManager : MonoBehaviour
     public void Play()
     {
         if (!IsPaused) return;
-        if (CurrentSong != null)
+        if (audioSource.clip != null)
         {
             audioSource.time = (lastSyncTimeInChart - Offset) / 1000f;
             audioSource.Play();
@@ -137,7 +107,7 @@ public class PlaybackManager : MonoBehaviour
     public void Pause()
     {
         if (IsPaused) return;
-        if (CurrentSong != null)
+        if (audioSource.clip != null)
         {
             audioSource.time = (MillisecondsInChart - Offset) / 1000f;
             audioSource.Pause();

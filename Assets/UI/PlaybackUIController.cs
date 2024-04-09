@@ -14,6 +14,10 @@ public class PlaybackUIController : MonoBehaviour
 	[SerializeField] EventRelay pauseEvent;
 	[SerializeField] Slider timestampSlider;
 
+    [Header("Audio")]
+	[SerializeField] TMP_InputField audioOffsetInputField;
+	[SerializeField] Slider masterVolumeSlider;
+
     [Header("View")]
     [SerializeField] Slider horizontalViewSlider;
     [SerializeField] Slider verticalViewSlider;
@@ -28,7 +32,17 @@ public class PlaybackUIController : MonoBehaviour
         timestampSlider.value = PlaybackManager.Instance.MillisecondsInChart;
         timestampSlider.onValueChanged.AddListener(time => PlaybackManager.Instance.SetTimestamp((int) time));
 
-        int songLength = PlaybackManager.Instance.CurrentSongLength;
+        audioOffsetInputField.text = $"{PlaybackManager.Instance.Offset}";
+        audioOffsetInputField.onValueChanged.AddListener(offsetStr =>
+        {
+            if (int.TryParse(offsetStr, out var offset))
+                PlaybackManager.Instance.Offset = offset;
+        });
+
+        masterVolumeSlider.value = PlaybackManager.Instance.MasterVolume;
+        masterVolumeSlider.onValueChanged.AddListener(value => PlaybackManager.Instance.MasterVolume = value);
+
+        uint songLength = ChartManager.ChartPackage.SongLength;
         uint viewSize = PlaybackManager.Instance.VerticalViewSize;
         verticalViewSlider.value = viewSize < MaxVerticalView 
             ? (viewSize - MinVerticalView) / (float) (MaxVerticalView-MinVerticalView) / 2f
@@ -44,7 +58,8 @@ public class PlaybackUIController : MonoBehaviour
 
     void Update()
     {
-        timestampSlider.maxValue = PlaybackManager.Instance.CurrentSongLength;
+        timestampSlider.maxValue = ChartManager.ChartPackage.SongLength;
+        // timestampSlider.value = Mathf.Clamp(timestampSlider.value, 0, songLength);
         
         bool isPaused = PlaybackManager.Instance.IsPaused;
         playEvent.gameObject.SetActive(isPaused);
@@ -55,8 +70,8 @@ public class PlaybackUIController : MonoBehaviour
         int minutes = timestamp / 60000;
         int seconds = timestamp%60000 / 1000;
         int milliseconds = timestamp%1000;
-        timestampText.text = $"{minutes}:{seconds:00}.{milliseconds:000}";
-        beatText.text = $"{PlaybackManager.Instance.BeatsInChart:0.000}";
+        timestampText.text = $"Time: {minutes}:{seconds:00}.{milliseconds:000}";
+        beatText.text = $"Beat: {PlaybackManager.Instance.BeatsInChart:0.000}";
         timestampSlider.SetValueWithoutNotify(timestamp);
     }
 }

@@ -57,6 +57,8 @@ public class ChartPackage
     protected readonly List<Chart> charts = new();
     public IReadOnlyList<Chart> Charts => charts;
 
+    public uint SongLength => SongClip == null ? 10000 : (uint) (SongClip.length * 1000);
+
 	public int BeatToTime(float beat) => (int) (beat * 60000f / BPM + BPMOffset);
 	public float TimeToBeat(int time) => (time - BPMOffset) * BPM / 60000f;
 
