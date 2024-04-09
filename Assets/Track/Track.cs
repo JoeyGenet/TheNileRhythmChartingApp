@@ -8,6 +8,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
 
+[RequireComponent(typeof(RectTransform))]
 public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     [Tooltip("Amount of view moved for every scroll unit")]
@@ -33,9 +34,12 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     public bool IsPointerOverTrack { get; private set; } = false;
     public bool IsScrolling { get; private set; } = false;
 
+    RectTransform rect;
+
     void Awake()
     {
-        // VisualElement
+        rect = GetComponent<RectTransform>();
+        
         ChartManager.OnChartLoaded += Reload;
         ChartManager.OnNoteAdded += AddNote;
     }
@@ -143,6 +147,10 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
     void Update()
     {
+        float hView = PlaybackManager.Instance.HorizontalViewSize;
+        rect.anchorMin = new Vector2((1 - hView) / 2f, rect.anchorMin.y);
+        rect.anchorMax = new Vector2((1 + hView) / 2f, rect.anchorMax.y);
+
         try
         {
             AddNoteOnKeyPress();
@@ -156,7 +164,7 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
     void OnGUI()
     {
-        int scrollAmount = (int) (PlaybackManager.Instance.ViewSize * Input.mouseScrollDelta.y * ScrollSpeed);
+        int scrollAmount = (int) (PlaybackManager.Instance.VerticalViewSize * Input.mouseScrollDelta.y * ScrollSpeed);
         if (IsPointerOverTrack && scrollAmount != 0)
         {
             PlaybackManager.Instance.SetTimestamp(PlaybackManager.Instance.MillisecondsInChart + scrollAmount);

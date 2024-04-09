@@ -31,7 +31,7 @@ public class BeatMarker : MonoBehaviour
         rect.anchorMin = new Vector2(rect.anchorMin.x, uiPos.y);
 
         // Hide if view is too big to wrap around fully
-        image.enabled = ChartManager.ChartPackage.BeatToTime(BeatWrap) > PlaybackManager.Instance.ViewSize;
+        image.enabled = ChartManager.ChartPackage.BeatToTime(BeatWrap) > PlaybackManager.Instance.VerticalViewSize;
         
     }
 }

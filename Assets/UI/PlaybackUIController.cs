@@ -7,49 +7,48 @@ using UnityEngine.UI;
 
 public class PlaybackUIController : MonoBehaviour
 {
+    [Header("Playback")]
 	[SerializeField] TMP_Text timestampText;
-	[SerializeField] Button playButton;
-	[SerializeField] Button pauseButton;
+	[SerializeField] TMP_Text beatText;
+	[SerializeField] EventRelay playEvent;
+	[SerializeField] EventRelay pauseEvent;
 	[SerializeField] Slider timestampSlider;
 
     [Header("View")]
-    [SerializeField] Slider viewSlider;
-    public int MaxViewSize;
-    public int MinViewSize;
+    [SerializeField] Slider horizontalViewSlider;
+    [SerializeField] Slider verticalViewSlider;
+    public int MaxVerticalView;
+    public int MinVerticalView;
 
     void Start()
     {
-        playButton.onClick.AddListener(() => PlaybackManager.Instance.Play());
-        pauseButton.onClick.AddListener(() => PlaybackManager.Instance.Pause());
+        playEvent.AddListener(() => PlaybackManager.Instance.Play());
+        pauseEvent.AddListener(() => PlaybackManager.Instance.Pause());
 
         timestampSlider.value = PlaybackManager.Instance.MillisecondsInChart;
         timestampSlider.onValueChanged.AddListener(time => PlaybackManager.Instance.SetTimestamp((int) time));
 
         int songLength = PlaybackManager.Instance.CurrentSongLength;
-        uint viewSize = PlaybackManager.Instance.ViewSize;
-        viewSlider.value = viewSize < MaxViewSize 
-            ? (viewSize - MinViewSize) / (float) (MaxViewSize-MinViewSize) / 2f
-            : (viewSize - MaxViewSize) / (float) (songLength - MaxViewSize) / 2f + 0.5f;
-        viewSlider.onValueChanged.AddListener(v => PlaybackManager.Instance.ViewSize = (uint) (
+        uint viewSize = PlaybackManager.Instance.VerticalViewSize;
+        verticalViewSlider.value = viewSize < MaxVerticalView 
+            ? (viewSize - MinVerticalView) / (float) (MaxVerticalView-MinVerticalView) / 2f
+            : (viewSize - MaxVerticalView) / (float) (songLength - MaxVerticalView) / 2f + 0.5f;
+        verticalViewSlider.onValueChanged.AddListener(v => PlaybackManager.Instance.VerticalViewSize = (uint) (
             v < 0.5f 
-                ? v*2 * (MaxViewSize-MinViewSize) + MinViewSize
-                : (v-0.5f) * (songLength - MaxViewSize) + MaxViewSize
+                ? v*2 * (MaxVerticalView-MinVerticalView) + MinVerticalView
+                : (v-0.5f) * (songLength - MaxVerticalView) + MaxVerticalView
         ));
+
+        horizontalViewSlider.onValueChanged.AddListener(value => PlaybackManager.Instance.HorizontalViewSize = value);
     }
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            if (PlaybackManager.Instance.IsPaused) PlaybackManager.Instance.Play();
-            else PlaybackManager.Instance.Pause();
-        }
-
         timestampSlider.maxValue = PlaybackManager.Instance.CurrentSongLength;
         
         bool isPaused = PlaybackManager.Instance.IsPaused;
-        playButton.gameObject.SetActive(isPaused);
-        pauseButton.gameObject.SetActive(!isPaused);
+        playEvent.gameObject.SetActive(isPaused);
+        pauseEvent.gameObject.SetActive(!isPaused);
 
         // Update current timestamp
         int timestamp = PlaybackManager.Instance.MillisecondsInChart;
@@ -57,6 +56,7 @@ public class PlaybackUIController : MonoBehaviour
         int seconds = timestamp%60000 / 1000;
         int milliseconds = timestamp%1000;
         timestampText.text = $"{minutes}:{seconds:00}.{milliseconds:000}";
+        beatText.text = $"{PlaybackManager.Instance.BeatsInChart:0.000}";
         timestampSlider.SetValueWithoutNotify(timestamp);
     }
 }

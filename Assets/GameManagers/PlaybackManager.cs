@@ -35,7 +35,8 @@ public class PlaybackManager : MonoBehaviour
         }
     }
 
-    public uint ViewSize = 5000; // Number of milliseconds the view contains
+    public uint VerticalViewSize = 5000; // Number of milliseconds the view contains
+    public float HorizontalViewSize = 1;
 
     public string SongPath { get; private set; } = null;
     public string SongDir => SongPath == null ? null : Path.GetDirectoryName(SongPath);
@@ -148,11 +149,11 @@ public class PlaybackManager : MonoBehaviour
     // Converts track position to a vector2 between 0,0 and 1,1
     public Vector2 TrackToUIPosition(int position, int time)
     {
-        return new Vector2(position / 100f, (time - MillisecondsInChart) / (float)ViewSize);
+        return new Vector2(position / 100f, (time - MillisecondsInChart) / (float)VerticalViewSize);
     }
 
     public (int position, int time) UIToTrackPosition(Vector2 uiPosition)
     {
-        return ((int) (uiPosition.x * 100), (int) (uiPosition.y * ViewSize + MillisecondsInChart));
+        return ((int) (uiPosition.x * 100), (int) (uiPosition.y * VerticalViewSize + MillisecondsInChart));
     }
 }
