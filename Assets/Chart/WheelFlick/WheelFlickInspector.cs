@@ -47,6 +47,8 @@ public class WheelFlickInspector : NoteInspector<EditableWheelFlick>
 
     void OnEnable()
     {
+        if (Note == null) return;
+        
         timeInput.text = $"{Note.StartTime}";
 
         if (Note.Dir == LeftRight.Left) leftToggle.SendEvent(notify: false, playAudio: false);

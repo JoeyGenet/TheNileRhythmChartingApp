@@ -48,6 +48,7 @@ public class LeverSequenceInspector : NoteContainerInspector<EditableLeverSequen
 
     void OnEnable()
     {
+        if (Note == null) return;
         // Update left right
         if (Note.Dir == LeftRight.Left) leftToggle.SendEvent(notify: false, playAudio: false);
         else if (Note.Dir == LeftRight.Right) rightToggle.SendEvent(notify: false, playAudio: false);
