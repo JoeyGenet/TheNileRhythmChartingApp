@@ -27,6 +27,7 @@ public class UIManager : MonoBehaviour
 
     [Header("Alert Dialog")]
     [SerializeField] AlertDialog alertDialogPrefab;
+    [SerializeField] AlertDialog confirmDialogPrefab;
 
     Note selectedNote;
     public static Note SelectedNote
@@ -87,7 +88,7 @@ public class UIManager : MonoBehaviour
             }
         });
 
-        ChartManager.OnChartLoaded += DeselectOnChartLoaded;
+        ChartManager.OnChartChanged += DeselectOnChartChanged;
         ChartManager.OnNoteAdded += SelectNoteOnNoteAdded;
         ChartManager.OnNoteRemoved += DeselectNoteOnNoteRemoved;
         // ChartManager.OnLeverNoteAdded += SelectNoteOnNoteAdded;
@@ -97,7 +98,7 @@ public class UIManager : MonoBehaviour
 
     void OnDestroy()
     {
-        ChartManager.OnChartLoaded -= DeselectOnChartLoaded;
+        ChartManager.OnChartChanged -= DeselectOnChartChanged;
         ChartManager.OnNoteAdded -= SelectNoteOnNoteAdded;
         ChartManager.OnNoteRemoved -= DeselectNoteOnNoteRemoved;
         // ChartManager.OnLeverNoteAdded -= SelectNoteOnNoteAdded;
@@ -112,7 +113,15 @@ public class UIManager : MonoBehaviour
         return alert;
     }
 
-    public void DeselectOnChartLoaded(string chart) => SelectedNote = null;// SelectNote(null);
+    public AlertDialog ShowConfirm(string title, string message)
+    {
+        var alert = Instantiate(confirmDialogPrefab, transform);
+        alert.Title = title;
+        alert.Message = message;
+        return alert;
+    }
+
+    public void DeselectOnChartChanged(EditableChart prevChart, EditableChart newChart) => SelectedNote = null;// SelectNote(null);
     public void SelectNoteOnNoteAdded(Note note) => SelectedNote = note;// SelectNote(note);
     void DeselectNoteOnNoteRemoved(Note note) => SelectedNote = null;// SelectNote(null);
 }

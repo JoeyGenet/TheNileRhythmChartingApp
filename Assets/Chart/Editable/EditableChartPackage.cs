@@ -12,8 +12,8 @@ using UnityEngine;
 /// </summary>
 public class EditableChartPackage : ChartPackage, IEditable
 {
-    public delegate void ChartAddedEvent(EditableChart note);
-    public delegate void ChartRemovedEvent(EditableChart note);
+    public delegate void ChartAddedEvent(EditableChart chart);
+    public delegate void ChartRemovedEvent(EditableChart chart);
 
     public event ChartAddedEvent OnChartAdded;
     public event ChartRemovedEvent OnChartRemoved;
@@ -25,45 +25,55 @@ public class EditableChartPackage : ChartPackage, IEditable
     // Metadata
     public new string Title
     {
-        get => title;
-        set => this.RegisterChange(ref title, value.Trim());
+        get => base.Title;
+        set => this.RegisterChange(ref title, value);
     }
     public new string Artist
     {
-        get => artist;
-        set => this.RegisterChange(ref artist, value.Trim());
+        get => base.Artist;
+        set => this.RegisterChange(ref artist, value);
     }
     public new string Charter // TODO: move charter to Chart
     {
-        get => charter;
-        set => this.RegisterChange(ref charter, value.Trim());
+        get => base.Charter;
+        set => this.RegisterChange(ref charter, value);
     }
 
     // Song
     public new uint BPM
     {
-        get => bpm;
-        set => this.RegisterChange(ref bpm, Math.Max(value, 1));
+        get => base.BPM;
+        set => this.RegisterChange(ref bpm, value);
     }
     public new int BPMOffset
     {
-        get => bpmOffset;
+        get => base.BPMOffset;
         set => this.RegisterChange(ref bpmOffset, value);
     }
     public new float Gain
     {
-        get => gain;
+        get => base.Gain;
         set => this.RegisterChange(ref gain, value);
     }
     public new int SongStart
     {
-        get => songStart;
+        get => base.SongStart;
         set => this.RegisterChange(ref songStart, value);
     }
     public new int SongEnd
     {
-        get => songEnd;
+        get => base.SongEnd;
         set => this.RegisterChange(ref songEnd, value);
+    }
+    public new uint PreviewStart
+    {
+        get => base.PreviewStart;
+        set => this.RegisterChange(ref previewStart, value);
+    }
+    public new uint PreviewDuration
+    {
+        get => base.PreviewDuration;
+        set => this.RegisterChange(ref previewDuration, value);
     }
 
     // readonly List<EditableChart> charts = new();
@@ -148,7 +158,7 @@ public class EditableChartPackage : ChartPackage, IEditable
     }
 
     public bool RemoveChart(EditableChart chart) => this.RegisterChange(
-        () => charts.Remove(chart),
+        () => charts.Count > 1 && charts.Remove(chart),
         () => OnChartRemoved?.Invoke(chart)
     );
 

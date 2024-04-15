@@ -40,13 +40,13 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         rect = GetComponent<RectTransform>();
         
-        ChartManager.OnChartLoaded += Reload;
+        ChartManager.OnChartChanged += Reload;
         ChartManager.OnNoteAdded += AddNote;
     }
 
     void OnDestroy()
     {
-        ChartManager.OnChartLoaded -= Reload;
+        ChartManager.OnChartChanged -= Reload;
         ChartManager.OnNoteAdded -= AddNote;
     }
 
@@ -56,7 +56,7 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         Reload();
     }
 
-    void Reload(string _ = "")
+    void Reload(EditableChart oldChart = null, EditableChart newChart = null)
     {
         foreach (Note note in ChartManager.SelectedChart.Notes) AddNote(note);
     }

@@ -10,6 +10,7 @@ public class AlertDialog : MonoBehaviour
     [SerializeField] TMP_Text titleText;
     [SerializeField] TMP_Text messageText;
     [SerializeField] Button okButton;
+    [SerializeField] Button cancelButton;
 
     public string Title
     {
@@ -24,12 +25,18 @@ public class AlertDialog : MonoBehaviour
     }
 
     public UnityEvent OnOkPressed;
+    public UnityEvent OnCancelPressed;
     
     void Start()
     {
         okButton.onClick.AddListener(() =>
         {
-            OnOkPressed.Invoke();
+            OnOkPressed?.Invoke();
+            Destroy(gameObject);
+        });
+        if (cancelButton != null) cancelButton.onClick.AddListener(() =>
+        {
+            OnCancelPressed?.Invoke();
             Destroy(gameObject);
         });
     }

@@ -468,7 +468,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8934038833235363557, guid: 04037aaeca6de4b6986de203ef5db6bb, type: 3}
       propertyPath: m_Name
-      value: Delete Button (1)
+      value: Delete Button
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

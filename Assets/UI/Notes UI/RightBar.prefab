@@ -4539,7 +4539,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2211156613790013664, guid: c155e16a3ff5e4b209546d3d9d242100, type: 3}
       propertyPath: keyBinds.Array.data[1]
-      value: 260
+      value: 52
       objectReference: {fileID: 0}
     - target: {fileID: 2415397216524087113, guid: c155e16a3ff5e4b209546d3d9d242100, type: 3}
       propertyPath: m_IsOn

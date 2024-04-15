@@ -20,18 +20,18 @@ public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
 
     public new int DifficultyRating
     {
-        get => difficultyRating;
+        get => base.DifficultyRating;
         set => this.RegisterChange(ref difficultyRating, Math.Clamp(value, 0, 16));
     }
 	public new string DifficultyName
     {
-        get => difficultyName;
+        get => base.DifficultyName;
         set
 		{
 			// Add a number after the difficulty name so it doesn't conflict with other difficulties
             int id = 0;
             string name;
-			var chartNames = Package.Charts.Select(c => c == this ? "" : c.difficultyName).ToHashSet();
+			var chartNames = Package.Charts.Select(c => c == this ? "" : c.DifficultyName).ToHashSet();
             while (chartNames.Contains(name = value.Trim() + (id == 0 ? "" : $" {id}"))) id++;
 
 			this.RegisterChange(ref difficultyName, name);

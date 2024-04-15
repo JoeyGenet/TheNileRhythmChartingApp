@@ -17,7 +17,7 @@ public class Chart : INoteContainer<Note>
 	protected string difficultyName = "";
 
 	public int DifficultyRating => difficultyRating;
-	public string DifficultyName => difficultyName;
+	public string DifficultyName => difficultyName.Trim();
 
 
 	public bool AddNote(Note note) => notes.Add(note);

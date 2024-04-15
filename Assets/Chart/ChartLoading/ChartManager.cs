@@ -4,47 +4,75 @@ using System;
 using System.IO;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 public static class ChartManager
 {
-    public delegate void ChartLoadedEvent(string path);
-    public delegate void ChartSavedEvent(string path);
+    public delegate void ChartPackageChangedEvent(EditableChartPackage prevPackage, EditableChartPackage newPackage);
+    public delegate void ChartChangedEvent(EditableChart prevChart, EditableChart newChart);
+    // public delegate void ChartSavedEvent(string path);
     public delegate void NoteAddedEvent(Note note);
     public delegate void NoteRemovedEvent(Note note);
 
-    public static event ChartLoadedEvent OnChartLoaded;
-    public static event ChartSavedEvent OnChartSaved;
+    public static event ChartPackageChangedEvent OnChartPackageChanged;
+    public static event ChartChangedEvent OnChartChanged;
+    // public static event ChartSavedEvent OnChartSaved;
 	public static event NoteAddedEvent OnNoteAdded; // When a note is added to the currently selected chart
 	public static event NoteRemovedEvent OnNoteRemoved; // When a note is removed from the currently selected chart
 
-    public static EditableChartPackage ChartPackage { get; private set; } = new();
     public static string ChartPath { get; private set; } = null;
     public static string ChartDir => ChartPath == null ? null : Path.GetDirectoryName(ChartPath);
-    public static EditableChart SelectedChart { get; private set; }
+
+    static EditableChartPackage chartPackage;
+    public static EditableChartPackage ChartPackage
+    {
+        get => chartPackage;
+        private set
+        {
+            var pkg = value;
+            if (pkg == chartPackage) return;
+
+            var oldPackage = chartPackage;
+            chartPackage = pkg;
+            if (pkg.Charts.Count == 0)
+            {
+                SelectedChart = chartPackage.AddChart();
+            }
+            else if (SelectedChart != null) // Find the chart that most closely matches the current chart's difficulty
+            {
+                var newSelectedChart = pkg.Charts.FirstOrDefault(c => c.DifficultyName == SelectedChart.DifficultyName);
+                newSelectedChart ??= pkg.Charts.OrderBy(c => Math.Abs(c.DifficultyRating - SelectedChart.DifficultyRating)).FirstOrDefault();
+                newSelectedChart ??= chartPackage.Charts[0];
+                SelectedChart = newSelectedChart;
+            }
+            else
+            {
+                SelectedChart = chartPackage.Charts[0];
+            }
+
+            OnChartPackageChanged?.Invoke(oldPackage, chartPackage);
+        }
+    }
+
+    static EditableChart selectedChart;
+    public static EditableChart SelectedChart
+    {
+        get => selectedChart;
+        set
+        {
+            var chart = value;
+            if (chart == selectedChart) return;
+
+            var oldChart = selectedChart;
+            Assert.IsTrue(ChartPackage.Charts.Contains(chart));
+            selectedChart = chart;
+            OnChartChanged?.Invoke(oldChart, selectedChart);
+        }
+    }
 
     static ChartManager()
     {
-        SetChartPackage(new EditableChartPackage());
-    }
-
-    static void SetChartPackage(EditableChartPackage pkg)
-    {
-        ChartPackage = pkg;
-        if (pkg.Charts.Count == 0)
-        {
-            SelectedChart = ChartPackage.AddChart();
-        }
-        else if (SelectedChart != null) // Find the chart that most closely matches the current chart's difficulty
-        {
-            var newSelectedChart = pkg.Charts.FirstOrDefault(c => c.DifficultyName == SelectedChart.DifficultyName);
-            newSelectedChart ??= pkg.Charts.OrderBy(c => Math.Abs(c.DifficultyRating - SelectedChart.DifficultyRating)).FirstOrDefault();
-            newSelectedChart ??= ChartPackage.Charts[0];
-            SelectedChart = newSelectedChart;
-        }
-        else
-        {
-            SelectedChart = ChartPackage.Charts[0];
-        }
+        ChartPackage = new EditableChartPackage();
     }
 
     public static async void LoadChart(string path)
@@ -54,11 +82,9 @@ public static class ChartManager
         {
             await pkg.Load(stream);
         }
-        SetChartPackage(pkg);
-
+        ChartPackage = pkg;
         ChartPath = path;
-
-        OnChartLoaded?.Invoke(path);
+        // OnChartLoaded?.Invoke(path);
     }
 
     public static void SaveChart(string path)
@@ -69,6 +95,6 @@ public static class ChartManager
         }
         ChartPath = path;
         // HasChanges = false;
-        OnChartSaved?.Invoke(path);
+        // OnChartSaved?.Invoke(path);
     }
 }

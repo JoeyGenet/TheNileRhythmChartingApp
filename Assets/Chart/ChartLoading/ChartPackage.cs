@@ -34,9 +34,9 @@ public class ChartPackage
     protected string charter = "Unknown";
     protected Texture2D coverImage = null;
 
-    public string Title => title;
-    public string Artist => artist;
-    public string Charter => charter;
+    public string Title => title.Trim();
+    public string Artist => artist.Trim();
+    public string Charter => charter.Trim();
     public Texture2D CoverImage => coverImage;
 
     // Song
@@ -46,13 +46,17 @@ public class ChartPackage
     protected float gain = 0f;
     protected int songStart = 0; // Start offset relative to song start
     protected int songEnd = 0; // End offset relative to song end
+    protected uint previewStart = 0;
+    protected uint previewDuration = 10000;
 
     public AudioClip SongClip => songClip;
-    public uint BPM => bpm;
+    public uint BPM => Math.Max(bpm, 1);
     public int BPMOffset => bpmOffset;
     public float Gain => gain;
     public int SongStart => songStart;
     public int SongEnd => songEnd;
+    public uint PreviewStart => Math.Clamp(previewStart, 0, SongLength - 1000);
+    public uint PreviewDuration => Math.Clamp(previewDuration, 1000, Math.Min(30000, SongLength - PreviewStart));
     
     protected readonly List<Chart> charts = new();
     public IReadOnlyList<Chart> Charts => charts;
@@ -61,6 +65,10 @@ public class ChartPackage
 
 	public int BeatToTime(float beat) => (int) (beat * 60000f / BPM + BPMOffset);
 	public float TimeToBeat(int time) => (time - BPMOffset) * BPM / 60000f;
+    public (int minutes, int seconds, int milliseconds) TimeToReadable(int time) 
+        => (time / 60000, time / 1000 % 60, time % 1000);
+    public int ReadableToTime(int minutes, int seconds, int milliseconds)
+        => minutes * 60000 + seconds * 1000 + milliseconds;
 
     protected virtual async Task LoadCoverImage(ZipArchiveEntry entry)
     {

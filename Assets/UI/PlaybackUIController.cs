@@ -66,12 +66,10 @@ public class PlaybackUIController : MonoBehaviour
         pauseEvent.gameObject.SetActive(!isPaused);
 
         // Update current timestamp
-        int timestamp = PlaybackManager.Instance.MillisecondsInChart;
-        int minutes = timestamp / 60000;
-        int seconds = timestamp%60000 / 1000;
-        int milliseconds = timestamp%1000;
-        timestampText.text = $"Time: {minutes}:{seconds:00}.{milliseconds:000}";
+        int time = PlaybackManager.Instance.MillisecondsInChart;
+        var (min, sec, ms) = ChartManager.ChartPackage.TimeToReadable(time);
+        timestampText.text = $"Time: {min}:{sec:00}.{ms:000}";
         beatText.text = $"Beat: {PlaybackManager.Instance.BeatsInChart:0.000}";
-        timestampSlider.SetValueWithoutNotify(timestamp);
+        timestampSlider.SetValueWithoutNotify(time);
     }
 }

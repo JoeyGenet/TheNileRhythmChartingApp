@@ -37,12 +37,12 @@ where C : IEditableNoteContainer<N>
     {
         rect = GetComponent<RectTransform>();
 
-        ChartManager.OnChartLoaded += DestroyOnChartLoaded;
+        ChartManager.OnChartChanged += DestroyOnChartChanged;
     }
 
     protected virtual void OnDestroy()
     {
-        ChartManager.OnChartLoaded -= DestroyOnChartLoaded;
+        ChartManager.OnChartChanged -= DestroyOnChartChanged;
         Note.Container.OnNoteRemoved -= DestroyOnNoteRemoved;
     }
 
@@ -62,7 +62,7 @@ where C : IEditableNoteContainer<N>
         prevTime = currTime;
     }
 
-    void DestroyOnChartLoaded(string _)
+    void DestroyOnChartChanged(EditableChart prevChart, EditableChart newChart)
     {
         Destroy(gameObject);
     }
