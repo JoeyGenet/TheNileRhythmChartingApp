@@ -147,7 +147,7 @@ GameObject:
   - component: {fileID: 2437811134668853013}
   - component: {fileID: 2596919438667251074}
   m_Layer: 5
-  m_Name: Alert Dialog
+  m_Name: AlertDialog
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -9,12 +9,12 @@ public class WheelSequence : TimedNote<Chart, Note>, INoteContainer<WheelTurn>
 	public int Pos => pos;
 
 	protected SortedSet<WheelTurn> notes;
-    public IReadOnlyCollection<WheelTurn> Notes => notes;
+    public IReadOnlySortedSet<WheelTurn> Notes => (ReadOnlySortedSet<WheelTurn>) notes;
 
 	public override int EndTime => notes.Max.EndTime;
 
-    public WheelTurn FirstNote => notes.Min;
-    public WheelTurn LastNote => notes.Max;
+    // public WheelTurn FirstNote => notes.Min;
+    // public WheelTurn LastNote => notes.Max;
 
     public WheelSequence(int time, int id) : base(time, id) { }
 

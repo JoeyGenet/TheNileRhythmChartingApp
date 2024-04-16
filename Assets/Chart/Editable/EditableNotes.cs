@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -77,10 +78,10 @@ public class EditableWheelSequence : WheelSequence, IEditableNote<EditableChart,
 		set => this.RegisterChange(ref pos, value, onChanged: () => notes.Min.RecomputeStartAngle());
 	}
 
-    public new IReadOnlyCollection<EditableWheelTurn> Notes => notes as IReadOnlyCollection<EditableWheelTurn>;
+    public new IReadOnlySortedSet<EditableWheelTurn> Notes => (ReadOnlySortedSet<EditableWheelTurn, WheelTurn>) notes;
 
-    public new EditableWheelTurn FirstNote => notes.Min as EditableWheelTurn;
-    public new EditableWheelTurn LastNote => notes.Max as EditableWheelTurn;
+    // public new EditableWheelTurn FirstNote => notes.Min as EditableWheelTurn;
+    // public new EditableWheelTurn LastNote => notes.Max as EditableWheelTurn;
 
 	public EditableWheelSequence(EditableChart chart, int time, int pos, List<(int deltaAngle, int endTime)> turns)
 		: base(chart, time, pos, new())
@@ -199,10 +200,10 @@ public class EditableLeverSequence : LeverSequence, IEditableNote<EditableChart,
 		set => this.RegisterChange(ref dir, value);
 	}
 
-	public new IReadOnlyCollection<EditableLeverNote> Notes => notes as IReadOnlyCollection<EditableLeverNote>;
+	public new IReadOnlySortedSet<EditableLeverNote> Notes => (ReadOnlySortedSet<EditableLeverNote, LeverNote>) notes;
 
-    public new EditableLeverNote FirstNote => notes.Min as EditableLeverNote;
-    public new EditableLeverNote LastNote => notes.Max as EditableLeverNote;
+    // public new EditableLeverNote FirstNote => notes.Min as EditableLeverNote;
+    // public new EditableLeverNote LastNote => notes.Max as EditableLeverNote;
 
 	public EditableLeverSequence(EditableChart chart, LeftRight dir, List<(int time, LeverPos pos)> levers) 
 		: base(chart, dir, new())

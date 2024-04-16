@@ -8,10 +8,10 @@ public class Chart : INoteContainer<Note>
 	public readonly ChartPackage Package;
 
     protected readonly SortedSet<Note> notes = new();
-	public IReadOnlyCollection<Note> Notes => notes;
+	public IReadOnlySortedSet<Note> Notes => (ReadOnlySortedSet<Note>) notes;
 
-    public Note FirstNote => notes.Min;
-    public Note LastNote => notes.Max;
+    // public Note FirstNote => notes.Min;
+    // public Note LastNote => notes.Max;
 	
 	protected int difficultyRating = -1;
 	protected string difficultyName = "";

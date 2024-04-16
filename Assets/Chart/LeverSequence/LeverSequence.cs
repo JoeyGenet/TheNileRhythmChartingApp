@@ -9,10 +9,10 @@ public class LeverSequence : Note<Chart, Note>, INoteContainer<LeverNote>
 	public LeftRight Dir => dir;
 
     protected SortedSet<LeverNote> notes;
-	public IReadOnlyCollection<LeverNote> Notes => notes;
+	public IReadOnlySortedSet<LeverNote> Notes => (ReadOnlySortedSet<LeverNote>) notes;
 
-    public LeverNote FirstNote => notes.Min;
-    public LeverNote LastNote => notes.Max;
+    // public LeverNote FirstNote => notes.Min;
+    // public LeverNote LastNote => notes.Max;
 
 	public override int StartTime => notes.Min.StartTime;
 	public override int EndTime => notes.Max.EndTime;

@@ -24,6 +24,7 @@ public class UIManager : MonoBehaviour
     public static UIManager Instance;
 
     [SerializeField] EventRelay deleteSelectedNoteEvent;
+    [SerializeField] EventRelay deselectEvent;
 
     [Header("Alert Dialog")]
     [SerializeField] AlertDialog alertDialogPrefab;
@@ -76,7 +77,7 @@ public class UIManager : MonoBehaviour
 
         // TODO: in the future may want to move this into NoteInspector, 
         // and add a button like with NoteContainerInspector.ChildInspector
-        deleteSelectedNoteEvent.Event.AddListener(() =>
+        deleteSelectedNoteEvent.AddListener(() =>
         {
             if (selectedNote is IEditableNote<EditableChart, Note> editableNote)
             {
@@ -86,6 +87,12 @@ public class UIManager : MonoBehaviour
             {
                 Debug.LogWarning($"Deleting of note {selectedNote} not supported");
             }
+        });
+
+        deselectEvent.AddListener(() =>
+        {
+            SelectedNote = null;
+            CursorMode = UICursorMode.None;
         });
 
         ChartManager.OnChartChanged += DeselectOnChartChanged;

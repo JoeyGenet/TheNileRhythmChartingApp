@@ -572,6 +572,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8883139371935143161, guid: d9bb8fd17236a45ae88dfb5779227734, type: 3}
+      propertyPath: m_CaptionImage
+      value: 
+      objectReference: {fileID: 8765755019780504857}
+    - target: {fileID: 8883139371935143161, guid: d9bb8fd17236a45ae88dfb5779227734, type: 3}
       propertyPath: m_Options.m_Options.Array.size
       value: 5
       objectReference: {fileID: 0}

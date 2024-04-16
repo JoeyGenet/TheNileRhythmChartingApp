@@ -34,7 +34,6 @@ where ContainerType : Note, IEditableNote<EditableChart, Note>, IEditableNoteCon
         {
             Container = container;
             Note = note;
-
         }
 
         protected virtual void Awake()
@@ -123,27 +122,23 @@ where ContainerType : Note, IEditableNote<EditableChart, Note>, IEditableNoteCon
             Note.OnNoteMoved -= UpdateChildInspectorPosition;
         }
 
-        if (note != null)
+        base.Show(note);
+
+        if (Note != null)
         {
-            foreach (var (childNote, inspector) in childInspectors)
-            {
-                childInspectors.Remove(childNote);
-                Destroy(inspector.gameObject);
-            }
+            childInspectors.Clear();
             for (int i = childInspectorsParent.childCount-1; i >= 0; i--)
             {
                 Destroy(childInspectorsParent.GetChild(i).gameObject);
             }
 
-            // foreach (ChildType childNote in note.Notes)
-            // {
-            //     AddChildInspector(childNote);
-            // }
-            note.OnNoteAdded += AddChildInspector;
-            note.OnNoteRemoved += RemoveChildInspector;
-            note.OnNoteMoved += UpdateChildInspectorPosition;
+            foreach (ChildType childNote in Note.Notes)
+            {
+                AddChildInspector(childNote);
+            }
+            Note.OnNoteAdded += AddChildInspector;
+            Note.OnNoteRemoved += RemoveChildInspector;
+            Note.OnNoteMoved += UpdateChildInspectorPosition;
         }
-
-        base.Show(note);
     }
 }
