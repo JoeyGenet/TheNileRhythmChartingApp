@@ -11,12 +11,16 @@ public static class ChartManager
     public delegate void ChartPackageChangedEvent(EditableChartPackage prevPackage, EditableChartPackage newPackage);
     public delegate void ChartChangedEvent(EditableChart prevChart, EditableChart newChart);
     // public delegate void ChartSavedEvent(string path);
+    public delegate void ChartAddedEvent(EditableChart chart);
+    public delegate void ChartRemovedEvent(EditableChart chart);
     public delegate void NoteAddedEvent(Note note);
     public delegate void NoteRemovedEvent(Note note);
 
     public static event ChartPackageChangedEvent OnChartPackageChanged;
-    public static event ChartChangedEvent OnChartChanged;
+    public static event ChartChangedEvent OnChartChanged; // When the currently selected chart changes
     // public static event ChartSavedEvent OnChartSaved;
+    public static event ChartAddedEvent OnChartAdded; // When a chart is added to the current chart package
+    public static event ChartRemovedEvent OnChartRemoved; // When a chart is removed from the current chart package
 	public static event NoteAddedEvent OnNoteAdded; // When a note is added to the currently selected chart
 	public static event NoteRemovedEvent OnNoteRemoved; // When a note is removed from the currently selected chart
 
@@ -30,7 +34,7 @@ public static class ChartManager
         private set
         {
             var pkg = value;
-            if (pkg == chartPackage) return;
+            if (pkg == chartPackage || pkg == null) return;
 
             var oldPackage = chartPackage;
             chartPackage = pkg;
@@ -50,6 +54,15 @@ public static class ChartManager
                 SelectedChart = chartPackage.Charts[0];
             }
 
+            if (oldPackage != null)
+            {
+                oldPackage.OnChartAdded -= SendOnChartAdded;
+                oldPackage.OnChartRemoved -= SendOnChartRemoved;
+            }
+
+            chartPackage.OnChartAdded += SendOnChartAdded;
+            chartPackage.OnChartRemoved += SendOnChartRemoved;
+
             OnChartPackageChanged?.Invoke(oldPackage, chartPackage);
         }
     }
@@ -61,11 +74,21 @@ public static class ChartManager
         set
         {
             var chart = value;
-            if (chart == selectedChart) return;
+            if (chart == selectedChart || chart == null) return;
 
             var oldChart = selectedChart;
             Assert.IsTrue(ChartPackage.Charts.Contains(chart));
             selectedChart = chart;
+
+            if (oldChart != null)
+            {
+                oldChart.OnNoteAdded -= SendOnNoteAdded;
+                oldChart.OnNoteRemoved -= SendOnNoteRemoved;
+            }
+
+            selectedChart.OnNoteAdded += SendOnNoteAdded;
+            selectedChart.OnNoteRemoved += SendOnNoteRemoved;
+
             OnChartChanged?.Invoke(oldChart, selectedChart);
         }
     }
@@ -97,4 +120,9 @@ public static class ChartManager
         // HasChanges = false;
         // OnChartSaved?.Invoke(path);
     }
+
+    static void SendOnChartAdded(EditableChart chart) => OnChartAdded?.Invoke(chart);
+    static void SendOnChartRemoved(EditableChart chart) => OnChartRemoved?.Invoke(chart);
+    static void SendOnNoteAdded(Note note) => OnNoteAdded?.Invoke(note);
+    static void SendOnNoteRemoved(Note note) => OnNoteRemoved?.Invoke(note);
 }

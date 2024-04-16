@@ -322,6 +322,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   deleteSelectedNoteEvent: {fileID: 1181894192}
   alertDialogPrefab: {fileID: 2437811134668853013, guid: 7b262ef6fb7f646c99f1eb61fe85ccae, type: 3}
+  confirmDialogPrefab: {fileID: 0}
 --- !u!224 &661563879
 RectTransform:
   m_ObjectHideFlags: 0
@@ -586,6 +587,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1108610068}
     m_Modifications:
+    - target: {fileID: 6267442693088444395, guid: 0064a68c69d3640a8b09fb13341469ce, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6566676260604698225, guid: 0064a68c69d3640a8b09fb13341469ce, type: 3}
       propertyPath: m_Name
       value: Track

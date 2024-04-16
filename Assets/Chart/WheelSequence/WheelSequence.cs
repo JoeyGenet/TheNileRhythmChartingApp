@@ -8,7 +8,7 @@ public class WheelSequence : TimedNote<Chart, Note>, INoteContainer<WheelTurn>
 	protected int pos;
 	public int Pos => pos;
 
-	protected readonly SortedSet<WheelTurn> notes;
+	protected SortedSet<WheelTurn> notes;
     public IReadOnlyCollection<WheelTurn> Notes => notes;
 
 	public override int EndTime => notes.Max.EndTime;
@@ -21,12 +21,12 @@ public class WheelSequence : TimedNote<Chart, Note>, INoteContainer<WheelTurn>
 	public WheelSequence(Chart chart, int time, int pos, List<(int deltaAngle, int endTime)> turns) : base(chart, time)
 	{
 		this.pos = pos;
-		notes = new SortedSet<WheelTurn>();
-		foreach (var (deltaAngle, endTime) in turns)
-		{
-			notes.Add(new(this, endTime, deltaAngle));
-		}
+		InitializeNotes(turns.Select(turn => new WheelTurn(this, turn.endTime, turn.deltaAngle)));
+	}
 
+	protected void InitializeNotes(IEnumerable<WheelTurn> turns)
+	{
+		notes = new SortedSet<WheelTurn>(turns);
 		WheelTurn prevTurn = null;
 		foreach (var turn in notes)
 		{

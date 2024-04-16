@@ -76,6 +76,7 @@ public class NoteInspectorsUIController : MonoBehaviour
                     show(wheelFlickInspector, wheelFlick);
                     break;
                 case EditableWheelSequence wheelSequence:
+                    Debug.Log($"{wheelSequenceInspector} {wheelSequence}");
                     show(wheelSequenceInspector, wheelSequence);
                     break;
                 case EditableLeverSequence leverSequence:

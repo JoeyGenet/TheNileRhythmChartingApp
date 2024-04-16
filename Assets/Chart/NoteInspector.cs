@@ -116,6 +116,13 @@ where ContainerType : Note, IEditableNote<EditableChart, Note>, IEditableNoteCon
 
     public override void Show(ContainerType note)
     {
+        if (Note != null)
+        {
+            Note.OnNoteAdded -= AddChildInspector;
+            Note.OnNoteRemoved -= RemoveChildInspector;
+            Note.OnNoteMoved -= UpdateChildInspectorPosition;
+        }
+
         if (note != null)
         {
             foreach (var (childNote, inspector) in childInspectors)
@@ -127,20 +134,14 @@ where ContainerType : Note, IEditableNote<EditableChart, Note>, IEditableNoteCon
             {
                 Destroy(childInspectorsParent.GetChild(i).gameObject);
             }
-            foreach (ChildType childNote in Note.Notes)
-            {
-                AddChildInspector(childNote);
-            }
 
+            // foreach (ChildType childNote in note.Notes)
+            // {
+            //     AddChildInspector(childNote);
+            // }
             note.OnNoteAdded += AddChildInspector;
             note.OnNoteRemoved += RemoveChildInspector;
             note.OnNoteMoved += UpdateChildInspectorPosition;
-        }
-        else
-        {
-            Note.OnNoteAdded -= AddChildInspector;
-            Note.OnNoteRemoved -= RemoveChildInspector;
-            note.OnNoteMoved -= UpdateChildInspectorPosition;
         }
 
         base.Show(note);

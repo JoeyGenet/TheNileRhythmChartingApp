@@ -118,12 +118,16 @@ public class MetadataUIController : MonoBehaviour
 
         OnChartPackageChanged(null, ChartManager.ChartPackage);
         ChartManager.OnChartPackageChanged += OnChartPackageChanged;
+        ChartManager.OnChartAdded += OnChartAdded;
+        ChartManager.OnChartRemoved += OnChartRemoved;
     }
 
     void OnDestroy()
     {
         ChartManager.OnChartPackageChanged -= OnChartPackageChanged;
-        OnChartPackageChanged(ChartManager.ChartPackage, null);
+
+        ChartManager.OnChartAdded -= OnChartAdded;
+        ChartManager.OnChartRemoved -= OnChartRemoved;
     }
 
     void Update()
@@ -199,25 +203,15 @@ public class MetadataUIController : MonoBehaviour
 
     void OnChartPackageChanged(EditableChartPackage prevPackage, EditableChartPackage newPackage)
     {
-        if (prevPackage != null)
-        {
-            prevPackage.OnChartAdded -= OnChartAdded;
-            prevPackage.OnChartRemoved -= OnChartRemoved;
-        }
-
+        // Update chart list
         for (int i = chartInspectorsParent.childCount-1; i >= 0; i--)
         {
             Destroy(chartInspectorsParent.GetChild(i).gameObject);
         }
+        foreach (var chart in newPackage.Charts) OnChartAdded(chart);
 
-        if (newPackage != null)
-        {
-            foreach (var chart in newPackage.Charts) OnChartAdded(chart);
-            ChartManager.SelectedChart = chartInspectorsParent.GetChild(0).GetComponent<ChartInspector>().Chart;
-
-            newPackage.OnChartAdded += OnChartAdded;
-            newPackage.OnChartRemoved += OnChartRemoved;
-        }
+        // Select the first chart of the new package
+        ChartManager.SelectedChart = chartInspectorsParent.GetChild(0).GetComponent<ChartInspector>().Chart;
     }
 
     void OnChartAdded(EditableChart chart)

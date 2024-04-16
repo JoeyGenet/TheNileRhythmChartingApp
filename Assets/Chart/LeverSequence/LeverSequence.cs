@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 public class LeverSequence : Note<Chart, Note>, INoteContainer<LeverNote>
 {
@@ -7,7 +8,7 @@ public class LeverSequence : Note<Chart, Note>, INoteContainer<LeverNote>
 	protected LeftRight dir;
 	public LeftRight Dir => dir;
 
-    protected readonly SortedSet<LeverNote> notes;
+    protected SortedSet<LeverNote> notes;
 	public IReadOnlyCollection<LeverNote> Notes => notes;
 
     public LeverNote FirstNote => notes.Min;
@@ -24,12 +25,12 @@ public class LeverSequence : Note<Chart, Note>, INoteContainer<LeverNote>
 	public LeverSequence(Chart chart, LeftRight dir, List<(int time, LeverPos pos)> levers) : base(chart)
 	{
 		this.dir = dir;
-		notes = new();
-		foreach (var (time, pos) in levers)
-		{
-			notes.Add(new LeverNote(this, time, pos));
-		}
+		InitializeNotes(levers.Select(lever => new LeverNote(this, lever.time, lever.pos)));
+	}
 
+	protected void InitializeNotes(IEnumerable<LeverNote> levers)
+	{
+		notes = new SortedSet<LeverNote>(levers);
 		LeverNote prevNote = null;
 		foreach (var note in notes)
 		{

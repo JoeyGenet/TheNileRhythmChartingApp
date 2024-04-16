@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 using UnityEngine.Assertions;
 
 
@@ -81,7 +83,10 @@ public class EditableWheelSequence : WheelSequence, IEditableNote<EditableChart,
     public new EditableWheelTurn LastNote => notes.Max as EditableWheelTurn;
 
 	public EditableWheelSequence(EditableChart chart, int time, int pos, List<(int deltaAngle, int endTime)> turns)
-		: base(chart, time, pos, turns) {}
+		: base(chart, time, pos, new())
+	{
+		InitializeNotes(turns.Select(turn => new EditableWheelTurn(this, turn.endTime, turn.deltaAngle)));
+	}
 	
 	bool AddNoteWithoutNotify(EditableWheelTurn note)
 	{
@@ -200,7 +205,10 @@ public class EditableLeverSequence : LeverSequence, IEditableNote<EditableChart,
     public new EditableLeverNote LastNote => notes.Max as EditableLeverNote;
 
 	public EditableLeverSequence(EditableChart chart, LeftRight dir, List<(int time, LeverPos pos)> levers) 
-		: base(chart, dir, levers) {}
+		: base(chart, dir, new())
+	{
+		InitializeNotes(levers.Select(lever => new EditableLeverNote(this, lever.time, lever.pos)));
+	}
 		
 	public bool ContainsNote(EditableLeverNote note) => notes.Contains(note);
 

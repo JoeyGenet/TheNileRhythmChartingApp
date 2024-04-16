@@ -82,7 +82,7 @@ public class UIManager : MonoBehaviour
             {
                 editableNote.RemoveSelf();
             }
-            else
+            else if (selectedNote != null)
             {
                 Debug.LogWarning($"Deleting of note {selectedNote} not supported");
             }
