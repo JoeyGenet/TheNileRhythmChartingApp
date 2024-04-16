@@ -10,15 +10,6 @@ public class WheelFlickInspector : NoteInspector<EditableWheelFlick>
     [SerializeField] EventRelay leftToggle;
     [SerializeField] EventRelay rightToggle;
 
-    // [SerializeField] Button leftButton;
-    // [SerializeField] Button rightButton;
-
-    // [SerializeField] Image leftButtonBorder;
-    // [SerializeField] Image rightButtonBorder;
-
-    // [SerializeField] Color leftButtonHighlight;
-    // [SerializeField] Color rightButtonHighlight;
-
     void Awake()
     {
         timeInput.onValidateInput += (text, _, c) => c == '-' ? '\0' : c;
@@ -31,28 +22,6 @@ public class WheelFlickInspector : NoteInspector<EditableWheelFlick>
         });
         leftToggle.Event.AddListener(() => Note.Dir = LeftRight.Left);
         rightToggle.Event.AddListener(() => Note.Dir = LeftRight.Right);
-        // leftButton.onClick.AddListener(() =>
-        // {
-        //     Note.Dir = LeftRight.Left;
-        //     leftButtonBorder.color = leftButtonHighlight;
-        //     rightButtonBorder.color = Color.black;
-        // });
-        // rightButton.onClick.AddListener(() =>
-        // {
-        //     Note.Dir = LeftRight.Right;
-        //     rightButtonBorder.color = rightButtonHighlight;
-        //     leftButtonBorder.color = Color.black;
-        // });
-    }
-
-    void OnEnable()
-    {
-        if (Note == null) return;
-        
-        timeInput.text = $"{Note.StartTime}";
-
-        if (Note.Dir == LeftRight.Left) leftToggle.SendEvent(notify: false, playAudio: false);
-        else if (Note.Dir == LeftRight.Right) rightToggle.SendEvent(notify: false, playAudio: false);
     }
 
     void Update()
@@ -60,5 +29,14 @@ public class WheelFlickInspector : NoteInspector<EditableWheelFlick>
         if (Note == null) return;
 
         if (!timeInput.isFocused) timeInput.SetTextWithoutNotify($"{Note.StartTime}");
+        
+        if (Note.Dir == LeftRight.Left)
+        {
+            if (!leftToggle.AreAllTogglesOn) leftToggle.SendEvent(notify: false, playAudio: false);
+        }
+        else if (Note.Dir == LeftRight.Right)
+        {
+            if (!rightToggle.AreAllTogglesOn) rightToggle.SendEvent(notify: false, playAudio: false);
+        }
     }
 }

@@ -5,6 +5,7 @@
 /// </summary>
 
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -20,6 +21,8 @@ public class EventRelay : MonoBehaviour
     public UnityEvent Event;
 
     readonly List<AudioSource> audioSources = new();
+
+    public bool AreAllTogglesOn => toggles.All(toggle => toggle.isOn);
 
     void Start()
     {

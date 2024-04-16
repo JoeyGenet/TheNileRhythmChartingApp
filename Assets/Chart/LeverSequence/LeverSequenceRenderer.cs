@@ -13,8 +13,6 @@ public class LeverSequenceRenderer : NoteRenderer<EditableLeverSequence>, IPoint
     {
         base.Init(track, note);
 
-        Debug.Log($"{Note} {Note.Notes}");
-
         foreach (EditableLeverNote leverNote in Note.Notes)
         {
             AddNote(leverNote);

@@ -11,11 +11,6 @@ public class WheelSequenceInspector : NoteContainerInspector<EditableWheelSequen
     [SerializeField] TMP_InputField startTimeInput;
     [SerializeField] TMP_InputField startPosInput;
 
-    // [Header("Wheel Turn")]
-    // [SerializeField] RectTransform wheelTurnInspectors;
-    // [SerializeField] WheelTurnInspector wheelTurnInspectorPrefab;
-    // [SerializeField] Button addTurnButton;
-
     protected override void Awake()
     {
         base.Awake();

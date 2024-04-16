@@ -41,7 +41,8 @@ public class NoteInspectorsUIController : MonoBehaviour
         where NoteType : Note, IEditableNote<EditableChart, Note>
         {
             inspector.Show(null);
-            inspector.gameObject.SetActive(true);
+            inspector.gameObject.SetActive(false);
+            noNoteSelectedView.SetActive(true);
         }
 
 

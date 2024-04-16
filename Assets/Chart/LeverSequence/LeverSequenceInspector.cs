@@ -11,49 +11,26 @@ public class LeverSequenceInspector : NoteContainerInspector<EditableLeverSequen
     [SerializeField] EventRelay leftToggle;
     [SerializeField] EventRelay rightToggle;
 
-    // [SerializeField] Button leftButton;
-    // [SerializeField] Button rightButton;
-
-    // [SerializeField] Image leftButtonBorder;
-    // [SerializeField] Image rightButtonBorder;
-
-    // [SerializeField] Color leftButtonHighlight;
-    // [SerializeField] Color rightButtonHighlight;
-
-    // [Header("Lever Notes")]
-    // [SerializeField] RectTransform leverNoteInspectorsParent;
-    // [SerializeField] LeverNoteInspector leverNoteInspectorPrefab;
-    // [SerializeField] Button addNoteButton;
-
     protected override void Awake()
     {
         base.Awake();
 
         leftToggle.Event.AddListener(() => Note.Dir = LeftRight.Left);
         rightToggle.Event.AddListener(() => Note.Dir = LeftRight.Right);
-
-        // leftButton.onClick.AddListener(() =>
-        // {
-        //     Note.Dir = LeftRight.Left;
-        //     leftButtonBorder.color = leftButtonHighlight;
-        //     rightButtonBorder.color = Color.black;
-        // });
-        // rightButton.onClick.AddListener(() =>
-        // {
-        //     Note.Dir = LeftRight.Right;
-        //     rightButtonBorder.color = rightButtonHighlight;
-        //     leftButtonBorder.color = Color.black;
-        // });
     }
 
-    void OnEnable()
+    void Update()
     {
         if (Note == null) return;
-        // Update left right
-        if (Note.Dir == LeftRight.Left) leftToggle.SendEvent(notify: false, playAudio: false);
-        else if (Note.Dir == LeftRight.Right) rightToggle.SendEvent(notify: false, playAudio: false);
-        // if (Note.Dir == LeftRight.Left) leftButton.onClick.Invoke();
-        // else if (Note.Dir == LeftRight.Right) rightButton.onClick.Invoke();
+        
+        if (Note.Dir == LeftRight.Left)
+        {
+            if (!leftToggle.AreAllTogglesOn) leftToggle.SendEvent(notify: false, playAudio: false);
+        }
+        else if (Note.Dir == LeftRight.Right)
+        {
+            if (!rightToggle.AreAllTogglesOn) rightToggle.SendEvent(notify: false, playAudio: false);
+        }
     }
 
     protected override EditableLeverNote NewChildNote()
