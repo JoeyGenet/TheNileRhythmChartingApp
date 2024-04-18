@@ -30,6 +30,19 @@ public class LoadSaveUIController : MonoBehaviour
         bool hasPath = !string.IsNullOrEmpty(path);
         if (!hasPath) pathText.text = defaultPathText;
         else pathText.text = path + (ChartManager.ChartPackage.HasChanges ? "*" : "");
+
+        if (Input.GetKeyDown(KeyCode.S) &&
+        #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+            (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
+        #elif UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+            (Input.GetKey(KeyCode.LeftCommand) || Input.GetKey(KeyCode.RightCommand))
+        #else
+            false
+        #endif
+        )
+        {
+            SaveChart();
+        }
     }
 
     void LoadChart()
