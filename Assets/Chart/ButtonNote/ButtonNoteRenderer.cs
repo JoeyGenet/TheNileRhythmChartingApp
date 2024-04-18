@@ -6,7 +6,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(AudioSource))]
-public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>, IPointerClickHandler, IBeginDragHandler, IDragHandler
+public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
 {
     [SerializeField] RectTransform leftNote;
     [SerializeField] RectTransform rightNote;
@@ -14,8 +14,6 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>, IPointerClic
     
     AudioSource hitSound;
 
-    int dragStartPointerPos;
-    int dragStartPointerTime;
     int dragStartTime;
     int dragStartLeftPos;
     int? dragStartRightPos;
@@ -47,57 +45,40 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>, IPointerClic
             : leftUIPos;
     }
 
-    public void OnPointerClick(PointerEventData eventData)
-    {
-        switch (eventData.button)
-        {
-            case PointerEventData.InputButton.Left:
-                UIManager.SelectedNote = Note;
-                break;
-            case PointerEventData.InputButton.Right:
-                Note.RemoveSelf();
-                break;
-        }
-    }
+    protected override void OnLeftClick() => UIManager.SelectedNote = Note;
+    protected override void OnRightClick() => Note.RemoveSelf();
 
-    public void OnBeginDrag(PointerEventData eventData)
-    {
-        if (Track.PointerToTrackPosition(eventData.pressPosition, clamp: false) is not var (pos, time)) return;
-        dragStartPointerPos = pos;
-        dragStartPointerTime = time;
+    protected override void OnDragStart()
+    {   
         dragStartLeftPos = Note.LeftPos;
         dragStartRightPos = Note.RightPos;
         dragStartTime = Note.StartTime;
     }
 
-    public void OnDrag(PointerEventData eventData)
+    protected override void OnDrag()
     {
-        if (Track.PointerToTrackPosition(eventData.position, clamp: false) is not var (dragPos, dragTime)) return;
-        int posDiff = dragPos - dragStartPointerPos;
-        int timeDiff = dragTime - dragStartPointerTime;
-
         if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
         {
-            Note.LeftPos = Math.Clamp(dragStartLeftPos + posDiff, 0, 100);
-            if (dragStartRightPos is int rightPos) Note.RightPos = Math.Clamp(rightPos + posDiff, 0, 100);
+            Note.LeftPos = Math.Clamp(dragStartLeftPos + dragPosDiff, 0, 100);
+            if (dragStartRightPos is int rightPos) Note.RightPos = Math.Clamp(rightPos + dragPosDiff, 0, 100);
         }
         else
         {
             if (dragStartRightPos is int rightPos && Math.Abs(dragStartPointerPos - rightPos) < Math.Abs(dragStartPointerPos - dragStartLeftPos))
             {
                 Note.LeftPos = dragStartLeftPos;
-                Note.RightPos = Math.Clamp(rightPos + posDiff, Note.LeftPos, 100);
+                Note.RightPos = Math.Clamp(rightPos + dragPosDiff, Note.LeftPos, 100);
             }
             else
             {
-                Note.LeftPos = Math.Clamp(dragStartLeftPos + posDiff, 0, dragStartRightPos ?? 100);
+                Note.LeftPos = Math.Clamp(dragStartLeftPos + dragPosDiff, 0, dragStartRightPos ?? 100);
                 Note.RightPos = dragStartRightPos;
             }
         }
 
         if (!Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.RightControl))
         {
-            Note.StartTime = Math.Clamp(dragStartTime + timeDiff, 0, (int) ChartManager.ChartPackage.SongLength);
+            Note.StartTime = Math.Clamp(dragStartTime + dragTimeDiff, 0, (int) ChartManager.ChartPackage.SongLength);
         }
         else
         {

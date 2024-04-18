@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,7 +6,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(AudioSource))]
-public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerClickHandler
+public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerClickHandler, IBeginDragHandler, IDragHandler
 {
     // public WheelFlick Note;
 
@@ -17,6 +18,9 @@ public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerClic
     [SerializeField] AudioClip flickLeftSound;
     [SerializeField] AudioClip flickRightSound;
     AudioSource audioSource;
+
+    int dragStartTime;
+    int dragDirChangePointerPos;
 
     protected override void Awake()
     {
@@ -47,16 +51,36 @@ public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerClic
         };
     }
 
-    public void OnPointerClick(PointerEventData eventData)
+    protected override void OnLeftClick() => UIManager.SelectedNote = Note;
+    protected override void OnRightClick() => Note.RemoveSelf();
+
+    protected override void OnDragStart()
     {
-        switch (eventData.button)
+        dragStartTime = Note.StartTime;
+        dragDirChangePointerPos = dragStartPointerPos;
+    }
+
+    protected override void OnDrag()
+    {
+        int dragDirChangePosDiff = dragPos - dragDirChangePointerPos;
+        if (dragDirChangePosDiff < -5)
         {
-            case PointerEventData.InputButton.Left:
-                UIManager.SelectedNote = Note;
-                break;
-            case PointerEventData.InputButton.Right:
-                Note.RemoveSelf();
-                break;
+            Note.Dir = LeftRight.Left;
+            dragDirChangePointerPos = dragPos;
+        }
+        else if (dragDirChangePosDiff > 5)
+        {
+            Note.Dir = LeftRight.Right;
+            dragDirChangePointerPos = dragPos;
+        }
+        
+        if (!Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.RightControl))
+        {
+            Note.StartTime = Math.Clamp(dragStartTime + dragTimeDiff, 0, (int) ChartManager.ChartPackage.SongLength);
+        }
+        else
+        {
+            Note.StartTime = dragStartTime;
         }
     }
 }

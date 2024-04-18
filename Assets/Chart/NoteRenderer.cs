@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public abstract class NoteRenderer<NoteType> : NoteRenderer<NoteType, EditableChart, Note>
 where NoteType : Note, IEditableNote<EditableChart, Note>
@@ -13,7 +14,7 @@ where C : IEditableNoteContainer<NoteType>
 {}
 
 [RequireComponent(typeof(RectTransform))]
-public abstract class NoteRenderer<NoteType, C, N> : MonoBehaviour
+public abstract class NoteRenderer<NoteType, C, N> : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDragHandler
 where NoteType : N, IEditableNote<C, N>
 where N : Note
 where C : IEditableNoteContainer<N>
@@ -24,6 +25,14 @@ where C : IEditableNoteContainer<N>
     protected RectTransform rect;
 
     int prevTime = int.MaxValue;
+
+    protected PointerEventData pointerEventData { get; private set; }
+    protected int dragStartPointerPos { get; private set; }
+    protected int dragStartPointerTime { get; private set; }
+    protected int dragPos { get; private set; }
+    protected int dragTime { get; private set; }
+    protected int dragPosDiff { get; private set; }
+    protected int dragTimeDiff { get; private set; }
 
     public virtual void Init(Track track, NoteType note)
     {
@@ -74,4 +83,45 @@ where C : IEditableNoteContainer<N>
             Destroy(gameObject);
         }
     }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        pointerEventData = eventData;
+        switch (eventData.button)
+        {
+            case PointerEventData.InputButton.Left:
+                OnLeftClick();
+                break;
+            case PointerEventData.InputButton.Right:
+                OnRightClick();
+                break;
+        }
+    }
+
+    protected virtual void OnLeftClick() {}
+    protected virtual void OnRightClick() {}
+
+
+    public virtual void OnBeginDrag(PointerEventData eventData)
+    {
+        pointerEventData = eventData;
+        if (Track.PointerToTrackPosition(eventData.pressPosition, clamp: false) is not var (pos, time)) return;
+        dragStartPointerPos = pos;
+        dragStartPointerTime = time;
+        OnDragStart();
+    }
+
+    public virtual void OnDrag(PointerEventData eventData)
+    {
+        pointerEventData = eventData;
+        if (Track.PointerToTrackPosition(eventData.position, clamp: false) is not var (dragPos, dragTime)) return;
+        this.dragPos = dragPos;
+        this.dragTime = dragTime;
+        dragPosDiff = dragPos - dragStartPointerPos;
+        dragTimeDiff = dragTime - dragStartPointerTime;
+        OnDrag();
+    }
+
+    protected virtual void OnDragStart() {}
+    protected virtual void OnDrag() {}
 }
