@@ -25,6 +25,9 @@ public class Chart : INoteContainer<Note>, IComparable<Chart>
 	public IReadOnlyCollection<Note> GetNotesBefore(int time, bool inclusive = true) 
 		=> notes.GetViewBetween(DummyNote.Min, new DummyNote(time, inclusive ? int.MaxValue : int.MinValue));
 
+	public IReadOnlyCollection<Note> GetNotesAfter(int time, bool inclusive = true) 
+		=> notes.GetViewBetween(new DummyNote(time, inclusive ? int.MinValue : int.MaxValue), DummyNote.Max);
+
     public int CompareTo(Chart other)
     {
 		if (DifficultyRating == other.DifficultyRating)

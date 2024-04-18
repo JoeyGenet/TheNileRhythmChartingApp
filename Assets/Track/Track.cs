@@ -146,12 +146,50 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         {
             case UICursorMode.ButtonNote:
             {
-                // buttonNoteCursor.gameObject.SetActive(true);
+                var lastButtonNote = chart.GetNotesBefore(time).OfType<EditableButtonNote>().LastOrDefault(n => n.IsSingle);
+                var nextButtonNote = chart.GetNotesAfter(time).OfType<EditableButtonNote>().FirstOrDefault(n => n.IsSingle);
+                var closestButtonNote = lastButtonNote;
+                if (lastButtonNote == null || (nextButtonNote != null 
+                    && Math.Abs(nextButtonNote.StartTime-time) < Math.Abs(lastButtonNote.StartTime-time)))
+                        closestButtonNote = nextButtonNote;
+
+                int bounds = ChartManager.ChartPackage.BeatToTime(1);
+                bool addToButtonNote = closestButtonNote != null && Math.Abs(closestButtonNote.StartTime-time) < bounds
+                                    && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift));
+
                 showButtonNoteCursor = true;
-                buttonNoteCursor.anchorMin = buttonNoteCursor.anchorMax
-                    = PlaybackManager.Instance.TrackToUIPosition(pos, time);
+                if (addToButtonNote)
+                {
+                    var existingAnchor = PlaybackManager.Instance.TrackToUIPosition(closestButtonNote.LeftPos, closestButtonNote.StartTime);
+                    var newAnchor = PlaybackManager.Instance.TrackToUIPosition(pos, closestButtonNote.StartTime);
+                    if (closestButtonNote.LeftPos > pos)
+                    {
+                        buttonNoteCursor.anchorMin = newAnchor;
+                        buttonNoteCursor.anchorMax = existingAnchor;
+                        if (placeNote)
+                        {
+                            closestButtonNote.RightPos = closestButtonNote.LeftPos;
+                            closestButtonNote.LeftPos = pos;
+                            UIManager.SelectedNote = closestButtonNote;
+                        }
+                    }
+                    else
+                    {
+                        buttonNoteCursor.anchorMin = existingAnchor;
+                        buttonNoteCursor.anchorMax = newAnchor;
+                        if (placeNote)
+                        {
+                            closestButtonNote.RightPos = pos;
+                            UIManager.SelectedNote = closestButtonNote;
+                        }
+                    }
+                }
+                else
+                {
+                    buttonNoteCursor.anchorMin = buttonNoteCursor.anchorMax = PlaybackManager.Instance.TrackToUIPosition(pos, time);
+                    if (placeNote) chart.AddNote(new EditableButtonNote(chart, time, pos, null));
+                }
                 
-                if (placeNote) chart.AddNote(new EditableButtonNote(chart, time, pos, null));
                 break;
             }
             case UICursorMode.WheelFlick:
@@ -190,6 +228,7 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
                         int endAngle = WheelTurn.PosToAngle(pos);
 
                         lastWheelSequence.AddNote(new EditableWheelTurn(lastWheelSequence, time, endAngle - prevEndAngle));
+                        UIManager.SelectedNote = lastWheelSequence;
                     }
                 }
                 else
@@ -217,7 +256,11 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
                     LeverPos prevPos = lastLeverSequence.GetNotesBefore(time).Last().Pos;
                     if (prevPos != LeverPos.Middle) leverPos = LeverPos.Middle;
 
-                    if (placeNote) lastLeverSequence.AddNote(new EditableLeverNote(lastLeverSequence, time, leverPos));
+                    if (placeNote)
+                    {
+                        lastLeverSequence.AddNote(new EditableLeverNote(lastLeverSequence, time, leverPos));
+                        UIManager.SelectedNote = lastLeverSequence;
+                    }
                 }
                 else
                 {
