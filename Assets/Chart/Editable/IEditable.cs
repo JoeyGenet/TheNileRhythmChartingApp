@@ -53,10 +53,10 @@ public static class IEditableExtensions
     where E : IEditable, N
     {
         if (newValue.Equals(value)) return false;
-        container.RemoveNote(editable, notify: false);
+        container?.RemoveNote(editable, notify: false);
         value = newValue;
-        container.AddNote(editable, notify: false);
-        container.NotifyMoved(editable);
+        container?.AddNote(editable, notify: false);
+        container?.NotifyMoved(editable);
         // container.UpdateNote(editable, () => value = newValue);
         editable.SetChanged();
         onChanged?.Invoke();

@@ -77,7 +77,7 @@ public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerClic
         
         if (!Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.RightControl))
         {
-            Note.StartTime = PlaybackManager.ClampTime(dragStartTime + dragTimeDiff);
+            Note.StartTime = PlaybackManager.ClampTime(UIManager.SnapTime(dragStartTime + dragTimeDiff));
         }
         else
         {

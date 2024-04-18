@@ -139,6 +139,8 @@ public class ChartPackage
                 ["Gain"] = val => gain = float.Parse(val),
                 ["Start"] = val => songStart = int.Parse(val),
                 ["End"] = val => songEnd = int.Parse(val),
+                ["PreviewStart"] = val => previewStart = uint.Parse(val),
+                ["PreviewDuration"] = val => previewDuration = uint.Parse(val),
             });
 
             wrapException(() =>

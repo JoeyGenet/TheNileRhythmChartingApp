@@ -25,6 +25,9 @@ public class PlaybackUIController : MonoBehaviour
     public int MaxVerticalView;
     public int MinVerticalView;
 
+    [Header("Snapping")]
+    [SerializeField] TMP_Dropdown snappingDropdown;
+
     void Start()
     {
         playEvent.AddListener(() => PlaybackManager.Instance.Play());
@@ -55,6 +58,18 @@ public class PlaybackUIController : MonoBehaviour
         });
 
         horizontalViewSlider.onValueChanged.AddListener(value => PlaybackManager.Instance.HorizontalViewSize = value);
+
+        snappingDropdown.onValueChanged.AddListener(value => UIManager.Snapping = value switch
+        {
+            0 => 0,
+            1 => 1,
+            2 => 2,
+            3 => 3,
+            4 => 4,
+            5 => 6,
+            6 => 8,
+            _ => 1,
+        });
     }
 
     void Update()

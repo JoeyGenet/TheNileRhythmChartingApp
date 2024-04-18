@@ -91,15 +91,28 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
                 WheelSequence.Notes.Min.DeltaAngle = dragStartDeltaAngle;
             }
 
-            if (changeTime) WheelSequence.StartTime = PlaybackManager.ClampTime(dragStartSeqTime + dragTimeDiff);
+            int myStartTime = Note == null ? dragStartSeqTime : dragStartEndTimes[Note];
+            int snappedTimeDiff = UIManager.SnapTime(myStartTime + dragTimeDiff) - myStartTime;
+
+            // I don't really know why, but the delta angles get messed up here
+            // it's likely because looping through the notes re-orders the list a few times, but idk how that messes things up
+            // workaround for now is to store the delta angles and re-apply them afterwards
+
+            if (changeTime) WheelSequence.StartTime = PlaybackManager.ClampTime(dragStartSeqTime + snappedTimeDiff);
             else WheelSequence.StartTime = dragStartSeqTime;
+
+            Dictionary<EditableWheelTurn, int> deltaAngles = dragStartEndTimes.Keys.ToDictionary(n => n, n => n.DeltaAngle);
             foreach (var note in dragStartEndTimes.Keys)
             {
-                if (changeTime) note.EndTime = PlaybackManager.ClampTime(dragStartEndTimes[note] + dragTimeDiff);
+                if (changeTime) note.EndTime = PlaybackManager.ClampTime(dragStartEndTimes[note] + snappedTimeDiff);
                 else note.EndTime = dragStartEndTimes[note];
             }
+            foreach (var note in dragStartEndTimes.Keys)
+            {
+                note.DeltaAngle = deltaAngles[note];
+            }
 
-            WheelSequence.Pos = Math.Clamp(dragStartSeqPos + dragPosDiff, 0, 100);
+            WheelSequence.Pos = (int) Mathf.Repeat(dragStartSeqPos + dragPosDiff, 100);
         }
         else
         {
@@ -113,11 +126,11 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
             {
                 if (Note == null)
                 {
-                    WheelSequence.StartTime = Math.Clamp(dragStartSeqTime + dragTimeDiff, 0, WheelSequence.Notes.Min.EndTime-1);
+                    WheelSequence.StartTime = Math.Clamp(UIManager.SnapTime(dragStartSeqTime + dragTimeDiff), 0, WheelSequence.Notes.Min.EndTime-1);
                 }
                 else
                 {
-                    Note.EndTime = Math.Max(PlaybackManager.ClampTime(dragStartEndTimes[Note] + dragTimeDiff), WheelSequence.StartTime+1);
+                    Note.EndTime = Math.Max(PlaybackManager.ClampTime(UIManager.SnapTime(dragStartEndTimes[Note] + dragTimeDiff)), WheelSequence.StartTime+1);
                 }
             }
             

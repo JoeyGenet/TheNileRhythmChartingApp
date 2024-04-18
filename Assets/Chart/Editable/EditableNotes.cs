@@ -115,8 +115,8 @@ public class EditableWheelSequence : WheelSequence, IEditableNote<EditableChart,
 			note.NextTurn = nextTurn;
 			note.PreviousTurn = prevTurn;
 
-			note.RecomputeStartAngle();
 			if (note.NextTurn != null) note.NextTurn.DeltaAngle -= note.DeltaAngle;
+			note.RecomputeStartAngle();
 
 			Assert.IsTrue(notes.Add(note));
 			return notify;
@@ -134,8 +134,8 @@ public class EditableWheelSequence : WheelSequence, IEditableNote<EditableChart,
 			if (note.NextTurn != null)
 			{
 				note.NextTurn.PreviousTurn = note.PreviousTurn;
-				note.NextTurn.RecomputeStartAngle();
 				note.NextTurn.DeltaAngle += note.DeltaAngle;
+				note.NextTurn.RecomputeStartAngle();
 			}
 
 			note.PreviousTurn = note.NextTurn = null;

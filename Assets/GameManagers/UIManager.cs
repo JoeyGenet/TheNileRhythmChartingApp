@@ -2,6 +2,7 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using System.ComponentModel;
 
 // Tells what the cursor does in the UI
 public enum UICursorMode
@@ -68,6 +69,24 @@ public class UIManager : MonoBehaviour
             return selectedObj != null && 
                 (selectedObj.GetComponent<InputField>() != null || selectedObj.GetComponent<TMP_InputField>() != null);
         }
+    }
+
+    static int snapping = 1; // Snap to 1/n beats. if 0, no snapping
+    public static int Snapping
+    {
+        get => (Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt)) ? 0 : snapping;
+        set => snapping = value;
+    }
+
+    public static int SnapTime(int time)
+    {
+        if (Snapping > 0)
+        {
+            float beat = ChartManager.ChartPackage.TimeToBeat(time);
+            beat = Mathf.Round(beat * Snapping) / Snapping;
+            return ChartManager.ChartPackage.BeatToTime(beat);
+        }
+        return time;
     }
 
     void Awake()

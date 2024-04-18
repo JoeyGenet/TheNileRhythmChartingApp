@@ -138,6 +138,9 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
             middleLeverNoteCursor.gameObject.SetActive(false);
             return;
         }
+
+        time = UIManager.SnapTime(time);
+
         bool placeNote = Input.GetMouseButtonDown(0);
         
         var chart = ChartManager.SelectedChart;

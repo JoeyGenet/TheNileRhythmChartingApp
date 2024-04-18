@@ -102,9 +102,10 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
         bool changeTime = !Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.RightControl);
         if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
         {
+            int snappedTimeDiff = UIManager.SnapTime(dragStartTimes[Note] + dragTimeDiff) - dragStartTimes[Note];
             foreach (var note in dragStartTimes.Keys)
             {
-                if (changeTime) note.StartTime = PlaybackManager.ClampTime(dragStartTimes[note] + dragTimeDiff);
+                if (changeTime) note.StartTime = PlaybackManager.ClampTime(dragStartTimes[note] + snappedTimeDiff);
                 else note.StartTime = dragStartTimes[note];
             }
 
@@ -122,7 +123,7 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
 
             if (changeTime)
             {
-                Note.StartTime = PlaybackManager.ClampTime(dragStartTimes[Note] + dragTimeDiff);
+                Note.StartTime = PlaybackManager.ClampTime(UIManager.SnapTime(dragStartTimes[Note] + dragTimeDiff));
 
                 dragLeverPosChangePos = pointerEventData.position;
                 Note.Pos = dragStartLeverPos;
