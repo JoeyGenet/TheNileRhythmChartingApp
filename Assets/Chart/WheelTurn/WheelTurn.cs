@@ -26,10 +26,10 @@ public class WheelTurn : Note<WheelSequence, WheelTurn>, IComparable<WheelTurn>
 	}
 
 	// Converts an angle between 0-180 to a track position between 0-100
-	public static int AngleToPos(int angle) => angle * 100 / 180;
+	public static int AngleToPos(int angle) => Mathf.RoundToInt((float) angle * 100 / 180);
 
 	// Converts an angle between 0-180 to a track position between 0-100
-	public static int PosToAngle(int pos) => pos * 180 / 100;
+	public static int PosToAngle(int pos) => Mathf.RoundToInt((float) pos * 180 / 100);
 
 	// Wraps an angle that may be <0 or >180 so that it is between 0-180
 	public static int WrapAngle(int angle) => angle - Mathf.FloorToInt((angle - Math.Sign(angle)) / 180f) * 180;

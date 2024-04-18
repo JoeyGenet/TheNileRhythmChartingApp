@@ -13,6 +13,8 @@ public class WheelTurnInspector : WheelSequenceInspector.ChildInspector
     
     protected override void Awake()
     {
+        base.Awake();
+        
         deltaAngleInput.onValueChanged.AddListener(text =>
         {
             if (int.TryParse(text, out int deltaAngle))

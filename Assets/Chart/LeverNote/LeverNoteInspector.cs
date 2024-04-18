@@ -18,6 +18,8 @@ public class LeverNoteInspector : LeverSequenceInspector.ChildInspector
     
     protected override void Awake()
     {
+        base.Awake();
+        
         timeInput.onValidateInput += (text, _, c) => c == '-' ? '\0' : c;
         timeInput.onValueChanged.AddListener(text =>
         {

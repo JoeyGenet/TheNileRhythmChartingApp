@@ -42,6 +42,14 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>, IPointerClic
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        UIManager.SelectedNote = Note;
+        switch (eventData.button)
+        {
+            case PointerEventData.InputButton.Left:
+                UIManager.SelectedNote = Note;
+                break;
+            case PointerEventData.InputButton.Right:
+                Note.RemoveSelf();
+                break;
+        }
     }
 }

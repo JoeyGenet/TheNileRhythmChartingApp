@@ -43,6 +43,7 @@ where ContainerType : Note, IEditableNote<EditableChart, Note>, IEditableNoteCon
                 var note = Note;
                 try
                 {
+		            Debug.Log($"Remove wheel turn {Note}");
                     Note.RemoveSelf();
 
                     // If last note in container, remove the container

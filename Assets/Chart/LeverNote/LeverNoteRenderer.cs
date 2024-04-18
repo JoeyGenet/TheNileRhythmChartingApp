@@ -1,10 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(AudioSource))]
-public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSequence>
+public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSequence>, IPointerClickHandler
 {
     [Header("Sprites")]
     [SerializeField] private Image arrow;
@@ -64,5 +65,18 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
             _ => throw new System.Exception($"Lever direction {Note.Pos} not supported."),
         };
         arrow.transform.rotation = Quaternion.Euler(0, 0, angle);
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        switch (eventData.button)
+        {
+            case PointerEventData.InputButton.Left:
+                UIManager.SelectedNote = Note.Container;
+                break;
+            case PointerEventData.InputButton.Right:
+                Note.RemoveSelf();
+                break;
+        }
     }
 }
