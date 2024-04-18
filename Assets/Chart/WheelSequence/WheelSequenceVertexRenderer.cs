@@ -17,7 +17,7 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
 
     public void Init(WheelSequenceRenderer sequenceRenderer, EditableWheelTurn turn)
     {
-        base.Init(sequenceRenderer.Track, turn, sequenceRenderer.Note);
+        base.Init(sequenceRenderer.Track, turn);
         WheelSequence = sequenceRenderer.Note;
     }
 

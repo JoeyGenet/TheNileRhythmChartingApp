@@ -34,15 +34,13 @@ where C : IEditableNoteContainer<N>
     protected int dragPosDiff { get; private set; }
     protected int dragTimeDiff { get; private set; }
 
-    public virtual void Init(Track track, NoteType note, C container)
+    public virtual void Init(Track track, NoteType note)
     {
         Track = track;
         Note = note;
-        
-        container.OnNoteRemoved += DestroyOnNoteRemoved;
-    }
 
-    public virtual void Init(Track track, NoteType note) => Init(track, note, note.Container);
+        if (Note != null) note.Container.OnNoteRemoved += DestroyOnNoteRemoved;
+    }
 
     protected virtual void Awake()
     {
@@ -54,7 +52,7 @@ where C : IEditableNoteContainer<N>
     protected virtual void OnDestroy()
     {
         ChartManager.OnChartChanged -= DestroyOnChartChanged;
-        Note.Container.OnNoteRemoved -= DestroyOnNoteRemoved;
+        if (Note != null) Note.Container.OnNoteRemoved -= DestroyOnNoteRemoved;
     }
 
     // TODO: create UpdateOnPlayback that is called when the user drags the playback/zoom or during playback
