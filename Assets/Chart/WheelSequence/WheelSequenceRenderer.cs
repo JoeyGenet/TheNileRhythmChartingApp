@@ -41,6 +41,7 @@ public class WheelSequenceRenderer : NoteRenderer<EditableWheelSequence>, IPoint
         {
             Destroy(lines[i].gameObject);
             lines.RemoveAt(i);
+            Debug.Log("Remove line");
         }
         // Update line positions
         for (int i = 0; i < linePositions.Count; i++)

@@ -39,5 +39,8 @@ public class AlertDialog : MonoBehaviour
             OnCancelPressed?.Invoke();
             Destroy(gameObject);
         });
+
+        if (cancelButton != null) cancelButton.Select();
+        else okButton.Select();
     }
 }

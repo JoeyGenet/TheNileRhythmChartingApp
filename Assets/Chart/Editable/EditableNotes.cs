@@ -142,7 +142,10 @@ public class EditableWheelSequence : WheelSequence, IEditableNote<EditableChart,
 
 	public bool AddNote(EditableWheelTurn note) => this.RegisterChange(
 		() => AddNoteWithoutNotify(note),
-		onChanged: () => OnNoteAdded?.Invoke(note)
+		onChanged: () =>
+		{
+			OnNoteAdded?.Invoke(note);
+		}
 	);
 
 	public bool RemoveNote(EditableWheelTurn note) => this.RegisterChange(

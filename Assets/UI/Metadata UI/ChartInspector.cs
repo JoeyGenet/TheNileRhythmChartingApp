@@ -43,7 +43,6 @@ public class ChartInspector : MonoBehaviour
         {
             var dialog = UIManager.Instance.ShowConfirm("Delete Chart?", "Are you sure you want to delete this chart?");
             dialog.OnOkPressed?.AddListener(() => Chart.Package.RemoveChart(Chart));
-            
         });
     }
 
