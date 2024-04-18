@@ -28,7 +28,7 @@ public class MetadataUIController : MonoBehaviour
     [SerializeField] RectTransform chartInspectorsParent;
     [SerializeField] ChartInspector chartInspectorPrefab;
     [SerializeField] Button addChartButton;
-    readonly Dictionary<EditableChart, ChartInspector> chartInspectors = new();
+    readonly SortedDictionary<EditableChart, ChartInspector> chartInspectors = new();
 
     [Header("Song Config")]
     [SerializeField] TMP_InputField bpmInputField;
@@ -208,10 +208,12 @@ public class MetadataUIController : MonoBehaviour
         {
             Destroy(chartInspectorsParent.GetChild(i).gameObject);
         }
+        chartInspectors.Clear();
         foreach (var chart in newPackage.Charts) OnChartAdded(chart);
 
         // Select the first chart of the new package
-        ChartManager.SelectedChart = chartInspectorsParent.GetChild(0).GetComponent<ChartInspector>().Chart;
+        ChartManager.SelectedChart = newPackage.Charts.Min;
+        // ChartManager.SelectedChart = newPackage.Charts.OrderBy() chartInspectorsParent.GetChild(0).GetComponent<ChartInspector>().Chart;
     }
 
     void OnChartAdded(EditableChart chart)
@@ -236,9 +238,10 @@ public class MetadataUIController : MonoBehaviour
 
     public void UpdateChartInspectorsOrder()
     {
-        var charts = chartInspectors.Keys.ToList();
-        charts.Sort((a, b) => a.DifficultyRating == b.DifficultyRating ? 
-            a.DifficultyName.CompareTo(b.DifficultyName) : a.DifficultyRating - b.DifficultyRating);
+        // var charts = chartInspectors.Keys.ToList();
+        // charts.Sort((a, b) => a.DifficultyRating == b.DifficultyRating ? 
+        //     a.DifficultyName.CompareTo(b.DifficultyName) : a.DifficultyRating - b.DifficultyRating);
+        var charts = chartInspectors.Keys;
         int index = 0;
         foreach (var chart in charts)
         {

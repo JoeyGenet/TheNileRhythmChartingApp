@@ -58,8 +58,8 @@ public class ChartPackage
     public uint PreviewStart => Math.Clamp(previewStart, 0, SongLength - 1000);
     public uint PreviewDuration => Math.Clamp(previewDuration, 1000, Math.Min(30000, SongLength - PreviewStart));
     
-    protected readonly List<Chart> charts = new();
-    public IReadOnlyList<Chart> Charts => charts;
+    protected readonly SortedSet<Chart> charts = new();
+    public IReadOnlySortedSet<Chart> Charts => new ReadOnlySortedSet<Chart>(charts);
 
     public uint SongLength => SongClip == null ? 10000 : (uint) (SongClip.length * 1000);
 
@@ -103,12 +103,6 @@ public class ChartPackage
         {
             try { a(); }
             catch (Exception e) { firstException = e; }
-        }
-        T wrapExceptionFunc<T>(Func<T> a)
-        {
-            try { return a(); }
-            catch (Exception e) { firstException = e; }
-            return default(T);
         }
         async Task wrapExceptionAsync(Func<Task> a)
         {
@@ -178,10 +172,6 @@ public class ChartPackage
         if (charts.Count == 0)
         {
             firstException ??= new MissingElementException("Missing chart files ending in '.nrchart'");
-        }
-        else
-        {
-            charts.Sort((a, b) => a.DifficultyRating.CompareTo(b.DifficultyRating));
         }
 
         if (firstException != null) throw firstException;

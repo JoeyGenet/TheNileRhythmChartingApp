@@ -39,7 +39,25 @@ public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
     }
 
     public EditableChart(EditableChartPackage package) : base(package) {}
-    public EditableChart(EditableChartPackage package, Stream stream) : base(package, stream) {}
+    public EditableChart(EditableChartPackage package, Stream stream) : base(package, stream)
+	{
+		// Convert notes to editable
+		var nonEditableNotes = new List<Note>(notes);
+		notes.Clear();
+
+		foreach (var note in nonEditableNotes)
+		{
+			Note editableNote = note switch
+			{
+				ButtonNote buttonNote => new EditableButtonNote(this, buttonNote),
+				WheelFlick wheelFlick => new EditableWheelFlick(this, wheelFlick),
+				WheelSequence wheelSequence => new EditableWheelSequence(this, wheelSequence),
+				LeverSequence leverSequence => new EditableLeverSequence(this, leverSequence),
+				_ => throw new Exception($"Cannot convert note {note} to editable"),
+			};
+			base.AddNote(editableNote);
+		}
+	}
 
 	public bool ContainsNote(Note note) => notes.Contains(note);
 

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-public class Chart : INoteContainer<Note>
+public class Chart : INoteContainer<Note>, IComparable<Chart>
 {
 	public readonly ChartPackage Package;
 
@@ -20,12 +20,21 @@ public class Chart : INoteContainer<Note>
 	public string DifficultyName => difficultyName.Trim();
 
 
-	public bool AddNote(Note note) => notes.Add(note);
+	public virtual bool AddNote(Note note) => notes.Add(note);
 
 	public IReadOnlyCollection<Note> GetNotesBefore(int time, bool inclusive = true) 
 		=> notes.GetViewBetween(DummyNote.Min, new DummyNote(time, inclusive ? int.MaxValue : int.MinValue));
 
-	public Chart(ChartPackage package)
+    public int CompareTo(Chart other)
+    {
+		if (DifficultyRating == other.DifficultyRating)
+		{
+            return DifficultyName.CompareTo(other.DifficultyName);
+		}
+		return DifficultyRating - other.DifficultyRating;
+    }
+
+    public Chart(ChartPackage package)
 	{
 		Package = package;
 	}

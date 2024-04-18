@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,16 +43,16 @@ public class PlaybackUIController : MonoBehaviour
         masterVolumeSlider.value = PlaybackManager.Instance.MasterVolume;
         masterVolumeSlider.onValueChanged.AddListener(value => PlaybackManager.Instance.MasterVolume = value);
 
-        uint songLength = ChartManager.ChartPackage.SongLength;
-        uint viewSize = PlaybackManager.Instance.VerticalViewSize;
-        verticalViewSlider.value = viewSize < MaxVerticalView 
-            ? (viewSize - MinVerticalView) / (float) (MaxVerticalView-MinVerticalView) / 2f
-            : (viewSize - MaxVerticalView) / (float) (songLength - MaxVerticalView) / 2f + 0.5f;
-        verticalViewSlider.onValueChanged.AddListener(v => PlaybackManager.Instance.VerticalViewSize = (uint) (
-            v < 0.5f 
-                ? v*2 * (MaxVerticalView-MinVerticalView) + MinVerticalView
-                : (v-0.5f) * (songLength - MaxVerticalView) + MaxVerticalView
-        ));
+        verticalViewSlider.onValueChanged.AddListener(v =>
+        {
+            uint songLength = ChartManager.ChartPackage.SongLength;
+            uint maxVerticalView = Math.Min(songLength, (uint) MaxVerticalView);
+            // Debug.Log(((v-0.5f) * (songLength - maxVerticalView) + maxVerticalView))
+            PlaybackManager.Instance.VerticalViewSize = (uint) (v < 0.5f 
+                ? v*2 * (maxVerticalView-MinVerticalView) + MinVerticalView
+                : (v-0.5f)*2f * (songLength - maxVerticalView) + maxVerticalView
+            );
+        });
 
         horizontalViewSlider.onValueChanged.AddListener(value => PlaybackManager.Instance.HorizontalViewSize = value);
     }
@@ -59,7 +60,6 @@ public class PlaybackUIController : MonoBehaviour
     void Update()
     {
         timestampSlider.maxValue = ChartManager.ChartPackage.SongLength;
-        // timestampSlider.value = Mathf.Clamp(timestampSlider.value, 0, songLength);
         
         bool isPaused = PlaybackManager.Instance.IsPaused;
         playEvent.gameObject.SetActive(isPaused);
@@ -71,5 +71,15 @@ public class PlaybackUIController : MonoBehaviour
         timestampText.text = $"Time: {min}:{sec:00}.{ms:000}";
         beatText.text = $"Beat: {PlaybackManager.Instance.BeatsInChart:0.000}";
         timestampSlider.SetValueWithoutNotify(time);
+        
+        uint songLength = ChartManager.ChartPackage.SongLength;
+        uint viewSize = PlaybackManager.Instance.VerticalViewSize;
+        uint maxVerticalView = Math.Min(songLength, (uint) MaxVerticalView);
+        // Debug.Log($"{songLength} {maxVerticalView}");
+        float sliderValue = viewSize < maxVerticalView 
+            ? (viewSize - MinVerticalView) / (float) (maxVerticalView-MinVerticalView) / 2f
+            : (viewSize - maxVerticalView) / (float) (songLength - maxVerticalView) / 2f + 0.5f;
+        if (Mathf.Abs(verticalViewSlider.value - sliderValue) > 0.001f)
+            verticalViewSlider.value = sliderValue;
     }
 }

@@ -77,7 +77,7 @@ public class EditableChartPackage : ChartPackage, IEditable
     }
 
     // readonly List<EditableChart> charts = new();
-    public new IReadOnlyList<EditableChart> Charts => charts.Cast<EditableChart>().ToList();
+    public new IReadOnlySortedSet<EditableChart> Charts => (ReadOnlySortedSet<EditableChart, Chart>) charts;
 
     string imageCache = null;
     string songCache = null;
@@ -122,7 +122,7 @@ public class EditableChartPackage : ChartPackage, IEditable
     {
         var chart = new EditableChart(this);
 
-        bool hasDifficulty(string name) => charts.Exists(c => c.DifficultyName == name);
+        bool hasDifficulty(string name) => charts.Any(c => c.DifficultyName == name);
 
         if (!hasDifficulty("Master"))
         {

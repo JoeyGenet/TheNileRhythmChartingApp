@@ -31,6 +31,9 @@ public class EditableButtonNote : ButtonNote, IEditableNote<EditableChart, Note>
 
 	public EditableButtonNote(EditableChart chart, int time, int pos1, int? pos2 = null)
 		: base(chart, time, pos1, pos2) {}
+	
+	public EditableButtonNote(EditableChart chart, ButtonNote note)
+		: base(chart, note.StartTime, note.LeftPos, note.RightPos) {}
 }
 
 
@@ -53,6 +56,9 @@ public class EditableWheelFlick : WheelFlick, IEditableNote<EditableChart, Note>
 	}
 
 	public EditableWheelFlick(EditableChart chart, int time, LeftRight dir) : base(chart, time, dir) {}
+
+	public EditableWheelFlick(EditableChart chart, WheelFlick note)
+		: base(chart, note.StartTime, note.Dir) {}
 }
 
 
@@ -87,6 +93,11 @@ public class EditableWheelSequence : WheelSequence, IEditableNote<EditableChart,
 		: base(chart, time, pos, new())
 	{
 		InitializeNotes(turns.Select(turn => new EditableWheelTurn(this, turn.endTime, turn.deltaAngle)));
+	}
+	public EditableWheelSequence(EditableChart chart, WheelSequence seq)
+		: base(chart, seq.StartTime, seq.Pos, new())
+	{
+		InitializeNotes(seq.Notes.Select(turn => new EditableWheelTurn(this, turn.EndTime, turn.DeltaAngle)));
 	}
 	
 	bool AddNoteWithoutNotify(EditableWheelTurn note)
@@ -209,6 +220,11 @@ public class EditableLeverSequence : LeverSequence, IEditableNote<EditableChart,
 		: base(chart, dir, new())
 	{
 		InitializeNotes(levers.Select(lever => new EditableLeverNote(this, lever.time, lever.pos)));
+	}
+	public EditableLeverSequence(EditableChart chart, LeverSequence seq)
+		: base(chart, seq.Dir, new())
+	{
+		InitializeNotes(seq.Notes.Select(lever => new EditableLeverNote(this, lever.StartTime, lever.Pos)));
 	}
 		
 	public bool ContainsNote(EditableLeverNote note) => notes.Contains(note);
