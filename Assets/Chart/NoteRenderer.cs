@@ -106,6 +106,7 @@ where C : IEditableNoteContainer<N>
 
     public virtual void OnBeginDrag(PointerEventData eventData)
     {
+        if (eventData.button != PointerEventData.InputButton.Left) return;
         pointerEventData = eventData;
         if (Track.PointerToTrackPosition(eventData.pressPosition, clamp: false) is not var (pos, time)) return;
         dragStartPointerPos = pos;
@@ -115,6 +116,7 @@ where C : IEditableNoteContainer<N>
 
     public virtual void OnDrag(PointerEventData eventData)
     {
+        if (eventData.button != PointerEventData.InputButton.Left) return;
         pointerEventData = eventData;
         if (Track.PointerToTrackPosition(eventData.position, clamp: false) is not var (dragPos, dragTime)) return;
         this.dragPos = dragPos;

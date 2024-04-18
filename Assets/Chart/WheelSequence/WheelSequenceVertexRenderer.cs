@@ -66,7 +66,8 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
     }
 
     protected override void OnDragStart()
-    {   
+    {
+        UIManager.SelectedNote = WheelSequence;
         dragStartStartAngle = Note == null ? WheelSequence.Notes.Min.StartAngle : Note.StartAngle;
         dragStartDeltaAngle = Note == null ? WheelSequence.Notes.Min.DeltaAngle : Note.DeltaAngle;
         dragStartSeqPos = WheelSequence.Pos;

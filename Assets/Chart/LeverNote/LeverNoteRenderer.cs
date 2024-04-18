@@ -80,6 +80,7 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
 
     protected override void OnDragStart()
     {   
+        UIManager.SelectedNote = Note.Container;
         dragStartTimes = Note.Container.Notes.ToDictionary(n => n, n => n.StartTime);
         dragStartLeverPos = Note.Pos;
         dragStartDir = Note.Container.Dir;

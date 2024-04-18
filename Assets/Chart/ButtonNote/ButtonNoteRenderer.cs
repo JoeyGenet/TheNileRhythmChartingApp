@@ -50,6 +50,7 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
 
     protected override void OnDragStart()
     {   
+        UIManager.SelectedNote = Note;
         dragStartLeftPos = Note.LeftPos;
         dragStartRightPos = Note.RightPos;
         dragStartTime = Note.StartTime;

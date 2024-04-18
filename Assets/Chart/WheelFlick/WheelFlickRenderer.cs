@@ -56,6 +56,7 @@ public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerClic
 
     protected override void OnDragStart()
     {
+        UIManager.SelectedNote = Note;
         dragStartTime = Note.StartTime;
         dragDirChangePosX = pointerEventData.position.x;
     }
