@@ -91,22 +91,24 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         }
     }
 
-    public (int, int)? MouseTrackPosition()
+    public (int, int)? PointerToTrackPosition(Vector2 pointerPosition, bool allowOutOfBounds = true, bool clamp = true)
     {
         if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                mainTrackArea, Input.mousePosition, null, out Vector2 mousePos))
+                mainTrackArea, pointerPosition, null, out Vector2 localPos))
         {
-            Vector2 absPos = mousePos - rect.rect.position;
-            if (absPos.x < 0 || absPos.x > rect.rect.width || absPos.y < 0 || absPos.y > rect.rect.height)
+            Vector2 absPos = localPos - rect.rect.position;
+            if (!allowOutOfBounds && (absPos.x < 0 || absPos.x > rect.rect.width || absPos.y < 0 || absPos.y > rect.rect.height))
             {
                 return null;
             }
 
-            Vector2 uiPos = (mousePos - mainTrackArea.rect.position) / mainTrackArea.rect.size;
+            Vector2 uiPos = (localPos - mainTrackArea.rect.position) / mainTrackArea.rect.size;
             var (pos, time) = PlaybackManager.Instance.UIToTrackPosition(uiPos);
-            return (Mathf.Clamp(pos, 0, 100), Mathf.Clamp(time, 0, int.MaxValue)); // TODO: clamp to song length
+            if (!clamp) return (pos, time);
+            return (Math.Clamp(pos, 0, 100), Math.Clamp(time, 0, (int) ChartManager.ChartPackage.SongLength));
         }
         return null;
+
     }
 
     void DisplayCursorNote()
@@ -126,7 +128,7 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         bool showMiddleLeverNoteCursor = false;
 
         // Only add notes through key presses if not currently typing in input field
-        if (UIManager.IsSelectingInputField || MouseTrackPosition() is not (int pos, int time))
+        if (UIManager.IsSelectingInputField || PointerToTrackPosition(Input.mousePosition, allowOutOfBounds: false) is not (int pos, int time))
         {
             buttonNoteCursor.gameObject.SetActive(false);
             leftWheelFlickCursor.gameObject.SetActive(false);
