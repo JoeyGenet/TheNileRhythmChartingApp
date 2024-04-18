@@ -1,10 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(AudioSource))]
-public class LeverNoteRenderer : NoteRenderer<LeverNote>
+public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSequence>, IPointerClickHandler
 {
     [Header("Sprites")]
     [SerializeField] private Image arrow;
@@ -27,15 +28,6 @@ public class LeverNoteRenderer : NoteRenderer<LeverNote>
     {
         base.Awake();
         audioSource = GetComponent<AudioSource>();
-
-        LeverSequence.OnLeverNoteRemoved += RemoveNote;
-    }
-
-    protected override void OnDestroy()
-    {
-        base.OnDestroy();
-
-        LeverSequence.OnLeverNoteRemoved -= RemoveNote;
     }
 
     protected override void OnNoteStarted()
@@ -75,8 +67,16 @@ public class LeverNoteRenderer : NoteRenderer<LeverNote>
         arrow.transform.rotation = Quaternion.Euler(0, 0, angle);
     }
 
-    void RemoveNote(LeverSequence sequence, LeverNote leverNote)
+    public void OnPointerClick(PointerEventData eventData)
     {
-        if (leverNote == Note) Destroy(gameObject);
+        switch (eventData.button)
+        {
+            case PointerEventData.InputButton.Left:
+                UIManager.SelectedNote = Note.Container;
+                break;
+            case PointerEventData.InputButton.Right:
+                Note.RemoveSelf();
+                break;
+        }
     }
 }

@@ -1,69 +1,145 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.Assertions;
+using UnityEngine.UI;
 
-public class NoteInspector<NoteType> : MonoBehaviour where NoteType : Note
+public abstract class NoteInspector<NoteType> : MonoBehaviour
+where NoteType : Note, IEditableNote<EditableChart, Note>
 {
-    public NoteType Note;
+    public virtual NoteType Note { get; protected set; }
+
+    public virtual void Show(NoteType note)
+    {
+        Note = note;
+        gameObject.SetActive(Note != null);
+    }
+}
+
+
+public abstract class NoteContainerInspector<ContainerType, ChildType> : NoteInspector<ContainerType>
+where ChildType : Note, IEditableNote<ContainerType, ChildType>
+where ContainerType : Note, IEditableNote<EditableChart, Note>, IEditableNoteContainer<ChildType>
+{
+    public abstract class ChildInspector : MonoBehaviour
+    {
+        public ChildType Note { get; private set; }
+        public NoteContainerInspector<ContainerType, ChildType> Container { get; private set; }
+
+        [SerializeField] Button deleteButton;
+
+        public virtual void Init(NoteContainerInspector<ContainerType, ChildType> container, ChildType note)
+        {
+            Container = container;
+            Note = note;
+        }
+
+        protected virtual void Awake()
+        {
+            deleteButton.onClick.AddListener(() =>
+            {
+                var note = Note;
+                try
+                {
+		            Debug.Log($"Remove wheel turn {Note}");
+                    Note.RemoveSelf();
+
+                    // If last note in container, remove the container
+                    if (Container.Note.Notes.Count == 0)
+                    {
+                        Container.Note.RemoveSelf();
+                    }
+                }
+                catch (Exception e)
+                {
+                    UIManager.Instance.ShowAlert($"Exception While Deleting {typeof(ChildType)}", $"Note {note} may not have been deleted.\n{e.Message}");
+                    Debug.LogException(e);
+                }
+            });
+        }
+    }
+
+    [SerializeField] RectTransform childInspectorsParent;
+    [SerializeField] ChildInspector childInspectorPrefab;
+    [SerializeField] Button addNoteButton;
+
+    readonly Dictionary<ChildType, ChildInspector> childInspectors = new();
+
+    // protected virtual void OnNoteAdded(ChildType note) {}
+    // protected virtual void OnNoteRemoved(ChildType note) {}
 
     protected virtual void Awake()
     {
-        gameObject.SetActive(false);
-
-        UIManager.OnNoteSelected += ShowHide;
-        // Chart.OnNoteRemoved += 
-    }
-
-    protected virtual void OnDestroy()
-    {
-        UIManager.OnNoteSelected -= ShowHide;
-    }
-
-    // TODO: create UpdateOnNoteChanged that is called when the note changes or note's value changes
-    protected virtual void Update()
-    {
-        if (Note != null && !UIManager.IsSelectingInputField && 
-            (Input.GetKeyUp(KeyCode.Backspace) || Input.GetKeyUp(KeyCode.Delete)))
+        addNoteButton.onClick.AddListener(() =>
         {
-            var note = Note;
             try
             {
-                SaveManager.Instance.Chart.RemoveNote(Note);
-                ShowHide(null);
+                Note.AddNote(NewChildNote());
             }
             catch (Exception e)
             {
-                UIManager.Instance.ShowAlert("Exception While Deleting Note", $"Note {note} may not have been deleted.\n{e.Message}");
+                UIManager.Instance.ShowAlert($"Exception While Adding {typeof(ChildType)}", $"Note may not have been added.\n{e.Message}");
                 Debug.LogException(e);
             }
+        });
+    }
+
+    protected abstract ChildType NewChildNote();
+
+    void RemoveChildInspector(ChildType note)
+    {
+        var childInspector = childInspectors[note];
+        if (childInspectors.Remove(note))
+        {
+            Destroy(childInspector.gameObject);
         }
     }
 
-    protected virtual void OnShow() {}
-
-    void ShowHide(Note note)
+    void AddChildInspector(ChildType note)
     {
-        if (note is NoteType myNote)
+        var childInspector = Instantiate(childInspectorPrefab, childInspectorsParent);
+        childInspector.Init(this, note);
+        childInspectors[note] = childInspector;
+        UpdateChildInspectorPosition(note);
+    }
+
+    void UpdateChildInspectorPosition(ChildType note)
+    {
+        var found = Note.Notes.Select((note, i) => (note, i)).FirstOrDefault(v => v.note == note);
+        if (found.note != null)
         {
-            if (Note == myNote) return; // Inspector is already showing this note. don't show again
-            Note = myNote;
-            try
-            {
-                OnShow();
-                gameObject.SetActive(true);
-            }
-            catch (Exception e)
-            {
-                Note = null;
-                UIManager.Instance.ShowAlert("Exception While Showing Inspector", $"Tried to show inspector for {myNote}\n{e.Message}");
-                Debug.LogException(e);
-            }
+            childInspectors[note].transform.SetSiblingIndex(found.i);
         }
-        else
+    }
+
+    public override void Show(ContainerType note)
+    {
+        if (Note != null)
         {
-            gameObject.SetActive(false);
-            Note = null;
+            Note.OnNoteAdded -= AddChildInspector;
+            Note.OnNoteRemoved -= RemoveChildInspector;
+            Note.OnNoteMoved -= UpdateChildInspectorPosition;
+        }
+
+        base.Show(note);
+
+        if (Note != null)
+        {
+            childInspectors.Clear();
+            for (int i = childInspectorsParent.childCount-1; i >= 0; i--)
+            {
+                Destroy(childInspectorsParent.GetChild(i).gameObject);
+            }
+
+            foreach (ChildType childNote in Note.Notes)
+            {
+                AddChildInspector(childNote);
+            }
+            Note.OnNoteAdded += AddChildInspector;
+            Note.OnNoteRemoved += RemoveChildInspector;
+            Note.OnNoteMoved += UpdateChildInspectorPosition;
         }
     }
 }

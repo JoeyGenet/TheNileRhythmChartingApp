@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(AudioSource))]
-public class WheelFlickRenderer : NoteRenderer<WheelFlick>, IPointerClickHandler
+public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerClickHandler
 {
     // public WheelFlick Note;
 
@@ -49,6 +49,14 @@ public class WheelFlickRenderer : NoteRenderer<WheelFlick>, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        UIManager.Instance.SelectNote(Note);
+        switch (eventData.button)
+        {
+            case PointerEventData.InputButton.Left:
+                UIManager.SelectedNote = Note;
+                break;
+            case PointerEventData.InputButton.Right:
+                Note.RemoveSelf();
+                break;
+        }
     }
 }

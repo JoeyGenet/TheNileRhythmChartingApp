@@ -4,22 +4,14 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class WheelFlickInspector : NoteInspector<WheelFlick>
+public class WheelFlickInspector : NoteInspector<EditableWheelFlick>
 {
     [SerializeField] TMP_InputField timeInput;
-    [SerializeField] Button leftButton;
-    [SerializeField] Button rightButton;
+    [SerializeField] EventRelay leftToggle;
+    [SerializeField] EventRelay rightToggle;
 
-    [SerializeField] Image leftButtonBorder;
-    [SerializeField] Image rightButtonBorder;
-
-    [SerializeField] Color leftButtonHighlight;
-    [SerializeField] Color rightButtonHighlight;
-
-    protected override void Awake()
+    void Awake()
     {
-        base.Awake();
-
         timeInput.onValidateInput += (text, _, c) => c == '-' ? '\0' : c;
         timeInput.onValueChanged.AddListener(text =>
         {
@@ -28,34 +20,23 @@ public class WheelFlickInspector : NoteInspector<WheelFlick>
                 Note.StartTime = time;
             }
         });
-        leftButton.onClick.AddListener(() =>
-        {
-            Note.Dir = LeftRight.Left;
-            leftButtonBorder.color = leftButtonHighlight;
-            rightButtonBorder.color = Color.black;
-        });
-        rightButton.onClick.AddListener(() =>
-        {
-            Note.Dir = LeftRight.Right;
-            rightButtonBorder.color = rightButtonHighlight;
-            leftButtonBorder.color = Color.black;
-        });
+        leftToggle.Event.AddListener(() => Note.Dir = LeftRight.Left);
+        rightToggle.Event.AddListener(() => Note.Dir = LeftRight.Right);
     }
 
-    protected override void OnShow()
+    void Update()
     {
-        timeInput.text = $"{Note.StartTime}";
-
-        if (Note.Dir == LeftRight.Left) leftButton.onClick.Invoke();
-        else if (Note.Dir == LeftRight.Right) rightButton.onClick.Invoke();
-    }
-
-    protected override void Update()
-    {
-        base.Update();
-
         if (Note == null) return;
 
         if (!timeInput.isFocused) timeInput.SetTextWithoutNotify($"{Note.StartTime}");
+        
+        if (Note.Dir == LeftRight.Left)
+        {
+            if (!leftToggle.AreAllTogglesOn) leftToggle.SendEvent(notify: false, playAudio: false);
+        }
+        else if (Note.Dir == LeftRight.Right)
+        {
+            if (!rightToggle.AreAllTogglesOn) rightToggle.SendEvent(notify: false, playAudio: false);
+        }
     }
 }

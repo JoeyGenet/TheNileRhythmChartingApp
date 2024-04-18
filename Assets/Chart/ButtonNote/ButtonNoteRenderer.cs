@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(AudioSource))]
-public class ButtonNoteRenderer : NoteRenderer<ButtonNote>, IPointerClickHandler
+public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>, IPointerClickHandler
 {
     [SerializeField] RectTransform leftNote;
     [SerializeField] RectTransform rightNote;
@@ -42,6 +42,14 @@ public class ButtonNoteRenderer : NoteRenderer<ButtonNote>, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        UIManager.Instance.SelectNote(Note);
+        switch (eventData.button)
+        {
+            case PointerEventData.InputButton.Left:
+                UIManager.SelectedNote = Note;
+                break;
+            case PointerEventData.InputButton.Right:
+                Note.RemoveSelf();
+                break;
+        }
     }
 }

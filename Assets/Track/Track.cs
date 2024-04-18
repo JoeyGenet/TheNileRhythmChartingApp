@@ -8,6 +8,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
 
+[RequireComponent(typeof(RectTransform))]
 public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     [Tooltip("Amount of view moved for every scroll unit")]
@@ -24,6 +25,14 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     [SerializeField] LeverSequenceRenderer leverSequencePrefab;
     [SerializeField] WheelSequenceRenderer wheelSequencePrefab;
 
+    [Header("Note Cursors")]
+    [SerializeField] RectTransform buttonNoteCursor;
+    [SerializeField] RectTransform leftWheelFlickCursor;
+    [SerializeField] RectTransform rightWheelFlickCursor;
+    [SerializeField] UILine wheelTurnCursor;
+    [SerializeField] RectTransform leftLeverNoteCursor;
+    [SerializeField] RectTransform middleLeverNoteCursor;
+
     [Header("Beat Markers")]
     [SerializeField] BeatMarker mainBeatMarkerPrefab;
     [SerializeField] BeatMarker minorBeatMarkerPrefab;
@@ -33,17 +42,20 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     public bool IsPointerOverTrack { get; private set; } = false;
     public bool IsScrolling { get; private set; } = false;
 
+    RectTransform rect;
+
     void Awake()
     {
-        // VisualElement
-        SaveManager.OnChartLoaded += Reload;
-        Chart.OnNoteAdded += AddNote;
+        rect = GetComponent<RectTransform>();
+        
+        ChartManager.OnChartChanged += Reload;
+        ChartManager.OnNoteAdded += AddNote;
     }
 
     void OnDestroy()
     {
-        SaveManager.OnChartLoaded -= Reload;
-        Chart.OnNoteAdded -= AddNote;
+        ChartManager.OnChartChanged -= Reload;
+        ChartManager.OnNoteAdded -= AddNote;
     }
 
     void Start()
@@ -52,9 +64,9 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         Reload();
     }
 
-    void Reload(string _ = "")
+    void Reload(EditableChart oldChart = null, EditableChart newChart = null)
     {
-        foreach (Note note in SaveManager.Instance.Chart.Notes) AddNote(note);
+        foreach (Note note in ChartManager.SelectedChart.Notes) AddNote(note);
     }
 
     void ReloadBeatMarkers()
@@ -79,11 +91,17 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         }
     }
 
-    (int, int)? MouseToTrackPosition()
+    public (int, int)? MouseTrackPosition()
     {
         if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
                 mainTrackArea, Input.mousePosition, null, out Vector2 mousePos))
         {
+            Vector2 absPos = mousePos - rect.rect.position;
+            if (absPos.x < 0 || absPos.x > rect.rect.width || absPos.y < 0 || absPos.y > rect.rect.height)
+            {
+                return null;
+            }
+
             Vector2 uiPos = (mousePos - mainTrackArea.rect.position) / mainTrackArea.rect.size;
             var (pos, time) = PlaybackManager.Instance.UIToTrackPosition(uiPos);
             return (Mathf.Clamp(pos, 0, 100), Mathf.Clamp(time, 0, int.MaxValue)); // TODO: clamp to song length
@@ -91,61 +109,150 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         return null;
     }
 
-    void AddNoteOnKeyPress()
+    void DisplayCursorNote()
     {
-        // Only add notes through key presses if not currently typing in input field
-        if (UIManager.IsSelectingInputField) return;
-        if (MouseToTrackPosition() is not (int pos, int time)) return;
-        
-        Chart chart = SaveManager.Instance.Chart;
+        // buttonNoteCursor.gameObject.SetActive(false);
+        // leftWheelFlickCursor.gameObject.SetActive(false);
+        // rightWheelFlickCursor.gameObject.SetActive(false);
+        // wheelTurnCursor.gameObject.SetActive(false);
+        // leftLeverNoteCursor.gameObject.SetActive(false);
+        // middleLeverNoteCursor.gameObject.SetActive(false);
 
-        if (Input.GetKeyUp(KeyCode.Alpha1) || Input.GetKeyUp(KeyCode.B))
+        bool showButtonNoteCursor = false;
+        bool showLeftWheelFlickCursor = false;
+        bool showRightWheelFlickCursor = false;
+        bool showWheelTurnCursor = false;
+        bool showLeftLeverNoteCursor = false;
+        bool showMiddleLeverNoteCursor = false;
+
+        // Only add notes through key presses if not currently typing in input field
+        if (UIManager.IsSelectingInputField || MouseTrackPosition() is not (int pos, int time))
         {
-            chart.AddNote(new ButtonNote(chart, time, pos, null));
+            buttonNoteCursor.gameObject.SetActive(false);
+            leftWheelFlickCursor.gameObject.SetActive(false);
+            rightWheelFlickCursor.gameObject.SetActive(false);
+            wheelTurnCursor.gameObject.SetActive(false);
+            leftLeverNoteCursor.gameObject.SetActive(false);
+            middleLeverNoteCursor.gameObject.SetActive(false);
+            return;
         }
-        if (Input.GetKeyUp(KeyCode.Alpha2) || Input.GetKeyUp(KeyCode.F))
+        bool placeNote = Input.GetMouseButtonDown(0);
+        
+        var chart = ChartManager.SelectedChart;
+
+        switch (UIManager.CursorMode)
         {
-            chart.AddNote(new WheelFlick(chart, time, pos < 50 ? LeftRight.Left : LeftRight.Right));
+            case UICursorMode.ButtonNote:
+            {
+                // buttonNoteCursor.gameObject.SetActive(true);
+                showButtonNoteCursor = true;
+                buttonNoteCursor.anchorMin = buttonNoteCursor.anchorMax
+                    = PlaybackManager.Instance.TrackToUIPosition(pos, time);
+                
+                if (placeNote) chart.AddNote(new EditableButtonNote(chart, time, pos, null));
+                break;
+            }
+            case UICursorMode.WheelFlick:
+            {
+                if (pos < 50) showLeftWheelFlickCursor = true;
+                else showRightWheelFlickCursor = true;
+
+                var cursor = pos < 50 ? leftWheelFlickCursor : rightWheelFlickCursor;
+                // cursor.gameObject.SetActive(true);
+                var uiPos = PlaybackManager.Instance.TrackToUIPosition(50, time);
+                cursor.anchorMax = new Vector2(rect.anchorMax.x, uiPos.y);
+                cursor.anchorMin = new Vector2(rect.anchorMin.x, uiPos.y);
+                
+                if (placeNote) chart.AddNote(new EditableWheelFlick(chart, time, pos < 50 ? LeftRight.Left : LeftRight.Right));
+                break;
+            }
+            case UICursorMode.WheelTurn:
+            {
+                // If placing inside an existing sequence or holding shift, add to the previous sequence. Otherwise create a new sequence
+                var lastWheelSequence = chart.GetNotesBefore(time).OfType<EditableWheelSequence>().LastOrDefault();
+                bool addToWheelSequence = lastWheelSequence != null && (lastWheelSequence.EndTime > time 
+                    || Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift));
+                
+                // wheelTurnCursor.gameObject.SetActive(true);
+                showWheelTurnCursor = true;
+                wheelTurnCursor.pos1 = PlaybackManager.Instance.TrackToUIPosition(pos, time);
+                if (addToWheelSequence)
+                {
+                    wheelTurnCursor.pos2 = PlaybackManager.Instance.TrackToUIPosition(pos, time+1);
+
+                    if (placeNote)
+                    {
+                        var prevNote = lastWheelSequence.GetNotesBefore(time).LastOrDefault() as EditableWheelTurn;
+                        int prevEndAngle = prevNote == null ? WheelTurn.PosToAngle(lastWheelSequence.Pos)
+                            : WheelTurn.WrapAngle(prevNote.StartAngle + prevNote.DeltaAngle);
+                        int endAngle = WheelTurn.PosToAngle(pos);
+
+                        lastWheelSequence.AddNote(new EditableWheelTurn(lastWheelSequence, time, endAngle - prevEndAngle));
+                    }
+                }
+                else
+                {
+                    int endTime = time+ChartManager.ChartPackage.BeatToTime(1);
+                    wheelTurnCursor.pos2 = PlaybackManager.Instance.TrackToUIPosition(pos, endTime);
+
+                    if (placeNote) chart.AddNote(new EditableWheelSequence(chart, time, pos, new() { (0, endTime) }));
+                }
+                break;
+            }
+            case UICursorMode.LeverNote:
+            {
+                LeftRight side = pos < 50 ? LeftRight.Left : LeftRight.Right;
+
+                // If placing inside an existing sequence or holding shift, add to the previous sequence. Otherwise create a new sequence
+                var lastLeverSequence = chart.GetNotesBefore(time).OfType<EditableLeverSequence>().LastOrDefault(seq => seq.Dir == side);
+                bool addToLeverSequence = lastLeverSequence != null && (lastLeverSequence.EndTime > time 
+                    || Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift));
+
+                LeverPos leverPos = LeverPos.Left;
+                
+                if (addToLeverSequence)
+                {
+                    LeverPos prevPos = lastLeverSequence.GetNotesBefore(time).Last().Pos;
+                    if (prevPos != LeverPos.Middle) leverPos = LeverPos.Middle;
+
+                    if (placeNote) lastLeverSequence.AddNote(new EditableLeverNote(lastLeverSequence, time, leverPos));
+                }
+                else
+                {
+                    if (placeNote) chart.AddNote(new EditableLeverSequence(chart, side, new() { (time, leverPos) }));
+                }
+
+                if (leverPos == LeverPos.Left) showLeftLeverNoteCursor = true;
+                else showMiddleLeverNoteCursor = true;
+
+                var cursor = leverPos == LeverPos.Left ? leftLeverNoteCursor : middleLeverNoteCursor;
+                // cursor.gameObject.SetActive(true);
+                float anchorX = side == LeftRight.Left ? 0 : 1;
+                Vector2 uiPos = PlaybackManager.Instance.TrackToUIPosition(50, time);
+                cursor.anchorMin = cursor.anchorMax = new Vector2(anchorX, uiPos.y);
+
+                break;
+            }
         }
-        if (Input.GetKeyUp(KeyCode.Alpha3) || Input.GetKeyUp(KeyCode.W))
-        {
-            // If placing inside an existing sequence or holding shift, add to the previous sequence. Otherwise create a new sequence
-            if (chart.GetNotesBefore(time).LastOrDefault(note => note is WheelSequence) is WheelSequence lastWheelSequence
-                && (lastWheelSequence.EndTime > time || Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)))
-            {
-                WheelTurn prevNote = lastWheelSequence.GetNotesBefore(time).LastOrDefault();
-                int prevEndAngle = prevNote == null ? WheelTurn.PosToAngle(lastWheelSequence.Pos)
-                    : WheelTurn.WrapAngle(prevNote.StartAngle + prevNote.DeltaAngle);
-                int endAngle = WheelTurn.PosToAngle(pos);
-                lastWheelSequence.AddNote(new WheelTurn(lastWheelSequence, time, endAngle - prevEndAngle));
-            }
-            else
-            {
-                chart.AddNote(new WheelSequence(chart, time, pos, new() { (0, time + SaveManager.Instance.Chart.BeatToTime(1)) }));
-            }
-        }
-        if (Input.GetKeyUp(KeyCode.Alpha4) || Input.GetKeyUp(KeyCode.L))
-        {
-            // If placing inside an existing sequence or holding shift, add to the previous sequence. Otherwise create a new sequence
-            LeftRight side = pos < 50 ? LeftRight.Left : LeftRight.Right;
-            if (chart.GetNotesBefore(time).LastOrDefault(note => note is LeverSequence seq && seq.Dir == side) is LeverSequence lastLeverSequence
-                && (lastLeverSequence.EndTime > time || Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)))
-            {
-                LeverPos prevPos = lastLeverSequence.GetNotesBefore(time).Last().Pos;
-                lastLeverSequence.AddNote(new LeverNote(lastLeverSequence, time, prevPos == LeverPos.Middle ? LeverPos.Left : LeverPos.Middle));
-            }
-            else
-            {
-                chart.AddNote(new LeverSequence(chart, pos < 50 ? LeftRight.Left : LeftRight.Right, new() { (time, LeverPos.Left) }));
-            }
-        }
+
+        buttonNoteCursor.gameObject.SetActive(showButtonNoteCursor);
+        leftWheelFlickCursor.gameObject.SetActive(showLeftWheelFlickCursor);
+        rightWheelFlickCursor.gameObject.SetActive(showRightWheelFlickCursor);
+        wheelTurnCursor.gameObject.SetActive(showWheelTurnCursor);
+        leftLeverNoteCursor.gameObject.SetActive(showLeftLeverNoteCursor);
+        middleLeverNoteCursor.gameObject.SetActive(showMiddleLeverNoteCursor);
     }
 
     void Update()
     {
+        float hView = PlaybackManager.Instance.HorizontalViewSize;
+        rect.anchorMin = new Vector2((1 - hView) / 2f, rect.anchorMin.y);
+        rect.anchorMax = new Vector2((1 + hView) / 2f, rect.anchorMax.y);
+
+
         try
         {
-            AddNoteOnKeyPress();
+            DisplayCursorNote();
         }
         catch (Exception e)
         {
@@ -156,7 +263,7 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
     void OnGUI()
     {
-        int scrollAmount = (int) (PlaybackManager.Instance.ViewSize * Input.mouseScrollDelta.y * ScrollSpeed);
+        int scrollAmount = (int) (PlaybackManager.Instance.VerticalViewSize * Input.mouseScrollDelta.y * ScrollSpeed);
         if (IsPointerOverTrack && scrollAmount != 0)
         {
             PlaybackManager.Instance.SetTimestamp(PlaybackManager.Instance.MillisecondsInChart + scrollAmount);
@@ -171,7 +278,7 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     void AddNote(Note note)
     {
 		NoteRenderer<NoteType> instantiateNoteRenderer<NoteType>(NoteRenderer<NoteType> prefab, NoteType note, Transform parent)
-		where NoteType : Note
+		where NoteType : Note, IEditableNote<EditableChart, Note>
 		{
 			var noteRenderer = Instantiate(prefab, parent);
 
@@ -186,10 +293,10 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
 		MonoBehaviour _ = note switch
 		{
-			ButtonNote buttonNote => instantiateNoteRenderer(buttonNotePrefab, buttonNote, mainTrackArea),
-			WheelFlick wheelFlick => instantiateNoteRenderer(wheelFlickPrefab, wheelFlick, mainTrackArea),
-			LeverSequence leverSequence => instantiateNoteRenderer(leverSequencePrefab, leverSequence, leverTrackArea),
-			WheelSequence wheelSequence => instantiateNoteRenderer(wheelSequencePrefab, wheelSequence, mainTrackArea),
+			EditableButtonNote buttonNote => instantiateNoteRenderer(buttonNotePrefab, buttonNote, mainTrackArea),
+			EditableWheelFlick wheelFlick => instantiateNoteRenderer(wheelFlickPrefab, wheelFlick, mainTrackArea),
+			EditableLeverSequence leverSequence => instantiateNoteRenderer(leverSequencePrefab, leverSequence, leverTrackArea),
+			EditableWheelSequence wheelSequence => instantiateNoteRenderer(wheelSequencePrefab, wheelSequence, mainTrackArea),
 			_ => throw new Exception($"Spawning of note {note} not supported"),
 		};
     }

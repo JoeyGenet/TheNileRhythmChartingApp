@@ -4,31 +4,27 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class LeverSequenceRenderer : NoteRenderer<LeverSequence>, IPointerClickHandler
+public class LeverSequenceRenderer : NoteRenderer<EditableLeverSequence>, IPointerClickHandler
 {
     [SerializeField] RectTransform line;
     [SerializeField] LeverNoteRenderer leverNotePrefab;
 
-    protected override void Awake()
+    public override void Init(Track track, EditableLeverSequence note)
     {
-        base.Awake();
+        base.Init(track, note);
 
-        LeverSequence.OnLeverNoteAdded += AddNote;
+        foreach (EditableLeverNote leverNote in Note.Notes)
+        {
+            AddNote(leverNote);
+        }
+        Note.OnNoteAdded += AddNote;
     }
 
     protected override void OnDestroy()
     {
         base.OnDestroy();
 
-        LeverSequence.OnLeverNoteAdded -= AddNote;
-    }
-
-    void Start()
-    {
-        foreach (LeverNote leverNote in Note.Notes)
-        {
-            AddNote(Note, leverNote);
-        }
+        Note.OnNoteAdded -= AddNote;
     }
 
     protected override void Update()
@@ -47,17 +43,17 @@ public class LeverSequenceRenderer : NoteRenderer<LeverSequence>, IPointerClickH
         line.anchorMax = new Vector2(line.anchorMax.x, endUIPos.y);
     }
 
-    void AddNote(LeverSequence sequence, LeverNote leverNote)
+    void AddNote(EditableLeverNote leverNote)
     {
-        if (sequence == Note)
-        {
-            var leverNoteRenderer = Instantiate(leverNotePrefab, rect);
-            leverNoteRenderer.Init(Track, leverNote);
-        }
+        var leverNoteRenderer = Instantiate(leverNotePrefab, rect);
+        leverNoteRenderer.Init(Track, leverNote);
     }
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        UIManager.Instance.SelectNote(Note);
+        if (eventData.button == PointerEventData.InputButton.Left)
+        {
+            UIManager.SelectedNote = Note;
+        }
     }
 }

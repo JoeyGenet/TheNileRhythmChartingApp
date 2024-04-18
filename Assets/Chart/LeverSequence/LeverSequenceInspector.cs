@@ -5,107 +5,40 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class LeverSequenceInspector : NoteInspector<LeverSequence>
+public class LeverSequenceInspector : NoteContainerInspector<EditableLeverSequence, EditableLeverNote>
 {
     [Header("Left Right Position")]
-    [SerializeField] Button leftButton;
-    [SerializeField] Button rightButton;
-
-    [SerializeField] Image leftButtonBorder;
-    [SerializeField] Image rightButtonBorder;
-
-    [SerializeField] Color leftButtonHighlight;
-    [SerializeField] Color rightButtonHighlight;
-
-    [Header("Lever Notes")]
-    [SerializeField] RectTransform leverNoteInspectors;
-    [SerializeField] LeverNoteInspector leverNoteInspectorPrefab;
-    [SerializeField] Button addNoteButton;
+    [SerializeField] EventRelay leftToggle;
+    [SerializeField] EventRelay rightToggle;
 
     protected override void Awake()
     {
         base.Awake();
 
-        leftButton.onClick.AddListener(() =>
-        {
-            Note.Dir = LeftRight.Left;
-            leftButtonBorder.color = leftButtonHighlight;
-            rightButtonBorder.color = Color.black;
-        });
-        rightButton.onClick.AddListener(() =>
-        {
-            Note.Dir = LeftRight.Right;
-            rightButtonBorder.color = rightButtonHighlight;
-            leftButtonBorder.color = Color.black;
-        });
-
-        addNoteButton.onClick.AddListener(() =>
-        {
-            LeverNote lastNote = Note.LastNote;
-            int time = lastNote.EndTime + SaveManager.Instance.Chart.BeatToTime(1); // place 1 beat after last note
-            // TODO: maybe place same distance as prev 2 notes?
-            LeverPos pos = lastNote.Pos == LeverPos.Middle ? LeverPos.Left : LeverPos.Middle;
-            try
-            {
-                Note.AddNote(new LeverNote(Note, time, pos));
-            }
-            catch (Exception e)
-            {
-                UIManager.Instance.ShowAlert("Exception While Adding Lever Note", $"Note may not have been added.\n{e.Message}");
-                Debug.LogException(e);
-            }
-            
-        });
-
-        LeverSequence.OnLeverNoteAdded += AddLeverNoteInspector;
+        leftToggle.Event.AddListener(() => Note.Dir = LeftRight.Left);
+        rightToggle.Event.AddListener(() => Note.Dir = LeftRight.Right);
     }
 
-    protected override void OnDestroy()
+    void Update()
     {
-        base.OnDestroy();
-
-        LeverSequence.OnLeverNoteAdded -= AddLeverNoteInspector;
-    }
-
-    protected override void OnShow()
-    {
-        // Update left right
-        if (Note.Dir == LeftRight.Left) leftButton.onClick.Invoke();
-        else if (Note.Dir == LeftRight.Right) rightButton.onClick.Invoke();
-
-        // Update note list
-        foreach (var inspector in leverNoteInspectors.GetComponentsInChildren<LeverNoteInspector>())
-        {
-            DestroyImmediate(inspector.gameObject);
-        }
-        foreach (LeverNote note in Note.Notes)
-        {
-            AddLeverNoteInspector(Note, note);
-        }
-    }
-
-    void AddLeverNoteInspector(LeverSequence sequence, LeverNote note)
-    {
-        if (sequence == Note)
-        {
-            var leverNoteInspector = Instantiate(leverNoteInspectorPrefab, leverNoteInspectors);
-            leverNoteInspector.Note = note;
-        }
-    }
-
-    protected override void Update()
-    {
-        base.Update();
-
         if (Note == null) return;
-
-        // TODO: optimize somehow?
-        Dictionary<LeverNote, LeverNoteInspector> inspectors = leverNoteInspectors
-            .GetComponentsInChildren<LeverNoteInspector>()
-            .ToDictionary(i => i.Note, i => i);
-        foreach (var (leverNote, i) in Note.Notes.Select((note, i) => (note, i)))
+        
+        if (Note.Dir == LeftRight.Left)
         {
-            inspectors[leverNote].transform.SetSiblingIndex(i);
+            if (!leftToggle.AreAllTogglesOn) leftToggle.SendEvent(notify: false, playAudio: false);
         }
+        else if (Note.Dir == LeftRight.Right)
+        {
+            if (!rightToggle.AreAllTogglesOn) rightToggle.SendEvent(notify: false, playAudio: false);
+        }
+    }
+
+    protected override EditableLeverNote NewChildNote()
+    {
+        LeverNote lastNote = Note.Notes.Max;
+        int time = lastNote.EndTime + ChartManager.ChartPackage.BeatToTime(1); // place 1 beat after last note
+        // TODO: maybe place same distance as prev 2 notes?
+        LeverPos pos = lastNote.Pos == LeverPos.Middle ? LeverPos.Left : LeverPos.Middle;
+        return new EditableLeverNote(Note, time, pos);
     }
 }

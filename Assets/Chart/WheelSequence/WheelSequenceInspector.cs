@@ -6,15 +6,10 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class WheelSequenceInspector : NoteInspector<WheelSequence>
+public class WheelSequenceInspector : NoteContainerInspector<EditableWheelSequence, EditableWheelTurn>
 {
     [SerializeField] TMP_InputField startTimeInput;
     [SerializeField] TMP_InputField startPosInput;
-
-    [Header("Wheel Turn")]
-    [SerializeField] RectTransform wheelTurnInspectors;
-    [SerializeField] WheelTurnInspector wheelTurnInspectorPrefab;
-    [SerializeField] Button addTurnButton;
 
     protected override void Awake()
     {
@@ -37,71 +32,20 @@ public class WheelSequenceInspector : NoteInspector<WheelSequence>
                 Note.Pos = Mathf.Clamp(pos, 0, 100);
             }
         });
-
-        addTurnButton.onClick.AddListener(() =>
-        {
-            int endTime = Note.EndTime + SaveManager.Instance.Chart.BeatToTime(1); // place 1 beat after last note
-            // TODO: maybe place same distance as prev 2 notes?
-
-            try
-            {
-                Note.AddNote(new WheelTurn(Note, endTime, 0));
-            }
-            catch (Exception e)
-            {
-                UIManager.Instance.ShowAlert("Exception While Adding Wheel Turn", $"Note may not have been added.\n{e.Message}");
-                Debug.LogException(e);
-            }
-        });
-
-        WheelSequence.OnWheelTurnAdded += AddWheelTurnInspector;
     }
 
-    protected override void OnDestroy()
+    protected override EditableWheelTurn NewChildNote()
     {
-        base.OnDestroy();
-
-        WheelSequence.OnWheelTurnAdded -= AddWheelTurnInspector;
+        int endTime = Note.EndTime + ChartManager.ChartPackage.BeatToTime(1); // place 1 beat after last note
+        // TODO: maybe place same distance as prev 2 notes?
+        return new EditableWheelTurn(Note, endTime, 0);
     }
 
-    protected override void OnShow()
+    void Update()
     {
-        // Update note list
-        foreach (var inspector in wheelTurnInspectors.GetComponentsInChildren<WheelTurnInspector>())
-        {
-            DestroyImmediate(inspector.gameObject);
-        }
-        foreach (WheelTurn note in Note.Notes)
-        {
-            AddWheelTurnInspector(Note, note);
-        }
-    }
-
-    void AddWheelTurnInspector(WheelSequence sequence, WheelTurn note)
-    {
-        if (sequence == Note)
-        {
-            var wheelTurnInspector = Instantiate(wheelTurnInspectorPrefab, wheelTurnInspectors);
-            wheelTurnInspector.Note = note;
-        }
-    }
-
-    protected override void Update()
-    {
-        base.Update();
-
         if (Note == null) return;
 
         if (!startTimeInput.isFocused) startTimeInput.SetTextWithoutNotify($"{Note.StartTime}");
         if (!startPosInput.isFocused) startPosInput.SetTextWithoutNotify($"{Note.Pos}");
-
-        // TODO: optimize somehow?
-        Dictionary<WheelTurn, WheelTurnInspector> inspectors = wheelTurnInspectors
-            .GetComponentsInChildren<WheelTurnInspector>()
-            .ToDictionary(i => i.Note, i => i);
-        foreach (var (turn, i) in Note.Notes.Select((note, i) => (note, i)))
-        {
-            inspectors[turn].transform.SetSiblingIndex(i);
-        }
     }
 }

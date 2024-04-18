@@ -1,52 +1,32 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
-using UnityEngine;
-using UnityEngine.Assertions;
 
 public class WheelSequence : TimedNote<Chart, Note>, INoteContainer<WheelTurn>
 {
-	public delegate void WheelTurnAddedEvent(WheelSequence sequence, WheelTurn note);
-	public delegate void WheelTurnRemovedEvent(WheelSequence sequence, WheelTurn note);
-
-	public static event WheelTurnAddedEvent OnWheelTurnAdded;
-	public static event WheelTurnAddedEvent OnWheelTurnRemoved;
-
 	public override bool AffectsScore => false;
 
-	int pos;
-	public int Pos
-	{
-		get => pos;
-		set
-		{
-			if (SaveManager.RegisterChange(ref pos, value))
-			{
-				notes.Min.RecomputeStartAngle();
-			}
-		}
-	}
+	protected int pos;
+	public int Pos => pos;
 
-	readonly SortedSet<WheelTurn> notes;
-    public IReadOnlyCollection<WheelTurn> Notes => notes;
+	protected SortedSet<WheelTurn> notes;
+    public IReadOnlySortedSet<WheelTurn> Notes => (ReadOnlySortedSet<WheelTurn>) notes;
 
 	public override int EndTime => notes.Max.EndTime;
 
-    public WheelTurn FirstNote => notes.Min;
-    public WheelTurn LastNote => notes.Max;
+    // public WheelTurn FirstNote => notes.Min;
+    // public WheelTurn LastNote => notes.Max;
 
     public WheelSequence(int time, int id) : base(time, id) { }
 
 	public WheelSequence(Chart chart, int time, int pos, List<(int deltaAngle, int endTime)> turns) : base(chart, time)
 	{
 		this.pos = pos;
-		notes = new SortedSet<WheelTurn>();
-		foreach (var (deltaAngle, endTime) in turns)
-		{
-			notes.Add(new(this, endTime, deltaAngle));
-		}
+		InitializeNotes(turns.Select(turn => new WheelTurn(this, turn.endTime, turn.deltaAngle)));
+	}
 
+	protected void InitializeNotes(IEnumerable<WheelTurn> turns)
+	{
+		notes = new SortedSet<WheelTurn>(turns);
 		WheelTurn prevTurn = null;
 		foreach (var turn in notes)
 		{
@@ -57,57 +37,12 @@ public class WheelSequence : TimedNote<Chart, Note>, INoteContainer<WheelTurn>
 		}
 	}
 
-	public bool AddNote(WheelTurn note, bool notify = true) => SaveManager.ChangeWithNotify(notify,
-		() =>
-		{
-			// Note will be inserted between these 2 notes:
-			WheelTurn prevTurn = notes.GetViewBetween(DummyWheelTurn.Min, note).Max;
-			WheelTurn nextTurn = prevTurn == null ? notes.Min : prevTurn.NextTurn;
-
-			// Update linked list
-			if (prevTurn != null) prevTurn.NextTurn = note;
-			if (nextTurn != null) nextTurn.PreviousTurn = note;
-			note.NextTurn = nextTurn;
-			note.PreviousTurn = prevTurn;
-
-			note.RecomputeStartAngle();
-			if (note.NextTurn != null) note.NextTurn.DeltaAngle -= note.DeltaAngle;
-
-			return notes.Add(note);
-		},
-		() => OnWheelTurnAdded?.Invoke(this, note)
-	);
-
-	public bool RemoveNote(WheelTurn note, bool notify = true) => SaveManager.ChangeWithNotify(notify,
-		() =>
-		{
-			// If last note, just remove the entire sequence
-			if (notify && notes.Count == 1 && notes.Contains(note))
-			{
-				Container.RemoveNote(this);
-				return true;
-			}
-
-			// Update linked list
-			if (note.PreviousTurn != null) note.PreviousTurn.NextTurn = note.NextTurn;
-			if (note.NextTurn != null)
-			{
-				note.NextTurn.PreviousTurn = note.PreviousTurn;
-				note.NextTurn.RecomputeStartAngle();
-				note.NextTurn.DeltaAngle += note.DeltaAngle;
-			}
-
-			note.PreviousTurn = note.NextTurn = null;
-
-			return notes.Remove(note);
-		},
-		() => OnWheelTurnRemoved?.Invoke(this, note)
-	);
-	
-	public bool ContainsNote(WheelTurn note) => notes.Contains(note);
-
 	public IReadOnlyCollection<WheelTurn> GetNotesBefore(int time, bool inclusive = true) 
 		=> notes.GetViewBetween(DummyWheelTurn.Min, new DummyWheelTurn(time, inclusive ? int.MaxValue : int.MinValue));
+
+	// Get notes that end after the given time
+	public IReadOnlyCollection<WheelTurn> GetNotesAfter(int time, bool inclusive = true) 
+		=> notes.GetViewBetween(new DummyWheelTurn(time, inclusive ? int.MinValue : int.MaxValue), DummyWheelTurn.Max);
 
 	// Get the lines required to render this sequence, taking into account wraps
 	public List<List<(int pos, int time)>> ComputeLines()
@@ -129,7 +64,6 @@ public class WheelSequence : TimedNote<Chart, Note>, INoteContainer<WheelTurn>
 				lastTime = time2;
 			}
 		}
-		// foreach (var line in lines) Debug.Log(string.Join(", ", line));
 		return lines;
 	}
 

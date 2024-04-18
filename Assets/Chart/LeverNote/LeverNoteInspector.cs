@@ -1,17 +1,13 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class LeverNoteInspector : MonoBehaviour
+public class LeverNoteInspector : LeverSequenceInspector.ChildInspector
 {
-    public LeverNote Note;
-
     [SerializeField] TMP_InputField timeInput;
     [SerializeField] TMP_Dropdown posDropdown;
-    [SerializeField] Button deleteButton;
+    // [SerializeField] Button deleteButton;
 
     [Header("Colors")]
     [SerializeField] private Color leftColor;
@@ -20,8 +16,10 @@ public class LeverNoteInspector : MonoBehaviour
     [SerializeField] private Color downColor;
     [SerializeField] private Color middleColor;
     
-    void Awake()
+    protected override void Awake()
     {
+        base.Awake();
+        
         timeInput.onValidateInput += (text, _, c) => c == '-' ? '\0' : c;
         timeInput.onValueChanged.AddListener(text =>
         {
@@ -36,26 +34,19 @@ public class LeverNoteInspector : MonoBehaviour
             Note.Pos = (LeverPos) value;
         });
 
-        deleteButton.onClick.AddListener(() =>
-        {
-            var note = Note;
-            try
-            {
-                Note.Container.RemoveNote(Note);
-            }
-            catch (Exception e)
-            {
-                UIManager.Instance.ShowAlert("Exception While Deleting Lever Note", $"Note {note} may not have been deleted.\n{e.Message}");
-                Debug.LogException(e);
-            }
-        });
-
-        LeverSequence.OnLeverNoteRemoved += RemoveNote;
-    }
-
-    void OnDestroy()
-    {
-        LeverSequence.OnLeverNoteRemoved -= RemoveNote;
+        // deleteButton.onClick.AddListener(() =>
+        // {
+        //     var note = Note;
+        //     try
+        //     {
+        //         Note.Container.RemoveNote(Note);
+        //     }
+        //     catch (Exception e)
+        //     {
+        //         UIManager.Instance.ShowAlert("Exception While Deleting Lever Note", $"Note {note} may not have been deleted.\n{e.Message}");
+        //         Debug.LogException(e);
+        //     }
+        // });
     }
 
     void Start()
@@ -64,7 +55,7 @@ public class LeverNoteInspector : MonoBehaviour
     }
 
     void Update()
-    {
+    {   
         if (!timeInput.isFocused) timeInput.SetTextWithoutNotify($"{Note.StartTime}");
 
         float angle;
@@ -78,13 +69,5 @@ public class LeverNoteInspector : MonoBehaviour
             _ => throw new Exception($"Lever direction {Note.Pos} not supported."),
         };
         posDropdown.captionImage.rectTransform.rotation = Quaternion.Euler(0, 0, angle);
-    }
-
-    void RemoveNote(LeverSequence sequence, LeverNote note)
-    {
-        if (note == Note)
-        {
-            Destroy(gameObject);
-        }
     }
 }

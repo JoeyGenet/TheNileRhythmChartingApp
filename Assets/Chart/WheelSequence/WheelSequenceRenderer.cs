@@ -4,14 +4,17 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class WheelSequenceRenderer : NoteRenderer<WheelSequence>, IPointerClickHandler
+public class WheelSequenceRenderer : NoteRenderer<EditableWheelSequence>, IPointerClickHandler
 {
+    [SerializeField] RectTransform linesParent;
     [SerializeField] UILine linePrefab;
-    [SerializeField] GameObject wheelTurnParticles;
-    private readonly ParticleSystem wheelTurnParticleSystem;
     [SerializeField] Color color;
-
     readonly List<UILine> lines = new();
+
+    [SerializeField] RectTransform verticesParent;
+    [SerializeField] WheelSequenceVertexRenderer vertexPrefab;
+    
+    readonly List<WheelSequenceVertexRenderer> vertices = new();
 
     protected override void Update()
     {
@@ -32,7 +35,7 @@ public class WheelSequenceRenderer : NoteRenderer<WheelSequence>, IPointerClickH
         // Instantiate more lines if not enough
         for (int i = lines.Count; i < linePositions.Count; i++)
         {
-            var line = Instantiate(linePrefab, rect);
+            var line = Instantiate(linePrefab, linesParent);
             line.Image.color = color;
             lines.Add(line);
         }
@@ -49,10 +52,28 @@ public class WheelSequenceRenderer : NoteRenderer<WheelSequence>, IPointerClickH
             lines[i].pos1 = PlaybackManager.Instance.TrackToUIPosition(pos1, time1);
             lines[i].pos2 = PlaybackManager.Instance.TrackToUIPosition(pos2, time2);
         }
+
+        // Update vertices
+        // Instantiate more vertices if not enough
+        for (int i = vertices.Count; i < Note.Notes.Count+1; i++)
+        {
+            var vertex = Instantiate(vertexPrefab, verticesParent);
+            vertex.Init(Note);
+            vertices.Add(vertex);
+        }
+        // Destroy any extra lines
+        for (int i = vertices.Count-1; i >= Note.Notes.Count+1; i--)
+        {
+            Destroy(vertices[i].gameObject);
+            vertices.RemoveAt(i);
+        }
     }
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        UIManager.Instance.SelectNote(Note);
+        if (eventData.button == PointerEventData.InputButton.Left)
+        {
+            UIManager.SelectedNote = Note;
+        }
     }
 }

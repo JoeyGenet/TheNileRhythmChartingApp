@@ -8,16 +8,18 @@ public abstract class Note : IComparable<Note>
 	public readonly int Id;
 
 	public virtual bool AffectsScore => true;
-	public virtual int StartTime
-	{
-		get => throw new NotImplementedException();
-		set => throw new NotImplementedException();
-	}
-	public virtual int EndTime
-	{
-		get => StartTime;
-		set => throw new NotImplementedException();
-	}
+	public virtual int StartTime { get => throw new NotImplementedException(); }
+	public virtual int EndTime => StartTime;
+	// public virtual int StartTime
+	// {
+	// 	get => throw new NotImplementedException();
+	// 	set => throw new NotImplementedException();
+	// }
+	// public virtual int EndTime
+	// {
+	// 	get => StartTime;
+	// 	set => throw new NotImplementedException();
+	// }
 		
 
 	protected Note(int id)
@@ -63,33 +65,52 @@ public abstract class TimedNote<C, T> : Note<C, T>
 where T : Note
 where C : INoteContainer<T>
 {
-    int startTime;
-    public override int StartTime
-    {
-        get => startTime;
-        set
-        {
-			if (value != startTime)
-			{
-				Container.RemoveNote((T) (Note) this, notify: false);
-				startTime = value;
-				SaveManager.Instance.HasChanges = true;
-				Container.AddNote((T) (Note) this, notify: false);
-			}
-        }
-    }
-
+	protected int time;
+    public override int StartTime => time;
 
     public TimedNote(int time, int id) : base(id)
     {
-        startTime = time;
+        this.time = time;
     }
 
     public TimedNote(C container, int time) : base(container)
     {
-        startTime = time;
+        this.time = time;
     }
 }
+
+
+// public abstract class TimedNote<C, T> : Note<C, T>
+// where T : Note
+// where C : INoteContainer<T>
+// {
+//     int startTime;
+//     public override int StartTime
+//     {
+//         get => startTime;
+//         set
+//         {
+// 			if (value != startTime)
+// 			{
+// 				Container.RemoveNote((T) (Note) this, notify: false);
+// 				startTime = value;
+// 				SaveManager.Instance.HasChanges = true;
+// 				Container.AddNote((T) (Note) this, notify: false);
+// 			}
+//         }
+//     }
+
+
+//     public TimedNote(int time, int id) : base(id)
+//     {
+//         startTime = time;
+//     }
+
+//     public TimedNote(C container, int time) : base(container)
+//     {
+//         startTime = time;
+//     }
+// }
 
 public class DummyNote : TimedNote<Chart, Note>
 {

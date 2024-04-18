@@ -2,41 +2,16 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class WheelTurn : Note<WheelSequence, WheelTurn>, IComparable<WheelTurn>
 {
 	public override int StartTime => PreviousTurn?.EndTime ?? Container.StartTime;
 
-	int endTime;
-	public override int EndTime
-	{
-		get => endTime;
-        set
-        {
-			if (value != endTime)
-			{	// Changing end time changes the sorting, so we remove and add back to the container
-				Debug.Log($"Endtime change remove {Container.RemoveNote(this, notify: false)}");
-				endTime = value;
-				SaveManager.Instance.HasChanges = true;
-				Debug.Log($"Endtime change add {Container.AddNote(this, notify: false)}");
-				Debug.Log(Container);
-			}
-        }
-	}
+	protected int endTime;
+	public override int EndTime => endTime;
 
-	int deltaAngle;
-	public int DeltaAngle
-	{
-		get => deltaAngle;
-		set
-		{
-			if (SaveManager.RegisterChange(ref deltaAngle, value))
-			{
-				NextTurn?.RecomputeStartAngle();
-			}
-		}
-	}
+	protected int deltaAngle;
+	public int DeltaAngle => deltaAngle;
 
 	public int StartAngle { get; private set; } // Cached start angle
 
@@ -51,10 +26,10 @@ public class WheelTurn : Note<WheelSequence, WheelTurn>, IComparable<WheelTurn>
 	}
 
 	// Converts an angle between 0-180 to a track position between 0-100
-	public static int AngleToPos(int angle) => angle * 100 / 180;
+	public static int AngleToPos(int angle) => Mathf.RoundToInt((float) angle * 100 / 180);
 
 	// Converts an angle between 0-180 to a track position between 0-100
-	public static int PosToAngle(int pos) => pos * 180 / 100;
+	public static int PosToAngle(int pos) => Mathf.RoundToInt((float) pos * 180 / 100);
 
 	// Wraps an angle that may be <0 or >180 so that it is between 0-180
 	public static int WrapAngle(int angle) => angle - Mathf.FloorToInt((angle - Math.Sign(angle)) / 180f) * 180;

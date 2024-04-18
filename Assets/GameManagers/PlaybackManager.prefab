@@ -46,7 +46,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   syncInterval: 500
-  ViewSize: 5000
+  audioMixer: {fileID: 24100000, guid: 653ef9e58789e4e4ea1e22af695cd6c0, type: 2}
+  MasterVolume: 1
+  VerticalViewSize: 5000
+  HorizontalViewSize: 1
 --- !u!82 &1270945848296058574
 AudioSource:
   m_ObjectHideFlags: 0
