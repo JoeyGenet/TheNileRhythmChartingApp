@@ -29,9 +29,10 @@ where NoteType : Note
 	public event NoteRemovedEvent<NoteType> OnNoteRemoved;
 	public event NoteMovedEvent<NoteType> OnNoteMoved;
 
-	bool AddNote(NoteType note);
-	bool RemoveNote(NoteType note);
-	bool UpdateNote(NoteType note); // Updates the note's sorting position
+	bool AddNote(NoteType note, bool notify = true);
+	bool RemoveNote(NoteType note, bool notify = true);
+    void NotifyMoved(NoteType note);
+	// bool UpdateNote(NoteType note, Func<bool> update); // Updates the note's sorting position
     bool ContainsNote(NoteType note);
 }
 
@@ -52,8 +53,11 @@ public static class IEditableExtensions
     where E : IEditable, N
     {
         if (newValue.Equals(value)) return false;
+        container?.RemoveNote(editable, notify: false);
         value = newValue;
-        container.UpdateNote(editable);
+        container?.AddNote(editable, notify: false);
+        container?.NotifyMoved(editable);
+        // container.UpdateNote(editable, () => value = newValue);
         editable.SetChanged();
         onChanged?.Invoke();
         return true;

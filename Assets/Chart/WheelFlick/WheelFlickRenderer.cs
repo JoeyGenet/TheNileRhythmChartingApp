@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,7 +6,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(AudioSource))]
-public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerClickHandler
+public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerClickHandler, IBeginDragHandler, IDragHandler
 {
     // public WheelFlick Note;
 
@@ -17,6 +18,9 @@ public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerClic
     [SerializeField] AudioClip flickLeftSound;
     [SerializeField] AudioClip flickRightSound;
     AudioSource audioSource;
+
+    int dragStartTime;
+    float dragDirChangePosX;
 
     protected override void Awake()
     {
@@ -47,16 +51,37 @@ public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerClic
         };
     }
 
-    public void OnPointerClick(PointerEventData eventData)
+    protected override void OnLeftClick() => UIManager.SelectedNote = Note;
+    protected override void OnRightClick() => Note.RemoveSelf();
+
+    protected override void OnDragStart()
     {
-        switch (eventData.button)
+        UIManager.SelectedNote = Note;
+        dragStartTime = Note.StartTime;
+        dragDirChangePosX = pointerEventData.position.x;
+    }
+
+    protected override void OnDrag()
+    {
+        float dragDirChangePosXDiff = pointerEventData.position.x - dragDirChangePosX;
+        if (dragDirChangePosXDiff < -50 || (dragDirChangePosXDiff < -5 && Note.Dir == LeftRight.Left))
         {
-            case PointerEventData.InputButton.Left:
-                UIManager.SelectedNote = Note;
-                break;
-            case PointerEventData.InputButton.Right:
-                Note.RemoveSelf();
-                break;
+            Note.Dir = LeftRight.Left;
+            dragDirChangePosX = pointerEventData.position.x;
+        }
+        else if (dragDirChangePosXDiff > 50 || (dragDirChangePosXDiff > 5 && Note.Dir == LeftRight.Right))
+        {
+            Note.Dir = LeftRight.Right;
+            dragDirChangePosX = pointerEventData.position.x;
+        }
+        
+        if (!Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.RightControl))
+        {
+            Note.StartTime = PlaybackManager.ClampTime(UIManager.SnapTime(dragStartTime + dragTimeDiff));
+        }
+        else
+        {
+            Note.StartTime = dragStartTime;
         }
     }
 }

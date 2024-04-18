@@ -59,9 +59,9 @@ MonoBehaviour:
   rightColor: {r: 0.0627451, g: 0.5882353, b: 1, a: 1}
   downColor: {r: 0.41568628, g: 0.8666667, b: 0.24313726, a: 1}
   middleColor: {r: 1, g: 1, b: 1, a: 1}
-  leverSideSound: {fileID: 8300000, guid: 46c4ef664ec824318aa54c0ffada2926, type: 3}
-  leverPushSound: {fileID: 8300000, guid: 2d6c2acd462e345f9bee7beaa7d8145c, type: 3}
-  leverPullSound: {fileID: 8300000, guid: 2d6c2acd462e345f9bee7beaa7d8145c, type: 3}
+  leverSideSound: {fileID: 8300000, guid: ec3056fd7ddb34648996ffbf221dd758, type: 3}
+  leverPushSound: {fileID: 8300000, guid: ec3056fd7ddb34648996ffbf221dd758, type: 3}
+  leverPullSound: {fileID: 8300000, guid: ec3056fd7ddb34648996ffbf221dd758, type: 3}
 --- !u!222 &7162591642728866979
 CanvasRenderer:
   m_ObjectHideFlags: 0

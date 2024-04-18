@@ -13,8 +13,25 @@ public class WheelSequenceRenderer : NoteRenderer<EditableWheelSequence>, IPoint
 
     [SerializeField] RectTransform verticesParent;
     [SerializeField] WheelSequenceVertexRenderer vertexPrefab;
-    
-    readonly List<WheelSequenceVertexRenderer> vertices = new();
+
+    public override void Init(Track track, EditableWheelSequence note)
+    {
+        base.Init(track, note);
+
+        AddVertex(null);
+        foreach (EditableWheelTurn turn in Note.Notes)
+        {
+            AddVertex(turn);
+        }
+        Note.OnNoteAdded += AddVertex;
+    }
+
+    protected override void OnDestroy()
+    {
+        base.OnDestroy();
+
+        Note.OnNoteAdded -= AddVertex;
+    }
 
     protected override void Update()
     {
@@ -52,28 +69,13 @@ public class WheelSequenceRenderer : NoteRenderer<EditableWheelSequence>, IPoint
             lines[i].pos1 = PlaybackManager.Instance.TrackToUIPosition(pos1, time1);
             lines[i].pos2 = PlaybackManager.Instance.TrackToUIPosition(pos2, time2);
         }
-
-        // Update vertices
-        // Instantiate more vertices if not enough
-        for (int i = vertices.Count; i < Note.Notes.Count+1; i++)
-        {
-            var vertex = Instantiate(vertexPrefab, verticesParent);
-            vertex.Init(Note);
-            vertices.Add(vertex);
-        }
-        // Destroy any extra lines
-        for (int i = vertices.Count-1; i >= Note.Notes.Count+1; i--)
-        {
-            Destroy(vertices[i].gameObject);
-            vertices.RemoveAt(i);
-        }
     }
 
-    public void OnPointerClick(PointerEventData eventData)
+    void AddVertex(EditableWheelTurn turn)
     {
-        if (eventData.button == PointerEventData.InputButton.Left)
-        {
-            UIManager.SelectedNote = Note;
-        }
+        var vertexRenderer = Instantiate(vertexPrefab, verticesParent);
+        vertexRenderer.Init(this, turn);
     }
+
+    protected override void OnLeftClick() => UIManager.SelectedNote = Note;
 }

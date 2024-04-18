@@ -21,6 +21,8 @@ public class PlaybackManager : MonoBehaviour
 
     [SerializeField] AudioMixer audioMixer;
 
+    static uint SongLength => ChartManager.ChartPackage.SongLength;
+
     public int MillisecondsInChart => IsPaused 
         ? lastSyncTimeInChart
         : (int)(Time.time * 1000) - lastSyncTime + lastSyncTimeInChart;
@@ -49,6 +51,8 @@ public class PlaybackManager : MonoBehaviour
     //     : (int) (CurrentSong.length * 1000);
     
     AudioSource audioSource;
+
+    public static int ClampTime(int time) => Math.Clamp(time, 0, (int) SongLength);
 
     void Awake()
     {

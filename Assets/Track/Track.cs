@@ -91,22 +91,24 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         }
     }
 
-    public (int, int)? MouseTrackPosition()
+    public (int, int)? PointerToTrackPosition(Vector2 pointerPosition, bool allowOutOfBounds = true, bool clamp = true)
     {
         if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                mainTrackArea, Input.mousePosition, null, out Vector2 mousePos))
+                mainTrackArea, pointerPosition, null, out Vector2 localPos))
         {
-            Vector2 absPos = mousePos - rect.rect.position;
-            if (absPos.x < 0 || absPos.x > rect.rect.width || absPos.y < 0 || absPos.y > rect.rect.height)
+            Vector2 absPos = localPos - rect.rect.position;
+            if (!allowOutOfBounds && (absPos.x < 0 || absPos.x > rect.rect.width || absPos.y < 0 || absPos.y > rect.rect.height))
             {
                 return null;
             }
 
-            Vector2 uiPos = (mousePos - mainTrackArea.rect.position) / mainTrackArea.rect.size;
+            Vector2 uiPos = (localPos - mainTrackArea.rect.position) / mainTrackArea.rect.size;
             var (pos, time) = PlaybackManager.Instance.UIToTrackPosition(uiPos);
-            return (Mathf.Clamp(pos, 0, 100), Mathf.Clamp(time, 0, int.MaxValue)); // TODO: clamp to song length
+            if (!clamp) return (pos, time);
+            return (Math.Clamp(pos, 0, 100), Math.Clamp(time, 0, (int) ChartManager.ChartPackage.SongLength));
         }
         return null;
+
     }
 
     void DisplayCursorNote()
@@ -126,7 +128,7 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         bool showMiddleLeverNoteCursor = false;
 
         // Only add notes through key presses if not currently typing in input field
-        if (UIManager.IsSelectingInputField || MouseTrackPosition() is not (int pos, int time))
+        if (UIManager.IsSelectingInputField || PointerToTrackPosition(Input.mousePosition, allowOutOfBounds: false) is not (int pos, int time))
         {
             buttonNoteCursor.gameObject.SetActive(false);
             leftWheelFlickCursor.gameObject.SetActive(false);
@@ -136,6 +138,9 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
             middleLeverNoteCursor.gameObject.SetActive(false);
             return;
         }
+
+        time = UIManager.SnapTime(time);
+
         bool placeNote = Input.GetMouseButtonDown(0);
         
         var chart = ChartManager.SelectedChart;
@@ -144,12 +149,50 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         {
             case UICursorMode.ButtonNote:
             {
-                // buttonNoteCursor.gameObject.SetActive(true);
+                var lastButtonNote = chart.GetNotesBefore(time).OfType<EditableButtonNote>().LastOrDefault(n => n.IsSingle);
+                var nextButtonNote = chart.GetNotesAfter(time).OfType<EditableButtonNote>().FirstOrDefault(n => n.IsSingle);
+                var closestButtonNote = lastButtonNote;
+                if (lastButtonNote == null || (nextButtonNote != null 
+                    && Math.Abs(nextButtonNote.StartTime-time) < Math.Abs(lastButtonNote.StartTime-time)))
+                        closestButtonNote = nextButtonNote;
+
+                int bounds = ChartManager.ChartPackage.BeatToTime(1);
+                bool addToButtonNote = closestButtonNote != null && Math.Abs(closestButtonNote.StartTime-time) < bounds
+                                    && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift));
+
                 showButtonNoteCursor = true;
-                buttonNoteCursor.anchorMin = buttonNoteCursor.anchorMax
-                    = PlaybackManager.Instance.TrackToUIPosition(pos, time);
+                if (addToButtonNote)
+                {
+                    var existingAnchor = PlaybackManager.Instance.TrackToUIPosition(closestButtonNote.LeftPos, closestButtonNote.StartTime);
+                    var newAnchor = PlaybackManager.Instance.TrackToUIPosition(pos, closestButtonNote.StartTime);
+                    if (closestButtonNote.LeftPos > pos)
+                    {
+                        buttonNoteCursor.anchorMin = newAnchor;
+                        buttonNoteCursor.anchorMax = existingAnchor;
+                        if (placeNote)
+                        {
+                            closestButtonNote.RightPos = closestButtonNote.LeftPos;
+                            closestButtonNote.LeftPos = pos;
+                            UIManager.SelectedNote = closestButtonNote;
+                        }
+                    }
+                    else
+                    {
+                        buttonNoteCursor.anchorMin = existingAnchor;
+                        buttonNoteCursor.anchorMax = newAnchor;
+                        if (placeNote)
+                        {
+                            closestButtonNote.RightPos = pos;
+                            UIManager.SelectedNote = closestButtonNote;
+                        }
+                    }
+                }
+                else
+                {
+                    buttonNoteCursor.anchorMin = buttonNoteCursor.anchorMax = PlaybackManager.Instance.TrackToUIPosition(pos, time);
+                    if (placeNote) chart.AddNote(new EditableButtonNote(chart, time, pos, null));
+                }
                 
-                if (placeNote) chart.AddNote(new EditableButtonNote(chart, time, pos, null));
                 break;
             }
             case UICursorMode.WheelFlick:
@@ -188,6 +231,7 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
                         int endAngle = WheelTurn.PosToAngle(pos);
 
                         lastWheelSequence.AddNote(new EditableWheelTurn(lastWheelSequence, time, endAngle - prevEndAngle));
+                        UIManager.SelectedNote = lastWheelSequence;
                     }
                 }
                 else
@@ -215,7 +259,11 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
                     LeverPos prevPos = lastLeverSequence.GetNotesBefore(time).Last().Pos;
                     if (prevPos != LeverPos.Middle) leverPos = LeverPos.Middle;
 
-                    if (placeNote) lastLeverSequence.AddNote(new EditableLeverNote(lastLeverSequence, time, leverPos));
+                    if (placeNote)
+                    {
+                        lastLeverSequence.AddNote(new EditableLeverNote(lastLeverSequence, time, leverPos));
+                        UIManager.SelectedNote = lastLeverSequence;
+                    }
                 }
                 else
                 {
@@ -263,7 +311,9 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
     void OnGUI()
     {
-        int scrollAmount = (int) (PlaybackManager.Instance.VerticalViewSize * Input.mouseScrollDelta.y * ScrollSpeed);
+        float scrollDelta = Mathf.Abs(Input.mouseScrollDelta.y) > Mathf.Abs(Input.mouseScrollDelta.x) 
+            ? Input.mouseScrollDelta.y : Input.mouseScrollDelta.x;
+        int scrollAmount = (int) (PlaybackManager.Instance.VerticalViewSize * scrollDelta * ScrollSpeed);
         if (IsPointerOverTrack && scrollAmount != 0)
         {
             PlaybackManager.Instance.SetTimestamp(PlaybackManager.Instance.MillisecondsInChart + scrollAmount);

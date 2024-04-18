@@ -205,6 +205,8 @@ public class EditableChartPackage : ChartPackage, IEditable
             writer.WriteLine($"BPM: {BPM}");
             writer.WriteLine($"BPMOffset: {BPMOffset}");
             writer.WriteLine($"Gain: {Gain}");
+            writer.WriteLine($"PreviewStart: {PreviewStart}");
+            writer.WriteLine($"PreviewDuration: {PreviewDuration}");
             writer.WriteLine($"Start: {SongStart}");
             writer.WriteLine($"End: {SongEnd}");
         }
