@@ -78,7 +78,7 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
 
         if (!Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.RightControl))
         {
-            Note.StartTime = Math.Clamp(dragStartTime + dragTimeDiff, 0, (int) ChartManager.ChartPackage.SongLength);
+            Note.StartTime = PlaybackManager.ClampTime(dragStartTime + dragTimeDiff);
         }
         else
         {

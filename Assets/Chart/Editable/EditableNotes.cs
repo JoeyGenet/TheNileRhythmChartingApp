@@ -99,64 +99,59 @@ public class EditableWheelSequence : WheelSequence, IEditableNote<EditableChart,
 	{
 		InitializeNotes(seq.Notes.Select(turn => new EditableWheelTurn(this, turn.EndTime, turn.DeltaAngle)));
 	}
-	
-	bool AddNoteWithoutNotify(EditableWheelTurn note)
-	{
-		if (notes.Contains(note)) return false;
 
-		// Note will be inserted between these 2 notes:
-		EditableWheelTurn prevTurn = (EditableWheelTurn) notes.GetViewBetween(DummyWheelTurn.Min, note).Max;
-		EditableWheelTurn nextTurn = prevTurn == null ? (EditableWheelTurn) notes.Min : prevTurn.NextTurn;
-
-		// Update linked list
-		if (prevTurn != null) prevTurn.NextTurn = note;
-		if (nextTurn != null) nextTurn.PreviousTurn = note;
-		note.NextTurn = nextTurn;
-		note.PreviousTurn = prevTurn;
-
-		note.RecomputeStartAngle();
-		if (note.NextTurn != null) note.NextTurn.DeltaAngle -= note.DeltaAngle;
-
-		Assert.IsTrue(notes.Add(note));
-		return true;
-	}
-
-	bool RemoveNoteWithoutNotify(EditableWheelTurn note)
-	{
-		if (!notes.Contains(note)) return false;
-
-		// Update linked list
-		if (note.PreviousTurn != null) note.PreviousTurn.NextTurn = note.NextTurn;
-		if (note.NextTurn != null)
+	public bool AddNote(EditableWheelTurn note, bool notify = true) => this.RegisterChange(
+		() =>
 		{
-			note.NextTurn.PreviousTurn = note.PreviousTurn;
-			note.NextTurn.RecomputeStartAngle();
-			note.NextTurn.DeltaAngle += note.DeltaAngle;
-		}
+			if (notes.Contains(note)) return false;
 
-		note.PreviousTurn = note.NextTurn = null;
+			// Note will be inserted between these 2 notes:
+			EditableWheelTurn prevTurn = (EditableWheelTurn) notes.GetViewBetween(DummyWheelTurn.Min, note).Max;
+			EditableWheelTurn nextTurn = prevTurn == null ? (EditableWheelTurn) notes.Min : prevTurn.NextTurn;
 
-		Assert.IsTrue(notes.Remove(note));
-		return true;
-	}
+			// Update linked list
+			if (prevTurn != null) prevTurn.NextTurn = note;
+			if (nextTurn != null) nextTurn.PreviousTurn = note;
+			note.NextTurn = nextTurn;
+			note.PreviousTurn = prevTurn;
 
-	public bool AddNote(EditableWheelTurn note) => this.RegisterChange(
-		() => AddNoteWithoutNotify(note),
-		onChanged: () =>
-		{
-			OnNoteAdded?.Invoke(note);
-		}
+			note.RecomputeStartAngle();
+			if (note.NextTurn != null) note.NextTurn.DeltaAngle -= note.DeltaAngle;
+
+			Assert.IsTrue(notes.Add(note));
+			return notify;
+		},
+		onChanged: () => OnNoteAdded?.Invoke(note)
 	);
 
-	public bool RemoveNote(EditableWheelTurn note) => this.RegisterChange(
-		() => RemoveNoteWithoutNotify(note),
+	public bool RemoveNote(EditableWheelTurn note, bool notify = true) => this.RegisterChange(
+		() =>
+		{
+			if (!notes.Contains(note)) return false;
+
+			// Update linked list
+			if (note.PreviousTurn != null) note.PreviousTurn.NextTurn = note.NextTurn;
+			if (note.NextTurn != null)
+			{
+				note.NextTurn.PreviousTurn = note.PreviousTurn;
+				note.NextTurn.RecomputeStartAngle();
+				note.NextTurn.DeltaAngle += note.DeltaAngle;
+			}
+
+			note.PreviousTurn = note.NextTurn = null;
+
+			Assert.IsTrue(notes.Remove(note));
+			return notify;
+		},
 		onChanged: () => OnNoteRemoved?.Invoke(note)
 	);
 
-    public bool UpdateNote(EditableWheelTurn note) => this.RegisterChange(
-		() => RemoveNoteWithoutNotify(note) && AddNoteWithoutNotify(note),
-		onChanged: () => OnNoteMoved?.Invoke(note)
-	);
+	public void NotifyMoved(EditableWheelTurn note) => OnNoteMoved?.Invoke(note);
+
+    // public bool UpdateNote(EditableWheelTurn note) => this.RegisterChange(
+	// 	() => RemoveNoteWithoutNotify(note) && AddNoteWithoutNotify(note),
+	// 	onChanged: () => OnNoteMoved?.Invoke(note)
+	// );
 	
 	public bool ContainsNote(EditableWheelTurn note) => notes.Contains(note);
 }
@@ -234,20 +229,50 @@ public class EditableLeverSequence : LeverSequence, IEditableNote<EditableChart,
 
 	// TODO: update linked list
 	// TODO: register sorting change when adding/removing a lever note caused start time to change
-    public bool AddNote(EditableLeverNote note) => this.RegisterChange(
-		() => notes.Add(note),
+    public bool AddNote(EditableLeverNote note, bool notify = true) => this.RegisterChange(
+		() =>
+		{
+			if (notes.Contains(note)) return false;
+
+			// Note will be inserted between these 2 notes:
+			EditableLeverNote prevNote = (EditableLeverNote) notes.GetViewBetween(DummyLeverNote.Min, note).Max;
+			EditableLeverNote nextNote = prevNote == null ? (EditableLeverNote) notes.Min : prevNote.NextNote;
+
+			// Update linked list
+			if (prevNote != null) prevNote.NextNote = note;
+			if (nextNote != null) nextNote.PreviousNote = note;
+			note.NextNote = nextNote;
+			note.PreviousNote = prevNote;
+
+			Assert.IsTrue(notes.Add(note));
+			return notify;
+		},
 		onChanged: () => OnNoteAdded?.Invoke(note)
 	);
 
-    public bool RemoveNote(EditableLeverNote note) => this.RegisterChange(
-		() =>  notes.Remove(note),
+    public bool RemoveNote(EditableLeverNote note, bool notify = true) => this.RegisterChange(
+		() => 
+		{
+			if (!notes.Contains(note)) return false;
+
+			// Update linked list
+			if (note.PreviousNote != null) note.PreviousNote.NextNote = note.NextNote;
+			if (note.NextNote != null) note.NextNote.PreviousNote = note.PreviousNote;
+
+			note.PreviousNote = note.NextNote = null;
+
+			Assert.IsTrue(notes.Remove(note));
+			return notify;
+		},
 		onChanged: () => OnNoteRemoved?.Invoke(note)
 	);
 
-    public bool UpdateNote(EditableLeverNote note) => this.RegisterChange(
-		() => notes.Remove(note) && notes.Add(note),
-		onChanged: () => OnNoteMoved?.Invoke(note)
-	);
+	public void NotifyMoved(EditableLeverNote note) => OnNoteMoved?.Invoke(note);
+
+    // public bool UpdateNote(EditableLeverNote note) => this.RegisterChange(
+	// 	() => RemoveNoteWithoutNotify(note) && AddNoteWithoutNotify(note),
+	// 	onChanged: () => OnNoteMoved?.Invoke(note)
+	// );
 }
 
 

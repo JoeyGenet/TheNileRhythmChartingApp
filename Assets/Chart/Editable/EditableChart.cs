@@ -61,20 +61,22 @@ public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
 
 	public bool ContainsNote(Note note) => notes.Contains(note);
 
-    public new bool AddNote(Note note) => this.RegisterChange(
-		() => notes.Add(note),
+    public new bool AddNote(Note note, bool notify = true) => this.RegisterChange(
+		() => notes.Add(note) && notify,
 		() => OnNoteAdded?.Invoke(note)
 	);
 
-    public bool RemoveNote(Note note) => this.RegisterChange(
-		() => notes.Remove(note),
+    public bool RemoveNote(Note note, bool notify = true) => this.RegisterChange(
+		() => notes.Remove(note) && notify,
 		() => OnNoteRemoved?.Invoke(note)
 	);
 
-    public bool UpdateNote(Note note) => this.RegisterChange(
-		() => notes.Remove(note) && notes.Add(note),
-		onChanged: () => OnNoteMoved?.Invoke(note)
-	);
+	public void NotifyMoved(Note note) => OnNoteMoved?.Invoke(note);
+
+    // public bool UpdateNote(Note note, Action update) => this.RegisterChange(
+	// 	() => notes.Remove(note) ? update() && notes.Add(note),
+	// 	onChanged: () => OnNoteMoved?.Invoke(note)
+	// );
 
 	public void Save(Stream stream)
 	{

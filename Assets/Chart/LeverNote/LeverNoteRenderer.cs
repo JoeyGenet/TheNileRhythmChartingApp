@@ -1,11 +1,13 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(AudioSource))]
-public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSequence>, IPointerClickHandler
+public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSequence>
 {
     [Header("Sprites")]
     [SerializeField] private Image arrow;
@@ -23,6 +25,11 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
     [SerializeField] AudioClip leverPullSound;
 
     AudioSource audioSource;
+
+    Dictionary<EditableLeverNote, int> dragStartTimes;
+    LeftRight dragStartDir;
+    LeverPos dragStartLeverPos;
+    Vector2 dragLeverPosChangePos;
 
     protected override void Awake()
     {
@@ -67,16 +74,83 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
         arrow.transform.rotation = Quaternion.Euler(0, 0, angle);
     }
 
-    public void OnPointerClick(PointerEventData eventData)
+    protected override void OnLeftClick() => UIManager.SelectedNote = Note.Container;
+    protected override void OnRightClick() => Note.RemoveSelf();
+
+
+    protected override void OnDragStart()
+    {   
+        dragStartTimes = Note.Container.Notes.ToDictionary(n => n, n => n.StartTime);
+        dragStartLeverPos = Note.Pos;
+        dragStartDir = Note.Container.Dir;
+        dragLeverPosChangePos = pointerEventData.position;
+    }
+
+    protected override void OnDrag()
     {
-        switch (eventData.button)
+        bool changeTime = !Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.RightControl);
+        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
         {
-            case PointerEventData.InputButton.Left:
-                UIManager.SelectedNote = Note.Container;
-                break;
-            case PointerEventData.InputButton.Right:
-                Note.RemoveSelf();
-                break;
+            foreach (var note in dragStartTimes.Keys)
+            {
+                if (changeTime) note.StartTime = PlaybackManager.ClampTime(dragStartTimes[note] + dragTimeDiff);
+                else note.StartTime = dragStartTimes[note];
+            }
+
+            Note.Container.Dir = dragPos < 50 ? LeftRight.Left : LeftRight.Right;
+
+            dragLeverPosChangePos = pointerEventData.position;
+            Note.Pos = dragStartLeverPos;
+        }
+        else
+        {
+            foreach (var note in dragStartTimes.Keys)
+            {
+                if (note != Note) note.StartTime = dragStartTimes[note];
+            }
+
+            if (changeTime)
+            {
+                Note.StartTime = PlaybackManager.ClampTime(dragStartTimes[Note] + dragTimeDiff);
+
+                dragLeverPosChangePos = pointerEventData.position;
+                Note.Pos = dragStartLeverPos;
+            }
+            else
+            {
+                Note.StartTime = dragStartTimes[Note];
+
+                // while holding ctrl, change the lever position
+                Vector2 changePosDiff = pointerEventData.position - dragLeverPosChangePos;
+                if (Mathf.Abs(changePosDiff.x) > Mathf.Abs(changePosDiff.y))
+                {
+                    if (changePosDiff.x > 100)
+                    {
+                        Note.Pos = Note.Pos == LeverPos.Left ? LeverPos.Middle : LeverPos.Right;
+                        dragLeverPosChangePos = pointerEventData.position;
+                    }
+                    else if (changePosDiff.x < -100)
+                    {
+                        Note.Pos = Note.Pos == LeverPos.Right ? LeverPos.Middle : LeverPos.Left;
+                        dragLeverPosChangePos = pointerEventData.position;
+                    }
+                }
+                else
+                {
+                    if (changePosDiff.y > 100)
+                    {
+                        Note.Pos = Note.Pos == LeverPos.Down ? LeverPos.Middle : LeverPos.Up;
+                        dragLeverPosChangePos = pointerEventData.position;
+                    }
+                    else if (changePosDiff.y < -100)
+                    {
+                        Note.Pos = Note.Pos == LeverPos.Up ? LeverPos.Middle : LeverPos.Down;
+                        dragLeverPosChangePos = pointerEventData.position;
+                    }
+                }
+            }
+
+            Note.Container.Dir = dragStartDir;
         }
     }
 }

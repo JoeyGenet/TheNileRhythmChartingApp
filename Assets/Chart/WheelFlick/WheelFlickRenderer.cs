@@ -20,7 +20,7 @@ public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerClic
     AudioSource audioSource;
 
     int dragStartTime;
-    int dragDirChangePointerPos;
+    float dragDirChangePosX;
 
     protected override void Awake()
     {
@@ -57,26 +57,26 @@ public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerClic
     protected override void OnDragStart()
     {
         dragStartTime = Note.StartTime;
-        dragDirChangePointerPos = dragStartPointerPos;
+        dragDirChangePosX = pointerEventData.position.x;
     }
 
     protected override void OnDrag()
     {
-        int dragDirChangePosDiff = dragPos - dragDirChangePointerPos;
-        if (dragDirChangePosDiff < -5)
+        float dragDirChangePosXDiff = pointerEventData.position.x - dragDirChangePosX;
+        if (dragDirChangePosXDiff < -50 || (dragDirChangePosXDiff < -5 && Note.Dir == LeftRight.Left))
         {
             Note.Dir = LeftRight.Left;
-            dragDirChangePointerPos = dragPos;
+            dragDirChangePosX = pointerEventData.position.x;
         }
-        else if (dragDirChangePosDiff > 5)
+        else if (dragDirChangePosXDiff > 50 || (dragDirChangePosXDiff > 5 && Note.Dir == LeftRight.Right))
         {
             Note.Dir = LeftRight.Right;
-            dragDirChangePointerPos = dragPos;
+            dragDirChangePosX = pointerEventData.position.x;
         }
         
         if (!Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.RightControl))
         {
-            Note.StartTime = Math.Clamp(dragStartTime + dragTimeDiff, 0, (int) ChartManager.ChartPackage.SongLength);
+            Note.StartTime = PlaybackManager.ClampTime(dragStartTime + dragTimeDiff);
         }
         else
         {

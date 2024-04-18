@@ -265,7 +265,9 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
     void OnGUI()
     {
-        int scrollAmount = (int) (PlaybackManager.Instance.VerticalViewSize * Input.mouseScrollDelta.y * ScrollSpeed);
+        float scrollDelta = Mathf.Abs(Input.mouseScrollDelta.y) > Mathf.Abs(Input.mouseScrollDelta.x) 
+            ? Input.mouseScrollDelta.y : Input.mouseScrollDelta.x;
+        int scrollAmount = (int) (PlaybackManager.Instance.VerticalViewSize * scrollDelta * ScrollSpeed);
         if (IsPointerOverTrack && scrollAmount != 0)
         {
             PlaybackManager.Instance.SetTimestamp(PlaybackManager.Instance.MillisecondsInChart + scrollAmount);

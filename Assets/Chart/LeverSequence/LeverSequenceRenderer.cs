@@ -49,11 +49,5 @@ public class LeverSequenceRenderer : NoteRenderer<EditableLeverSequence>, IPoint
         leverNoteRenderer.Init(Track, leverNote);
     }
 
-    public void OnPointerClick(PointerEventData eventData)
-    {
-        if (eventData.button == PointerEventData.InputButton.Left)
-        {
-            UIManager.SelectedNote = Note;
-        }
-    }
+    protected override void OnLeftClick() => UIManager.SelectedNote = Note;
 }

@@ -33,20 +33,6 @@ public class LeverNoteInspector : LeverSequenceInspector.ChildInspector
         {
             Note.Pos = (LeverPos) value;
         });
-
-        // deleteButton.onClick.AddListener(() =>
-        // {
-        //     var note = Note;
-        //     try
-        //     {
-        //         Note.Container.RemoveNote(Note);
-        //     }
-        //     catch (Exception e)
-        //     {
-        //         UIManager.Instance.ShowAlert("Exception While Deleting Lever Note", $"Note {note} may not have been deleted.\n{e.Message}");
-        //         Debug.LogException(e);
-        //     }
-        // });
     }
 
     void Start()
@@ -57,6 +43,8 @@ public class LeverNoteInspector : LeverSequenceInspector.ChildInspector
     void Update()
     {   
         if (!timeInput.isFocused) timeInput.SetTextWithoutNotify($"{Note.StartTime}");
+
+        posDropdown.SetValueWithoutNotify((int) Note.Pos);
 
         float angle;
         (angle, posDropdown.captionImage.color) = Note.Pos switch
