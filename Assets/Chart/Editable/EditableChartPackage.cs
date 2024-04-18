@@ -187,7 +187,7 @@ public class EditableChartPackage : ChartPackage, IEditable
 
             var chartEntry = archive.CreateEntry(name);
             using var chartStream = chartEntry.Open();
-            chart.Save(stream);
+            chart.Save(chartStream);
         }
 
         var configEntry = archive.CreateEntry($"{Title}.nr");
