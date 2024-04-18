@@ -106,7 +106,7 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
         {
             foreach (var note in dragStartTimes.Keys)
             {
-                if (note != Note) note.StartTime = dragStartTimes[note];
+                note.StartTime = dragStartTimes[note];
             }
 
             if (changeTime)
@@ -118,8 +118,6 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
             }
             else
             {
-                Note.StartTime = dragStartTimes[Note];
-
                 // while holding ctrl, change the lever position
                 Vector2 changePosDiff = pointerEventData.position - dragLeverPosChangePos;
                 if (Mathf.Abs(changePosDiff.x) > Mathf.Abs(changePosDiff.y))

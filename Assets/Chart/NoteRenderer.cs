@@ -19,8 +19,8 @@ where NoteType : N, IEditableNote<C, N>
 where N : Note
 where C : IEditableNoteContainer<N>
 {
-    protected Track Track;
-    protected NoteType Note;
+    public Track Track { get; private set; }
+    public NoteType Note { get; private set; }
 
     protected RectTransform rect;
 
@@ -34,13 +34,15 @@ where C : IEditableNoteContainer<N>
     protected int dragPosDiff { get; private set; }
     protected int dragTimeDiff { get; private set; }
 
-    public virtual void Init(Track track, NoteType note)
+    public virtual void Init(Track track, NoteType note, C container)
     {
         Track = track;
         Note = note;
         
-        Note.Container.OnNoteRemoved += DestroyOnNoteRemoved;
+        container.OnNoteRemoved += DestroyOnNoteRemoved;
     }
+
+    public virtual void Init(Track track, NoteType note) => Init(track, note, note.Container);
 
     protected virtual void Awake()
     {
