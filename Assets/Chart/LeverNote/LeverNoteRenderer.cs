@@ -75,7 +75,17 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
     }
 
     protected override void OnLeftClick() => UIManager.SelectedNote = Note.Container;
-    protected override void OnRightClick() => Note.RemoveSelf();
+    protected override void OnRightClick()
+    {
+        if (Note.Container.Notes.Count <= 1) 
+        {
+            Note.Container.RemoveSelf();
+        }
+        else
+        {
+            Note.RemoveSelf();
+        }
+    }
 
 
     protected override void OnDragStart()
