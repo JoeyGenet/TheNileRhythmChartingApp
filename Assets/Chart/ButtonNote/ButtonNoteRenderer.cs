@@ -46,7 +46,26 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
     }
 
     protected override void OnLeftClick() => UIManager.SelectedNote = Note;
-    protected override void OnRightClick() => Note.RemoveSelf();
+    protected override void OnRightClick()
+    {
+        if (Note.RightPos is not int rightPos) // Single note, so delete entire thing
+        {
+            Note.RemoveSelf();
+            return;
+        }
+
+        if (Track.PointerToTrackPosition(pointerEventData.position, clamp: false) is not var (clickPos, _)) return;
+
+        if (Math.Abs(clickPos - rightPos) < Math.Abs(clickPos - Note.LeftPos))
+        {
+            Note.RightPos = null;
+        }
+        else
+        {
+            Note.LeftPos = rightPos;
+            Note.RightPos = null;
+        }
+    }
 
     protected override void OnDragStart()
     {   
