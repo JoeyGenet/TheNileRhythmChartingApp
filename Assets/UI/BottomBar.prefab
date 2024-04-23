@@ -1817,7 +1817,7 @@ MonoBehaviour:
   m_IgnoreLayout: 0
   m_MinWidth: -1
   m_MinHeight: -1
-  m_PreferredWidth: 160
+  m_PreferredWidth: 100
   m_PreferredHeight: -1
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
@@ -2161,7 +2161,7 @@ MonoBehaviour:
   m_IgnoreLayout: 0
   m_MinWidth: -1
   m_MinHeight: -1
-  m_PreferredWidth: 160
+  m_PreferredWidth: 100
   m_PreferredHeight: -1
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
@@ -2528,10 +2528,6 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6416598912463952244, guid: fcbd8e1488a52404ba51ff9a5cb4b086, type: 3}
-      propertyPath: m_Text
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 6416598912463952244, guid: fcbd8e1488a52404ba51ff9a5cb4b086, type: 3}
       propertyPath: m_ContentType
       value: 2
       objectReference: {fileID: 0}
@@ -2545,7 +2541,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8217628804946097220, guid: fcbd8e1488a52404ba51ff9a5cb4b086, type: 3}
       propertyPath: m_text
-      value: Offset (ms)...
+      value: ms...
       objectReference: {fileID: 0}
     - target: {fileID: 8217628804946097220, guid: fcbd8e1488a52404ba51ff9a5cb4b086, type: 3}
       propertyPath: m_Enabled
@@ -2599,7 +2595,7 @@ MonoBehaviour:
   m_IgnoreLayout: 0
   m_MinWidth: -1
   m_MinHeight: -1
-  m_PreferredWidth: 100
+  m_PreferredWidth: 50
   m_PreferredHeight: -1
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
@@ -3095,7 +3091,7 @@ MonoBehaviour:
   m_IgnoreLayout: 0
   m_MinWidth: -1
   m_MinHeight: -1
-  m_PreferredWidth: 160
+  m_PreferredWidth: 100
   m_PreferredHeight: -1
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1

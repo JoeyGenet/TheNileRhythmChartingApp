@@ -7,9 +7,6 @@ public class Chart : INoteContainer<Note>, IComparable<Chart>
 {
 	public readonly ChartPackage Package;
 
-    protected readonly SortedSet<Note> notes = new();
-	public IReadOnlySortedSet<Note> Notes => (ReadOnlySortedSet<Note>) notes;
-
     // public Note FirstNote => notes.Min;
     // public Note LastNote => notes.Max;
 	
@@ -19,8 +16,11 @@ public class Chart : INoteContainer<Note>, IComparable<Chart>
 	public int DifficultyRating => difficultyRating;
 	public string DifficultyName => difficultyName.Trim();
 
+    protected readonly SortedSet<Note> notes = new();
+	public IReadOnlySortedSet<Note> Notes => (ReadOnlySortedSet<Note>) notes;
 
-	public virtual bool AddNote(Note note) => notes.Add(note);
+    protected readonly SortedSet<EnvironmentChangeEvent> events = new();
+	public IReadOnlySortedSet<EnvironmentChangeEvent> Events => (ReadOnlySortedSet<EnvironmentChangeEvent>) events;
 
 	public IReadOnlyCollection<Note> GetNotesBefore(int time, bool inclusive = true) 
 		=> notes.GetViewBetween(DummyNote.Min, new DummyNote(time, inclusive ? int.MaxValue : int.MinValue));
@@ -64,7 +64,7 @@ public class Chart : INoteContainer<Note>, IComparable<Chart>
 				"3" or "L" => parseLeverSequence,
 				_ => throw new ArgumentException($"Invalid note type: \"{args[0]}\""),
 			};
-			AddNote(noteParser());
+			notes.Add(noteParser());
 
 			ButtonNote parseButton()
 			{
@@ -136,6 +136,19 @@ public class Chart : INoteContainer<Note>, IComparable<Chart>
 				};
 			}
 		};
+
+		parser["Events"] = (line, args) => parser.Switch(new()
+		{
+			["E|0"] = () =>
+			{
+				parser.AssertArgCount(4);
+				int startTime = int.Parse(args[1]);
+				int endTime = int.Parse(args[2]);
+				var environment = Enum.GetValues(typeof(EnvironmentOption)).Cast<EnvironmentOption>()
+					.First(e => e.ToString().ToLower() == args[3].ToLower());
+				events.Add(new EnvironmentChangeEvent(this, startTime, endTime, environment));
+			}
+		});
 
 		parser.Run(stream);
 	}

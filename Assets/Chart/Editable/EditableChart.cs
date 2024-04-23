@@ -55,13 +55,13 @@ public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
 				LeverSequence leverSequence => new EditableLeverSequence(this, leverSequence),
 				_ => throw new Exception($"Cannot convert note {note} to editable"),
 			};
-			base.AddNote(editableNote);
+			notes.Add(editableNote);
 		}
 	}
 
 	public bool ContainsNote(Note note) => notes.Contains(note);
 
-    public new bool AddNote(Note note, bool notify = true) => this.RegisterChange(
+    public bool AddNote(Note note, bool notify = true) => this.RegisterChange(
 		() => notes.Add(note) && notify,
 		() => OnNoteAdded?.Invoke(note)
 	);
@@ -118,6 +118,13 @@ public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
 				_ => throw new Exception($"Unable to serialize note {note}"),
 			};
 			writer.WriteLine(line);
+		}
+
+
+		writer.WriteLine("[Events]");
+		foreach (var evt in events)
+		{
+			writer.WriteLine($"E {evt.StartTime} {evt.EndTime} {evt.Environment}");
 		}
 
 		HasChanges = false;

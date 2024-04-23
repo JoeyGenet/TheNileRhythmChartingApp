@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -62,7 +63,9 @@ public class FileParser
     //     }
     //     return this;
     // }
-    public FileParser Switch(Dictionary<string, Action> cases, int arg = 0, bool caseSensitive = false)
+
+    public FileParser Switch(Dictionary<string, Action> cases) => Switch(arg: 0, caseSensitive: false, cases);
+    public FileParser Switch(int arg = 0, bool caseSensitive = false, Dictionary<string, Action> cases = null)
         => RunIfMatch(cases.Keys, arg, caseSensitive, argVal => cases[argVal].Invoke());
     // public Task<FileParser> SwitchAsync(Dictionary<string, Func<Task>> cases, int arg = 0, bool caseSensitive = false)
     //     => RunIfMatchAsync(cases.Keys, arg, caseSensitive, async argVal => await cases[argVal].Invoke());
@@ -82,9 +85,17 @@ public class FileParser
 
     public bool Match(string name, int arg = 0, bool caseSensitive = false)
     {
-        if (caseSensitive) return Args[arg] == name;
-        else return Args[arg].ToLower() == name.ToLower();
+        AssertArgCount(minCount: arg+1);
+        var options = name.Split('|').Select(option => option.Trim());
+        if (caseSensitive) return options.Contains(Args[arg]);
+        else return options.Select(o => o.ToLower()).Contains(Args[arg].ToLower());
     }
+    // public bool Match(int arg = 0, bool caseSensitive = false, params string[] options)
+    // {
+    //     if (caseSensitive) return options.Contains(Args[arg]);
+    //     string argStr = Args[arg].ToLower();
+    //     return options.Any(option => option.ToLower() == argStr);
+    // }
 
 	public void Assert(bool invariant, string message)
 	{
