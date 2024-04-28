@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 // TODO: instead of IEditableNoteContainer<Note>, use IEditableNoteContainer<IEditableNote>
 public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
@@ -90,11 +91,40 @@ public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
 	public void NotifyMoved(Note note) => OnNoteMoved?.Invoke(note);
 
 	public bool AddEvent(EditableEnvironmentChangeEvent evt) => this.RegisterChange(
-		() => events.Add(evt),
+		() =>
+		{
+			if (events.Contains(evt)) return false;
+
+			// Note will be inserted between these 2 notes:
+            var prevEnvironmentChange = Events.Where(e => e.StartTime < evt.StartTime).OrderBy(e => e.StartTime).LastOrDefault();
+            var nextEnvironmentChange = prevEnvironmentChange != null ? prevEnvironmentChange.NextEnvironmentChange
+                                            : Events.OrderBy(e => e.StartTime).FirstOrDefault();
+
+			// Update linked list
+			if (prevEnvironmentChange != null) prevEnvironmentChange.NextEnvironmentChange = evt;
+			if (nextEnvironmentChange != null) nextEnvironmentChange.PreviousEnvironmentChange = evt;
+			evt.PreviousEnvironmentChange = prevEnvironmentChange;
+			evt.NextEnvironmentChange = nextEnvironmentChange;
+
+			Assert.IsTrue(events.Add(evt));
+			return true;
+		},
 		() => OnEventAdded?.Invoke(evt)
 	);
 	public bool RemoveEvent(EditableEnvironmentChangeEvent evt) => this.RegisterChange(
-		() => events.Remove(evt),
+		() =>
+		{
+			if (!events.Contains(evt)) return false;
+
+			// Update linked list
+            if (evt.PreviousEnvironmentChange != null) evt.PreviousEnvironmentChange.NextEnvironmentChange = evt.NextEnvironmentChange;
+            if (evt.NextEnvironmentChange != null) evt.NextEnvironmentChange.PreviousEnvironmentChange = evt.PreviousEnvironmentChange;
+
+			evt.PreviousEnvironmentChange = evt.NextEnvironmentChange = null;
+
+			Assert.IsTrue(events.Remove(evt));
+			return true;
+		},
 		() => OnEventRemoved?.Invoke(evt)
 	);
 
@@ -108,7 +138,7 @@ public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
 		writer.WriteLine();
 
 		writer.WriteLine("[Visuals]");
-		writer.WriteLine($"Environment: {Environment.Name}");
+		if (environment != null) writer.WriteLine($"Environment: {Environment.Name}");
 		writer.WriteLine();
 
 		writer.WriteLine("[Notes]");
@@ -145,7 +175,7 @@ public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
 
 
 		writer.WriteLine("[Events]");
-		foreach (var evt in events)
+		foreach (var evt in events.OrderBy(evt => evt.StartTime))
 		{
 			writer.WriteLine($"E {evt.StartTime} {evt.EndTime} {evt.Environment}");
 		}

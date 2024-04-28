@@ -58,6 +58,8 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerClickHandler, IB
             => image.color = new Color(color.r, color.g, color.b, image.color.a);
         setColor(gradientEndColor, Event.Environment.Color);
         setColor(endHandleColor, Event.Environment.Color);
+        setColor(gradientStartColor, Event.PreviousEnvironment.Color);
+        setColor(startHandleColor, Event.PreviousEnvironment.Color);
     }
 
     private void OnElementSelected(object previousElement, object newElement)

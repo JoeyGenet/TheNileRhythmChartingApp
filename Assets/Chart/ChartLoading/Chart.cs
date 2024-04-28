@@ -17,8 +17,9 @@ public class Chart : INoteContainer<Note>, IComparable<Chart>
 	public int DifficultyRating => difficultyRating;
 	public string DifficultyName => difficultyName.Trim();
 
-	protected Environment environment;
-	public Environment Environment => environment;
+	protected Environment environment = null;
+	public Environment Environment => environment ?? EnvironmentManager.DefaultEnvironment;
+	// protected EnvironmentChangeEvent firstEnvironmentChange;
 
     protected readonly HashSet<EnvironmentChangeEvent> events = new();
 	public IReadOnlyCollection<EnvironmentChangeEvent> Events => events;
@@ -163,6 +164,15 @@ public class Chart : INoteContainer<Note>, IComparable<Chart>
 				events.Add(new EnvironmentChangeEvent(this, startTime, endTime, environment));
 			}
 		});
+		// Sort and setup environment change linked list
+		var environmentChanges = events.OrderBy(evt => evt.StartTime).ToList();
+		EnvironmentChangeEvent prevEnvironmentChange = null;
+		foreach (var environmentChange in environmentChanges)
+		{
+			environmentChange.PreviousEnvironmentChange = prevEnvironmentChange;
+			if (prevEnvironmentChange != null) prevEnvironmentChange.NextEnvironmentChange = environmentChange;
+			prevEnvironmentChange = environmentChange;
+		}
 
 		parser.Run(stream);
 	}

@@ -1,3 +1,5 @@
+using System.Drawing;
+
 public class EnvironmentChangeEvent
 {
     public Chart Chart;
@@ -10,6 +12,13 @@ public class EnvironmentChangeEvent
 
     protected Environment environment;
     public Environment Environment => environment;
+
+    public EnvironmentChangeEvent PreviousEnvironmentChange;
+    public EnvironmentChangeEvent NextEnvironmentChange;
+
+    public Environment PreviousEnvironment => PreviousEnvironmentChange != null 
+        ? PreviousEnvironmentChange.Environment
+        : Chart.Environment;
 
     public EnvironmentChangeEvent(Chart chart, int startTime, int endTime, Environment environment)
     {

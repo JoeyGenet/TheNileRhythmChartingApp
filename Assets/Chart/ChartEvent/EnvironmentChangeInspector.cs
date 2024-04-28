@@ -15,6 +15,10 @@ public class EnvironmentChangeInspector : MonoBehaviour
     {
         Event = evt;
         gameObject.SetActive(Event != null);
+
+        bool isChartEnvironment = Event is ChartEnvironment;
+        startTimeInput.gameObject.SetActive(!isChartEnvironment);
+        endTimeInput.gameObject.SetActive(!isChartEnvironment);
     }
 
     void Start()

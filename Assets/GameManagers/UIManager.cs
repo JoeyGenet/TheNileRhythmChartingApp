@@ -32,6 +32,11 @@ public class UIManager : MonoBehaviour
     [SerializeField] AlertDialog alertDialogPrefab;
     [SerializeField] AlertDialog confirmDialogPrefab;
 
+    [Header("Background")]
+    [SerializeField] Image backgroundImage;
+    [SerializeField] Color previewEnvironmentColor;
+    Color backgroundColor;
+
     object selectedElement;
     public static object SelectedElement
     {
@@ -79,6 +84,18 @@ public class UIManager : MonoBehaviour
         set => snapping = value;
     }
 
+    static bool previewEnvironment = true;
+    public static bool PreviewEnvironment
+    {
+        get => previewEnvironment;
+        set
+        {
+            previewEnvironment = value;
+            if (previewEnvironment) Instance.backgroundImage.color = Instance.previewEnvironmentColor;
+            else Instance.backgroundImage.color = Instance.backgroundColor;
+        }
+    }
+
     public static int SnapTime(int time)
     {
         if (Snapping > 0)
@@ -94,6 +111,8 @@ public class UIManager : MonoBehaviour
     {
         Instance = this;
 
+        backgroundColor = backgroundImage.color;
+        PreviewEnvironment = previewEnvironment;
 
         // TODO: in the future may want to move this into NoteInspector, 
         // and add a button like with NoteContainerInspector.ChildInspector
