@@ -164,7 +164,15 @@ public class Chart : INoteContainer<Note>, IComparable<Chart>
 				events.Add(new EnvironmentChangeEvent(this, startTime, endTime, environment));
 			}
 		});
-		// Sort and setup environment change linked list
+		LinkEvents();
+
+		parser.Run(stream);
+	}
+
+	// Sorts and sets up environment change linked list
+	protected void LinkEvents()
+	{
+		var sortedEvents = new List<EnvironmentChangeEvent>(events).OrderBy(e => e.StartTime);
 		var environmentChanges = events.OrderBy(evt => evt.StartTime).ToList();
 		EnvironmentChangeEvent prevEnvironmentChange = null;
 		foreach (var environmentChange in environmentChanges)
@@ -173,7 +181,20 @@ public class Chart : INoteContainer<Note>, IComparable<Chart>
 			if (prevEnvironmentChange != null) prevEnvironmentChange.NextEnvironmentChange = environmentChange;
 			prevEnvironmentChange = environmentChange;
 		}
+	}
 
-		parser.Run(stream);
+	public string EventsAsString() 
+	{
+		string str = "";
+		var currEvent = Events.OrderBy(e => e.StartTime).FirstOrDefault();
+		HashSet<EnvironmentChangeEvent> visited = new();
+		while (currEvent != null)
+		{
+			str += $"{currEvent.GetHashCode()}: {currEvent.Environment.Name} ({currEvent.PreviousEnvironmentChange?.GetHashCode()} -> {currEvent.NextEnvironmentChange?.GetHashCode()})\n";
+			if (visited.Contains(currEvent)) throw new Exception($"Cycle in linked list detected!\n{str}");
+			visited.Add(currEvent);
+			currEvent = currEvent.NextEnvironmentChange;
+		}
+		return str;
 	}
 }

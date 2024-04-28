@@ -39,9 +39,16 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerClickHandler, IB
         UIManager.OnElementSelected += OnElementSelected;
     }
 
+    void Start()
+    {
+
+        OnElementSelected(null, null);
+    }
+
     void OnDestroy()
     {
         ChartManager.OnChartChanged -= DestroyOnChartChanged;
+        UIManager.OnElementSelected -= OnElementSelected;
         if (Event != null) Event.Chart.OnEventRemoved -= DestroyOnNoteRemoved;
     }
 
@@ -106,6 +113,11 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerClickHandler, IB
                 Event.Chart.RemoveEvent(Event);
                 break;
         }
+    }
+    public void OnHandlePointerClick(BaseEventData eventData)
+    {
+        if (eventData is not PointerEventData pointerEventData) return;
+        OnPointerClick(pointerEventData);
     }
 
     public void OnBeginDrag(PointerEventData eventData)

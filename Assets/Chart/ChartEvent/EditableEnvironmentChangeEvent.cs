@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using UnityEngine;
 
 public class EditableEnvironmentChangeEvent : EnvironmentChangeEvent, IEditable
 {
@@ -13,18 +14,22 @@ public class EditableEnvironmentChangeEvent : EnvironmentChangeEvent, IEditable
         get => base.StartTime;
         set => this.RegisterChange(ref startTime, Math.Clamp(value, 0, EndTime), onChanged: () =>
         {
-            // FIXME: inefficient. weird stuff might happen if 2 events have the same start time
-            var prevEnvironmentChange = Chart.Events.Where(env => env.StartTime < StartTime).OrderBy(env => env.StartTime).LastOrDefault();
-            var nextEnvironmentChange = prevEnvironmentChange != null ? prevEnvironmentChange.NextEnvironmentChange
-                                            : Chart.Events.OrderBy(env => env.StartTime).FirstOrDefault();
-            
             // Update linked list
+            
             if (PreviousEnvironmentChange != null) PreviousEnvironmentChange.NextEnvironmentChange = NextEnvironmentChange;
             if (NextEnvironmentChange != null) NextEnvironmentChange.PreviousEnvironmentChange = PreviousEnvironmentChange;
+
+            // FIXME: inefficient. weird stuff might happen if 2 events have the same start time
+            var prevEnvironmentChange = Chart.Events.OrderBy(env => env.StartTime).LastOrDefault(env => env.StartTime < StartTime);
+            var nextEnvironmentChange = prevEnvironmentChange != null ? prevEnvironmentChange.NextEnvironmentChange
+                                            : Chart.Events.OrderBy(env => env.StartTime).FirstOrDefault(env => env != this);
+            
 			if (prevEnvironmentChange != null) prevEnvironmentChange.NextEnvironmentChange = this;
 			if (nextEnvironmentChange != null) nextEnvironmentChange.PreviousEnvironmentChange = this;
 			PreviousEnvironmentChange = prevEnvironmentChange;
 			NextEnvironmentChange = nextEnvironmentChange;
+
+            Debug.Log($"start time -> {StartTime}\n{Chart.EventsAsString()}");
         });
     }
     public virtual new int EndTime
@@ -68,7 +73,6 @@ public class ChartEnvironment : EditableEnvironmentChangeEvent
         get => Chart.Environment;
         set => Chart.Environment = value;
     }
-
 
     public ChartEnvironment(EditableChart chart) : base(chart, 0, 0, chart.Environment) {}
 }

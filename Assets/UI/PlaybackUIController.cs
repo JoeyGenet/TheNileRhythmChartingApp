@@ -28,6 +28,9 @@ public class PlaybackUIController : MonoBehaviour
     [Header("Snapping")]
     [SerializeField] TMP_Dropdown snappingDropdown;
 
+    [Header("Environment")]
+    [SerializeField] Toggle previewEnvironment;
+
     void Start()
     {
         playEvent.AddListener(() => PlaybackManager.Instance.Play());
@@ -70,6 +73,9 @@ public class PlaybackUIController : MonoBehaviour
             6 => 8,
             _ => 1,
         });
+
+        previewEnvironment.isOn = UIManager.PreviewEnvironment;
+        previewEnvironment.onValueChanged.AddListener(preview => UIManager.PreviewEnvironment = preview);
     }
 
     void Update()

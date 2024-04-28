@@ -71,12 +71,14 @@ public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
 		}
 
 		// Convert events to editable
-		var nonEditableEvents = new List<EnvironmentChangeEvent>(events);
+		var nonEditableEvents = new List<EnvironmentChangeEvent>(events).OrderBy(e => e.StartTime);
 		events.Clear();
 		foreach (var evt in nonEditableEvents)
 		{
 			events.Add(new EditableEnvironmentChangeEvent(this, evt));
 		}
+		LinkEvents();
+		Debug.Log(EventsAsString());
 	}
 
     public bool AddNote(Note note, bool notify = true) => this.RegisterChange(
@@ -177,7 +179,7 @@ public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
 		writer.WriteLine("[Events]");
 		foreach (var evt in events.OrderBy(evt => evt.StartTime))
 		{
-			writer.WriteLine($"E {evt.StartTime} {evt.EndTime} {evt.Environment}");
+			writer.WriteLine($"E {evt.StartTime} {evt.EndTime} {evt.Environment.Name}");
 		}
 
 		HasChanges = false;
