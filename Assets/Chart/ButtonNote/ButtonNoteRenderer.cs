@@ -45,7 +45,7 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
             : leftUIPos;
     }
 
-    protected override void OnLeftClick() => UIManager.SelectedNote = Note;
+    protected override void OnLeftClick() => UIManager.SelectedElement = Note;
     protected override void OnRightClick()
     {
         if (Note.RightPos is not int rightPos) // Single note, so delete entire thing
@@ -69,7 +69,7 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
 
     protected override void OnDragStart()
     {   
-        UIManager.SelectedNote = Note;
+        UIManager.SelectedElement = Note;
         dragStartLeftPos = Note.LeftPos;
         dragStartRightPos = Note.RightPos;
         dragStartTime = Note.StartTime;

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
@@ -47,11 +48,13 @@ where C : IEditableNoteContainer<N>
         rect = GetComponent<RectTransform>();
 
         ChartManager.OnChartChanged += DestroyOnChartChanged;
+        UIManager.OnElementSelected += OnNoteSelected;
     }
 
     protected virtual void OnDestroy()
     {
         ChartManager.OnChartChanged -= DestroyOnChartChanged;
+        UIManager.OnElementSelected -= OnNoteSelected;
         if (Note != null) Note.Container.OnNoteRemoved -= DestroyOnNoteRemoved;
     }
 
@@ -62,13 +65,17 @@ where C : IEditableNoteContainer<N>
     protected virtual void OnNoteStarted() {}
     protected virtual void OnNoteEnded() {}
 
-
     protected virtual void Update()
     {
         int currTime = PlaybackManager.Instance.MillisecondsInChart;
         if (!Track.IsScrolling && prevTime < Note.StartTime && currTime >= Note.StartTime) OnNoteStarted();
         if (!Track.IsScrolling && prevTime < Note.EndTime && currTime >= Note.EndTime) OnNoteStarted();
         prevTime = currTime;
+    }
+
+    void OnNoteSelected(object previousNote, object newNote)
+    {
+        if (Note != null && newNote == Note) transform.SetAsLastSibling();
     }
 
     void DestroyOnChartChanged(EditableChart prevChart, EditableChart newChart)

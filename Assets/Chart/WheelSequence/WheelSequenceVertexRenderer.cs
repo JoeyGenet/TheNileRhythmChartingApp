@@ -41,7 +41,7 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
         rect.anchorMin = rect.anchorMax = PlaybackManager.Instance.TrackToUIPosition(pos, time);
     }
 
-    protected override void OnLeftClick() => UIManager.SelectedNote = WheelSequence;
+    protected override void OnLeftClick() => UIManager.SelectedElement = WheelSequence;
 
     protected override void OnRightClick()
     {
@@ -67,7 +67,7 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
 
     protected override void OnDragStart()
     {
-        UIManager.SelectedNote = WheelSequence;
+        UIManager.SelectedElement = WheelSequence;
         dragStartStartAngle = Note == null ? WheelSequence.Notes.Min.StartAngle : Note.StartAngle;
         dragStartDeltaAngle = Note == null ? WheelSequence.Notes.Min.DeltaAngle : Note.DeltaAngle;
         dragStartSeqPos = WheelSequence.Pos;

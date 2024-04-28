@@ -2,13 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using UnityEngine;
 
 public class Chart : INoteContainer<Note>, IComparable<Chart>
 {
 	public readonly ChartPackage Package;
-
-    protected readonly SortedSet<Note> notes = new();
-	public IReadOnlySortedSet<Note> Notes => (ReadOnlySortedSet<Note>) notes;
 
     // public Note FirstNote => notes.Min;
     // public Note LastNote => notes.Max;
@@ -19,8 +17,16 @@ public class Chart : INoteContainer<Note>, IComparable<Chart>
 	public int DifficultyRating => difficultyRating;
 	public string DifficultyName => difficultyName.Trim();
 
+	protected Environment environment = null;
+	public Environment Environment => environment ?? EnvironmentManager.DefaultEnvironment;
+	// protected EnvironmentChangeEvent firstEnvironmentChange;
 
-	public virtual bool AddNote(Note note) => notes.Add(note);
+    protected readonly HashSet<EnvironmentChangeEvent> events = new();
+	public IReadOnlyCollection<EnvironmentChangeEvent> Events => events;
+
+    protected readonly SortedSet<Note> notes = new();
+	public IReadOnlySortedSet<Note> Notes => (ReadOnlySortedSet<Note>) notes;
+
 
 	public IReadOnlyCollection<Note> GetNotesBefore(int time, bool inclusive = true) 
 		=> notes.GetViewBetween(DummyNote.Min, new DummyNote(time, inclusive ? int.MaxValue : int.MinValue));
@@ -52,6 +58,13 @@ public class Chart : INoteContainer<Note>, IComparable<Chart>
 			["Name"] = val => difficultyName = val,
 		});
 
+		parser["Visuals"] = (line, args) => parser.KeyValue(new()
+		{
+			["Environment"] = name => environment = EnvironmentManager.GetEnvironment(name) is Environment env ? env
+				: throw new ArgumentException($"Unsupported environment name '{args[3]}'"),
+		});
+
+
 		parser["Notes"] = (line, args) =>
 		{
 			parser.AssertArgCount(minCount: 1);
@@ -64,7 +77,7 @@ public class Chart : INoteContainer<Note>, IComparable<Chart>
 				"3" or "L" => parseLeverSequence,
 				_ => throw new ArgumentException($"Invalid note type: \"{args[0]}\""),
 			};
-			AddNote(noteParser());
+			notes.Add(noteParser());
 
 			ButtonNote parseButton()
 			{
@@ -137,6 +150,51 @@ public class Chart : INoteContainer<Note>, IComparable<Chart>
 			}
 		};
 
+		parser["Events"] = (line, args) => parser.Switch(new()
+		{
+			["E|0"] = () =>
+			{
+				parser.AssertArgCount(4);
+				int startTime = int.Parse(args[1]);
+				int endTime = int.Parse(args[2]);
+				if (EnvironmentManager.GetEnvironment(args[3]) is not Environment environment)
+				{
+					throw new ArgumentException($"Unsupported environment name '{args[3]}'");
+				}
+				events.Add(new EnvironmentChangeEvent(this, startTime, endTime, environment));
+			}
+		});
+		LinkEvents();
+
 		parser.Run(stream);
+	}
+
+	// Sorts and sets up environment change linked list
+	protected void LinkEvents()
+	{
+		var sortedEvents = new List<EnvironmentChangeEvent>(events).OrderBy(e => e.StartTime);
+		var environmentChanges = events.OrderBy(evt => evt.StartTime).ToList();
+		EnvironmentChangeEvent prevEnvironmentChange = null;
+		foreach (var environmentChange in environmentChanges)
+		{
+			environmentChange.PreviousEnvironmentChange = prevEnvironmentChange;
+			if (prevEnvironmentChange != null) prevEnvironmentChange.NextEnvironmentChange = environmentChange;
+			prevEnvironmentChange = environmentChange;
+		}
+	}
+
+	public string EventsAsString() 
+	{
+		string str = "";
+		var currEvent = Events.OrderBy(e => e.StartTime).FirstOrDefault();
+		HashSet<EnvironmentChangeEvent> visited = new();
+		while (currEvent != null)
+		{
+			str += $"{currEvent.GetHashCode()}: {currEvent.Environment.Name} ({currEvent.PreviousEnvironmentChange?.GetHashCode()} -> {currEvent.NextEnvironmentChange?.GetHashCode()})\n";
+			if (visited.Contains(currEvent)) throw new Exception($"Cycle in linked list detected!\n{str}");
+			visited.Add(currEvent);
+			currEvent = currEvent.NextEnvironmentChange;
+		}
+		return str;
 	}
 }

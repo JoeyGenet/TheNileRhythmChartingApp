@@ -77,5 +77,5 @@ public class WheelSequenceRenderer : NoteRenderer<EditableWheelSequence>, IPoint
         vertexRenderer.Init(this, turn);
     }
 
-    protected override void OnLeftClick() => UIManager.SelectedNote = Note;
+    protected override void OnLeftClick() => UIManager.SelectedElement = Note;
 }

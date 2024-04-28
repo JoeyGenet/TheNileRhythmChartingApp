@@ -47,7 +47,7 @@ public class LoadSaveUIController : MonoBehaviour
 
     void LoadChart()
     {
-        StandaloneFileBrowser.OpenFilePanelAsync("Load Chart", ChartManager.ChartDir, "", false, paths =>
+        StandaloneFileBrowser.OpenFilePanelAsync("Load Chart", ChartManager.ChartDir, "", false, async paths =>
         {
             if (paths.Length == 0 || string.IsNullOrEmpty(paths[0])) return; // User pressed cancel. Don't load
             if (!File.Exists(paths[0]))
@@ -58,12 +58,7 @@ public class LoadSaveUIController : MonoBehaviour
 
             try 
             {
-                ChartManager.LoadChart(paths[0]);
-            }
-            catch (FileParseException e)
-            {
-                UIManager.Instance.ShowAlert("Error Loading Chart", $"Loading from {paths[0]}.\n{e.Message}");
-                Debug.LogException(e);
+                await ChartManager.LoadChart(paths[0]);
             }
             catch (Exception e)
             {

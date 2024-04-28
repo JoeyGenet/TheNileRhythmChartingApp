@@ -1,12 +1,8 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
-using UnityEngine.UIElements;
 
 [RequireComponent(typeof(RectTransform))]
 public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
@@ -39,6 +35,13 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     [SerializeField] int maxMainBeatMarkers = 50;
     [SerializeField] int maxMinorBeatMarkers = 50;
 
+    [Header("Environment Change Event")]
+    [SerializeField] RectTransform environmentTrack;
+    [SerializeField] RectTransform environmentTrackArea;
+    [SerializeField] EventRelay addEnvironmentChangeEvent;
+    [SerializeField] EnvironmentTrackColor environmentTrackColorPrefab;
+    [SerializeField] EnvironmentChangeRenderer environmentChangePrefab;
+
     public bool IsPointerOverTrack { get; private set; } = false;
     public bool IsScrolling { get; private set; } = false;
 
@@ -47,15 +50,19 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     void Awake()
     {
         rect = GetComponent<RectTransform>();
+
+        addEnvironmentChangeEvent.AddListener(AddEnvironmentChange);
         
         ChartManager.OnChartChanged += Reload;
         ChartManager.OnNoteAdded += AddNote;
+        ChartManager.OnEventAdded += AddChartEvent;
     }
 
     void OnDestroy()
     {
         ChartManager.OnChartChanged -= Reload;
         ChartManager.OnNoteAdded -= AddNote;
+        ChartManager.OnEventAdded -= AddChartEvent;
     }
 
     void Start()
@@ -66,7 +73,8 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
     void Reload(EditableChart oldChart = null, EditableChart newChart = null)
     {
-        foreach (Note note in ChartManager.SelectedChart.Notes) AddNote(note);
+        foreach (var note in ChartManager.SelectedChart.Notes) AddNote(note);
+        foreach (var evt in ChartManager.SelectedChart.Events) AddChartEvent(evt);
     }
 
     void ReloadBeatMarkers()
@@ -173,7 +181,7 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
                         {
                             closestButtonNote.RightPos = closestButtonNote.LeftPos;
                             closestButtonNote.LeftPos = pos;
-                            UIManager.SelectedNote = closestButtonNote;
+                            UIManager.SelectedElement = closestButtonNote;
                         }
                     }
                     else
@@ -183,7 +191,7 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
                         if (placeNote)
                         {
                             closestButtonNote.RightPos = pos;
-                            UIManager.SelectedNote = closestButtonNote;
+                            UIManager.SelectedElement = closestButtonNote;
                         }
                     }
                 }
@@ -231,7 +239,7 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
                         int endAngle = WheelTurn.PosToAngle(pos);
 
                         lastWheelSequence.AddNote(new EditableWheelTurn(lastWheelSequence, time, endAngle - prevEndAngle));
-                        UIManager.SelectedNote = lastWheelSequence;
+                        UIManager.SelectedElement = lastWheelSequence;
                     }
                 }
                 else
@@ -262,7 +270,7 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
                     if (placeNote)
                     {
                         lastLeverSequence.AddNote(new EditableLeverNote(lastLeverSequence, time, leverPos));
-                        UIManager.SelectedNote = lastLeverSequence;
+                        UIManager.SelectedElement = lastLeverSequence;
                     }
                 }
                 else
@@ -297,7 +305,6 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         rect.anchorMin = new Vector2((1 - hView) / 2f, rect.anchorMin.y);
         rect.anchorMax = new Vector2((1 + hView) / 2f, rect.anchorMax.y);
 
-
         try
         {
             DisplayCursorNote();
@@ -306,6 +313,16 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         {
             UIManager.Instance.ShowAlert("Exception While Adding Note", $"Note may not have been added.\n{e.Message}");
             Debug.LogException(e);
+        }
+
+        // Update environment track color ordering
+        // FIXME: inefficient
+        var trackColors = environmentTrack.GetComponentsInChildren<EnvironmentTrackColor>()
+            .Where(c => c.EnvironmentChange != null)
+            .OrderBy(c => c.EnvironmentChange.StartTime);
+        foreach (var (i, trackColor) in trackColors.Select((c, i) => (i, c)))
+        {
+            trackColor.transform.SetSiblingIndex(i+2);
         }
     }
 
@@ -349,6 +366,23 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 			EditableWheelSequence wheelSequence => instantiateNoteRenderer(wheelSequencePrefab, wheelSequence, mainTrackArea),
 			_ => throw new Exception($"Spawning of note {note} not supported"),
 		};
+    }
+
+    void AddEnvironmentChange()
+    {
+        var chart = ChartManager.SelectedChart;
+        int startTime = PlaybackManager.ClampTime((int) (PlaybackManager.Instance.MillisecondsInChart + PlaybackManager.Instance.VerticalViewSize / 2));
+        var evt = new EditableEnvironmentChangeEvent(chart, startTime, startTime + chart.Package.BeatToTime(1), EnvironmentManager.DefaultEnvironment);
+        chart.AddEvent(evt);
+        UIManager.SelectedElement = evt;
+    }
+    void AddChartEvent(EnvironmentChangeEvent evt)
+    {
+        var renderer = Instantiate(environmentChangePrefab, environmentTrackArea);
+        renderer.Init(this, (EditableEnvironmentChangeEvent) evt);
+
+        var trackColor = Instantiate(environmentTrackColorPrefab, environmentTrack);
+        trackColor.Init((EditableEnvironmentChangeEvent) evt);
     }
 
     public void OnPointerEnter(PointerEventData eventData) => IsPointerOverTrack = true;

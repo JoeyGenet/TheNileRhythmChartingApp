@@ -7,19 +7,20 @@ using System.ComponentModel;
 // Tells what the cursor does in the UI
 public enum UICursorMode
 {
-    None = 0,
-    ButtonNote = 1,
-    WheelFlick = 2,
-    WheelTurn = 3,
-    LeverNote = 4,
+    None,
+    ButtonNote,
+    WheelFlick,
+    WheelTurn,
+    LeverNote,
+    EnvironmentChange,
 }
 
 public class UIManager : MonoBehaviour
 {
-    public delegate void NoteSelectedEvent(Note previousNote, Note newNote);
+    public delegate void ElementSelectedEvent(object previousElement, object newElement);
     public delegate void CursorModeChangedEvent(UICursorMode previousMode, UICursorMode newMode);
     
-    public static event NoteSelectedEvent OnNoteSelected;
+    public static event ElementSelectedEvent OnElementSelected;
     public static event CursorModeChangedEvent OnCursorModeChanged;
 
     public static UIManager Instance;
@@ -31,17 +32,22 @@ public class UIManager : MonoBehaviour
     [SerializeField] AlertDialog alertDialogPrefab;
     [SerializeField] AlertDialog confirmDialogPrefab;
 
-    Note selectedNote;
-    public static Note SelectedNote
+    [Header("Background")]
+    [SerializeField] Image backgroundImage;
+    [SerializeField] Color previewEnvironmentColor;
+    Color backgroundColor;
+
+    object selectedElement;
+    public static object SelectedElement
     {
-        get => Instance.selectedNote;
+        get => Instance.selectedElement;
         set
         {
-            if (Instance.selectedNote != value)
+            if (Instance.selectedElement != value)
             {
-                Note prevNote = Instance.selectedNote;
-                Instance.selectedNote = value;
-                OnNoteSelected?.Invoke(prevNote, value);
+                object prevElement = Instance.selectedElement;
+                Instance.selectedElement = value;
+                OnElementSelected?.Invoke(prevElement, value);
             }
         }
     }
@@ -78,6 +84,18 @@ public class UIManager : MonoBehaviour
         set => snapping = value;
     }
 
+    static bool previewEnvironment = true;
+    public static bool PreviewEnvironment
+    {
+        get => previewEnvironment;
+        set
+        {
+            previewEnvironment = value;
+            if (previewEnvironment) Instance.backgroundImage.color = Instance.previewEnvironmentColor;
+            else Instance.backgroundImage.color = Instance.backgroundColor;
+        }
+    }
+
     public static int SnapTime(int time)
     {
         if (Snapping > 0)
@@ -93,24 +111,26 @@ public class UIManager : MonoBehaviour
     {
         Instance = this;
 
+        backgroundColor = backgroundImage.color;
+        PreviewEnvironment = previewEnvironment;
 
         // TODO: in the future may want to move this into NoteInspector, 
         // and add a button like with NoteContainerInspector.ChildInspector
         deleteSelectedNoteEvent.AddListener(() =>
         {
-            if (selectedNote is IEditableNote<EditableChart, Note> editableNote)
+            if (SelectedElement is IEditableNote<EditableChart, Note> editableNote)
             {
                 editableNote.RemoveSelf();
             }
-            else if (selectedNote != null)
+            else if (SelectedElement != null)
             {
-                Debug.LogWarning($"Deleting of note {selectedNote} not supported");
+                Debug.LogWarning($"Deleting of note {SelectedElement} not supported");
             }
         });
 
         deselectEvent.AddListener(() =>
         {
-            SelectedNote = null;
+            SelectedElement = null;
             CursorMode = UICursorMode.None;
         });
 
@@ -147,7 +167,7 @@ public class UIManager : MonoBehaviour
         return alert;
     }
 
-    public void DeselectOnChartChanged(EditableChart prevChart, EditableChart newChart) => SelectedNote = null;// SelectNote(null);
-    public void SelectNoteOnNoteAdded(Note note) => SelectedNote = note;// SelectNote(note);
-    void DeselectNoteOnNoteRemoved(Note note) => SelectedNote = null;// SelectNote(null);
+    public void DeselectOnChartChanged(EditableChart prevChart, EditableChart newChart) => SelectedElement = null;// SelectNote(null);
+    public void SelectNoteOnNoteAdded(Note note) => SelectedElement = note;// SelectNote(note);
+    void DeselectNoteOnNoteRemoved(Note note) => SelectedElement = null;// SelectNote(null);
 }
