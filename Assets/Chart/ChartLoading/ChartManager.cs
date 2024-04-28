@@ -10,19 +10,21 @@ public static class ChartManager
 {
     public delegate void ChartPackageChangedEvent(EditableChartPackage prevPackage, EditableChartPackage newPackage);
     public delegate void ChartChangedEvent(EditableChart prevChart, EditableChart newChart);
-    // public delegate void ChartSavedEvent(string path);
     public delegate void ChartAddedEvent(EditableChart chart);
     public delegate void ChartRemovedEvent(EditableChart chart);
     public delegate void NoteAddedEvent(Note note);
     public delegate void NoteRemovedEvent(Note note);
+    public delegate void EventAddedEvent(EnvironmentChangeEvent evt);
+    public delegate void EventRemovedEvent(EnvironmentChangeEvent evt);
 
     public static event ChartPackageChangedEvent OnChartPackageChanged;
     public static event ChartChangedEvent OnChartChanged; // When the currently selected chart changes
-    // public static event ChartSavedEvent OnChartSaved;
     public static event ChartAddedEvent OnChartAdded; // When a chart is added to the current chart package
     public static event ChartRemovedEvent OnChartRemoved; // When a chart is removed from the current chart package
 	public static event NoteAddedEvent OnNoteAdded; // When a note is added to the currently selected chart
 	public static event NoteRemovedEvent OnNoteRemoved; // When a note is removed from the currently selected chart
+    public static event EventAddedEvent OnEventAdded;
+    public static event EventRemovedEvent OnEventRemoved;
 
     public static string ChartPath { get; private set; } = null;
     public static string ChartDir => ChartPath == null ? null : Path.GetDirectoryName(ChartPath);
@@ -84,10 +86,14 @@ public static class ChartManager
             {
                 oldChart.OnNoteAdded -= SendOnNoteAdded;
                 oldChart.OnNoteRemoved -= SendOnNoteRemoved;
+                oldChart.OnEventAdded -= SendOnEventAdded;
+                oldChart.OnEventRemoved -= SendOnEventRemoved;
             }
 
             selectedChart.OnNoteAdded += SendOnNoteAdded;
             selectedChart.OnNoteRemoved += SendOnNoteRemoved;
+            selectedChart.OnEventAdded += SendOnEventAdded;
+            selectedChart.OnEventRemoved += SendOnEventRemoved;
 
             OnChartChanged?.Invoke(oldChart, selectedChart);
         }
@@ -125,4 +131,6 @@ public static class ChartManager
     static void SendOnChartRemoved(EditableChart chart) => OnChartRemoved?.Invoke(chart);
     static void SendOnNoteAdded(Note note) => OnNoteAdded?.Invoke(note);
     static void SendOnNoteRemoved(Note note) => OnNoteRemoved?.Invoke(note);
+    static void SendOnEventAdded(EnvironmentChangeEvent evt) => OnEventAdded?.Invoke(evt);
+    static void SendOnEventRemoved(EnvironmentChangeEvent evt) => OnEventRemoved?.Invoke(evt);
 }

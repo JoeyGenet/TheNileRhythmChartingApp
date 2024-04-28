@@ -69,12 +69,12 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
             LeverPos.Right => (arrowSprite, 180, rightColor),
             LeverPos.Down => (arrowSprite, 90, downColor),
             LeverPos.Middle => (neutralSprite, 0, middleColor),
-            _ => throw new System.Exception($"Lever direction {Note.Pos} not supported."),
+            _ => throw new Exception($"Lever direction {Note.Pos} not supported."),
         };
         arrow.transform.rotation = Quaternion.Euler(0, 0, angle);
     }
 
-    protected override void OnLeftClick() => UIManager.SelectedNote = Note.Container;
+    protected override void OnLeftClick() => UIManager.SelectedElement = Note.Container;
     protected override void OnRightClick()
     {
         if (Note.Container.Notes.Count <= 1) 
@@ -90,7 +90,7 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
 
     protected override void OnDragStart()
     {   
-        UIManager.SelectedNote = Note.Container;
+        UIManager.SelectedElement = Note.Container;
         dragStartTimes = Note.Container.Notes.ToDictionary(n => n, n => n.StartTime);
         dragStartLeverPos = Note.Pos;
         dragStartDir = Note.Container.Dir;

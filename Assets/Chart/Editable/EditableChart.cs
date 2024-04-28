@@ -9,12 +9,18 @@ using UnityEngine;
 // TODO: instead of IEditableNoteContainer<Note>, use IEditableNoteContainer<IEditableNote>
 public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
 {
+	public delegate void EventAddedEvent(EditableEnvironmentChangeEvent note);
+	public delegate void EventRemovedEvent(EditableEnvironmentChangeEvent note);
+
     public bool HasChanges { get; private set; }
     public void SetChanged() => HasChanges = true;
 
     public event NoteAddedEvent<Note> OnNoteAdded;
     public event NoteRemovedEvent<Note> OnNoteRemoved;
     public event NoteMovedEvent<Note> OnNoteMoved;
+
+    public event EventAddedEvent OnEventAdded;
+    public event EventRemovedEvent OnEventRemoved;
 
 	public new EditableChartPackage Package => base.Package as EditableChartPackage;
 
@@ -44,7 +50,6 @@ public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
 		// Convert notes to editable
 		var nonEditableNotes = new List<Note>(notes);
 		notes.Clear();
-
 		foreach (var note in nonEditableNotes)
 		{
 			Note editableNote = note switch
@@ -57,26 +62,35 @@ public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
 			};
 			notes.Add(editableNote);
 		}
-	}
 
-	public bool ContainsNote(Note note) => notes.Contains(note);
+		// Convert events to editable
+		var nonEditableEvents = new List<EnvironmentChangeEvent>(events);
+		events.Clear();
+		foreach (var evt in nonEditableEvents)
+		{
+			events.Add(new EditableEnvironmentChangeEvent(this, evt));
+		}
+	}
 
     public bool AddNote(Note note, bool notify = true) => this.RegisterChange(
 		() => notes.Add(note) && notify,
 		() => OnNoteAdded?.Invoke(note)
 	);
-
     public bool RemoveNote(Note note, bool notify = true) => this.RegisterChange(
 		() => notes.Remove(note) && notify,
 		() => OnNoteRemoved?.Invoke(note)
 	);
-
+	public bool ContainsNote(Note note) => notes.Contains(note);
 	public void NotifyMoved(Note note) => OnNoteMoved?.Invoke(note);
 
-    // public bool UpdateNote(Note note, Action update) => this.RegisterChange(
-	// 	() => notes.Remove(note) ? update() && notes.Add(note),
-	// 	onChanged: () => OnNoteMoved?.Invoke(note)
-	// );
+	public bool AddEvent(EditableEnvironmentChangeEvent evt) => this.RegisterChange(
+		() => events.Add(evt),
+		() => OnEventAdded?.Invoke(evt)
+	);
+	public bool RemoveEvent(EditableEnvironmentChangeEvent evt) => this.RegisterChange(
+		() => events.Remove(evt),
+		() => OnEventRemoved?.Invoke(evt)
+	);
 
 	public void Save(Stream stream)
 	{

@@ -8,10 +8,10 @@ public class EnvironmentChangeEvent
     protected int endTime;
     public int EndTime => endTime;
 
-    protected EnvironmentOption environment;
-    public EnvironmentOption Environment => environment;
+    protected Environment environment;
+    public Environment Environment => environment;
 
-    public EnvironmentChangeEvent(Chart chart, int startTime, int endTime, EnvironmentOption environment)
+    public EnvironmentChangeEvent(Chart chart, int startTime, int endTime, Environment environment)
     {
         Chart = chart;
         this.startTime = startTime;

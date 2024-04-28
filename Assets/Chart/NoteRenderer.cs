@@ -48,12 +48,13 @@ where C : IEditableNoteContainer<N>
         rect = GetComponent<RectTransform>();
 
         ChartManager.OnChartChanged += DestroyOnChartChanged;
-        UIManager.OnNoteSelected += OnNoteSelected;
+        UIManager.OnElementSelected += OnNoteSelected;
     }
 
     protected virtual void OnDestroy()
     {
         ChartManager.OnChartChanged -= DestroyOnChartChanged;
+        UIManager.OnElementSelected -= OnNoteSelected;
         if (Note != null) Note.Container.OnNoteRemoved -= DestroyOnNoteRemoved;
     }
 
@@ -64,7 +65,6 @@ where C : IEditableNoteContainer<N>
     protected virtual void OnNoteStarted() {}
     protected virtual void OnNoteEnded() {}
 
-
     protected virtual void Update()
     {
         int currTime = PlaybackManager.Instance.MillisecondsInChart;
@@ -73,7 +73,7 @@ where C : IEditableNoteContainer<N>
         prevTime = currTime;
     }
 
-    void OnNoteSelected(Note previousNote, Note newNote)
+    void OnNoteSelected(object previousNote, object newNote)
     {
         if (Note != null && newNote == Note) transform.SetAsLastSibling();
     }

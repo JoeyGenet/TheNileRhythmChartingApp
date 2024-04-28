@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class EditableEnvironmentChangeEvent : EnvironmentChangeEvent, IEditable
 {
-    new EditableChart Chart => (EditableChart) base.Chart;
+    public new EditableChart Chart => (EditableChart) base.Chart;
 
     public bool HasChanges => false;
     public void SetChanged() => Chart.SetChanged();
@@ -20,7 +20,7 @@ public class EditableEnvironmentChangeEvent : EnvironmentChangeEvent, IEditable
         get => base.EndTime;
         set => this.RegisterChange(ref endTime, Math.Clamp(value, StartTime, (int) Chart.Package.SongLength));
     }
-    public new EnvironmentOption Environment
+    public new Environment Environment
     {
         get => base.Environment;
         set => this.RegisterChange(ref environment, value);
@@ -32,6 +32,9 @@ public class EditableEnvironmentChangeEvent : EnvironmentChangeEvent, IEditable
         set => EndTime = StartTime + value;
     }
 
-    public EditableEnvironmentChangeEvent(Chart chart, int startTime, int endTime, EnvironmentOption environment)
+    public EditableEnvironmentChangeEvent(Chart chart, int startTime, int endTime, Environment environment)
         : base(chart, startTime, endTime, environment) {}
+
+	public EditableEnvironmentChangeEvent(EditableChart chart, EnvironmentChangeEvent evt)
+		: base(chart, evt.StartTime, evt.EndTime, evt.Environment) {}
 }

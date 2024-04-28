@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using UnityEngine;
 
 public class Chart : INoteContainer<Note>, IComparable<Chart>
 {
@@ -19,8 +20,8 @@ public class Chart : INoteContainer<Note>, IComparable<Chart>
     protected readonly SortedSet<Note> notes = new();
 	public IReadOnlySortedSet<Note> Notes => (ReadOnlySortedSet<Note>) notes;
 
-    protected readonly SortedSet<EnvironmentChangeEvent> events = new();
-	public IReadOnlySortedSet<EnvironmentChangeEvent> Events => (ReadOnlySortedSet<EnvironmentChangeEvent>) events;
+    protected readonly HashSet<EnvironmentChangeEvent> events = new();
+	public IReadOnlyCollection<EnvironmentChangeEvent> Events => events;
 
 	public IReadOnlyCollection<Note> GetNotesBefore(int time, bool inclusive = true) 
 		=> notes.GetViewBetween(DummyNote.Min, new DummyNote(time, inclusive ? int.MaxValue : int.MinValue));
@@ -144,8 +145,10 @@ public class Chart : INoteContainer<Note>, IComparable<Chart>
 				parser.AssertArgCount(4);
 				int startTime = int.Parse(args[1]);
 				int endTime = int.Parse(args[2]);
-				var environment = Enum.GetValues(typeof(EnvironmentOption)).Cast<EnvironmentOption>()
-					.First(e => e.ToString().ToLower() == args[3].ToLower());
+				if (!EnvironmentManager.Environments.TryGetValue(args[3].ToLower(), out Environment environment))
+				{
+					throw new ArgumentException($"Invalid environment name '{args[3]}'");
+				}
 				events.Add(new EnvironmentChangeEvent(this, startTime, endTime, environment));
 			}
 		});

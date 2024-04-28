@@ -49,5 +49,5 @@ public class LeverSequenceRenderer : NoteRenderer<EditableLeverSequence>, IPoint
         leverNoteRenderer.Init(Track, leverNote);
     }
 
-    protected override void OnLeftClick() => UIManager.SelectedNote = Note;
+    protected override void OnLeftClick() => UIManager.SelectedElement = Note;
 }

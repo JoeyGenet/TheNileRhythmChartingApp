@@ -20,15 +20,15 @@ public class NoteInspectorsUIController : MonoBehaviour
         leverSequenceInspector.gameObject.SetActive(false);
         noNoteSelectedView.SetActive(true);
 
-        UIManager.OnNoteSelected += OnNoteSelected;
+        UIManager.OnElementSelected += OnNoteSelected;
     }
 
     void OnDestroy()
     {
-        UIManager.OnNoteSelected -= OnNoteSelected;
+        UIManager.OnElementSelected -= OnNoteSelected;
     }
 
-    void OnNoteSelected(Note prevNote, Note note)
+    void OnNoteSelected(object prevNote, object note)
     {
         void show<NoteType>(NoteInspector<NoteType> inspector, NoteType note)
         where NoteType : Note, IEditableNote<EditableChart, Note>
@@ -62,11 +62,9 @@ public class NoteInspectorsUIController : MonoBehaviour
                 case EditableLeverSequence leverSequence:
                     hide(leverSequenceInspector);
                     break;
-                case null:
+                default:
                     noNoteSelectedView.SetActive(false);
                     break;
-                default:
-                    throw new Exception($"Unsupported note ${note} for showing an inspector");
             };
             switch (note)
             {
@@ -82,11 +80,9 @@ public class NoteInspectorsUIController : MonoBehaviour
                 case EditableLeverSequence leverSequence:
                     show(leverSequenceInspector, leverSequence);
                     break;
-                case null:
+                default:
                     noNoteSelectedView.SetActive(true);
                     break;
-                default:
-                    throw new Exception($"Unsupported note ${note} for showing an inspector");
             };
         }
         catch (Exception e)

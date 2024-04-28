@@ -51,12 +51,12 @@ public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerClic
         };
     }
 
-    protected override void OnLeftClick() => UIManager.SelectedNote = Note;
+    protected override void OnLeftClick() => UIManager.SelectedElement = Note;
     protected override void OnRightClick() => Note.RemoveSelf();
 
     protected override void OnDragStart()
     {
-        UIManager.SelectedNote = Note;
+        UIManager.SelectedElement = Note;
         dragStartTime = Note.StartTime;
         dragDirChangePosX = pointerEventData.position.x;
     }
