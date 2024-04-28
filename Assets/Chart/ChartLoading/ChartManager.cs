@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -104,7 +105,7 @@ public static class ChartManager
         ChartPackage = new EditableChartPackage();
     }
 
-    public static async void LoadChart(string path)
+    public static async Task LoadChart(string path)
     {
         var pkg = new EditableChartPackage();
         using (var stream = File.OpenRead(path))
