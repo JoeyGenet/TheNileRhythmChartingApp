@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -35,6 +36,7 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerClickHandler, IB
         rect = GetComponent<RectTransform>();
 
         ChartManager.OnChartChanged += DestroyOnChartChanged;
+        UIManager.OnElementSelected += OnElementSelected;
     }
 
     void OnDestroy()
@@ -50,6 +52,32 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerClickHandler, IB
         Vector2 endUIPos = PlaybackManager.Instance.TrackToUIPosition(50, Event.EndTime);
         rect.anchorMin = new Vector2(rect.anchorMin.x, startUIPos.y);
         rect.anchorMax = new Vector2(rect.anchorMax.x, endUIPos.y);
+
+        // Update colors
+        static void setColor(Image image, Color color)
+            => image.color = new Color(color.r, color.g, color.b, image.color.a);
+        setColor(gradientEndColor, Event.Environment.Color);
+        setColor(endHandleColor, Event.Environment.Color);
+    }
+
+    private void OnElementSelected(object previousElement, object newElement)
+    {
+        static void setAlpha(Image image, float alpha)
+            => image.color = new Color(image.color.r, image.color.g, image.color.b, alpha);
+        if (newElement == Event)
+        {
+            setAlpha(gradientStartColor, 1);
+            setAlpha(gradientEndColor, 1);
+            startHandle.gameObject.SetActive(true);
+            endHandle.gameObject.SetActive(true);
+        }
+        else
+        {
+            setAlpha(gradientStartColor, 0);
+            setAlpha(gradientEndColor, 0);
+            startHandle.gameObject.SetActive(false);
+            endHandle.gameObject.SetActive(false);
+        }
     }
 
     void DestroyOnChartChanged(EditableChart prevChart, EditableChart newChart)
@@ -94,12 +122,16 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerClickHandler, IB
         if (dragTimeDiff > 0)
         {
             if (dragEnd) Event.EndTime = UIManager.SnapTime(dragStartEndTime + dragTimeDiff);
+            else Event.EndTime = dragStartEndTime;
             if (dragStart) Event.StartTime = UIManager.SnapTime(dragStartStartTime + dragTimeDiff);
+            else Event.StartTime = dragStartStartTime;
         }
         else if (dragTimeDiff < 0)
         {
             if (dragStart) Event.StartTime = UIManager.SnapTime(dragStartStartTime + dragTimeDiff);
+            else Event.StartTime = dragStartStartTime;
             if (dragEnd) Event.EndTime = UIManager.SnapTime(dragStartEndTime + dragTimeDiff);
+            else Event.EndTime = dragStartEndTime;
         }
     }
     public void OnDrag(PointerEventData eventData)

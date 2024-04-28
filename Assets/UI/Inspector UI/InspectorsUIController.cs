@@ -4,51 +4,65 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
-public class NoteInspectorsUIController : MonoBehaviour
+public class InspectorsUIController : MonoBehaviour
 {
+    [Header("Header")]
+    [SerializeField] GameObject noteInspectorHeader;
+    [SerializeField] GameObject eventInspectorHeader;
+
+    [Header("Inspectors")]
     [SerializeField] ButtonNoteInspector buttonNoteInspector;
     [SerializeField] WheelFlickInspector wheelFlickInspector;
     [SerializeField] WheelSequenceInspector wheelSequenceInspector;
     [SerializeField] LeverSequenceInspector leverSequenceInspector;
-    [SerializeField] GameObject noNoteSelectedView;
+    [SerializeField] EnvironmentChangeInspector environmentChangeInspector;
+    [SerializeField] GameObject noElementSelectedView;
 
     void Awake()
     {
+        noteInspectorHeader.SetActive(true);
+        eventInspectorHeader.SetActive(false);
+
         buttonNoteInspector.gameObject.SetActive(false);
         wheelFlickInspector.gameObject.SetActive(false);
         wheelSequenceInspector.gameObject.SetActive(false);
         leverSequenceInspector.gameObject.SetActive(false);
-        noNoteSelectedView.SetActive(true);
+        environmentChangeInspector.gameObject.SetActive(false);
+        noElementSelectedView.SetActive(true);
 
-        UIManager.OnElementSelected += OnNoteSelected;
+        UIManager.OnElementSelected += OnElementSelected;
     }
 
     void OnDestroy()
     {
-        UIManager.OnElementSelected -= OnNoteSelected;
+        UIManager.OnElementSelected -= OnElementSelected;
     }
 
-    void OnNoteSelected(object prevNote, object note)
+    void OnElementSelected(object prevElement, object element)
     {
         void show<NoteType>(NoteInspector<NoteType> inspector, NoteType note)
         where NoteType : Note, IEditableNote<EditableChart, Note>
         {
             inspector.Show(note);
             inspector.gameObject.SetActive(true);
-            noNoteSelectedView.SetActive(false);
+            noElementSelectedView.SetActive(false);
+            noteInspectorHeader.SetActive(true);
+            eventInspectorHeader.SetActive(false);
         }
         void hide<NoteType>(NoteInspector<NoteType> inspector)
         where NoteType : Note, IEditableNote<EditableChart, Note>
         {
             inspector.Show(null);
             inspector.gameObject.SetActive(false);
-            noNoteSelectedView.SetActive(true);
+            noElementSelectedView.SetActive(true);
+            noteInspectorHeader.SetActive(true);
+            eventInspectorHeader.SetActive(false);
         }
 
 
         try
         {
-            switch (prevNote)
+            switch (prevElement)
             {
                 case EditableButtonNote buttonNote:
                     hide(buttonNoteInspector);
@@ -62,11 +76,18 @@ public class NoteInspectorsUIController : MonoBehaviour
                 case EditableLeverSequence leverSequence:
                     hide(leverSequenceInspector);
                     break;
-                default:
-                    noNoteSelectedView.SetActive(false);
+                case EditableEnvironmentChangeEvent environmentChange:
+                    environmentChangeInspector.Show(null);
+                    environmentChangeInspector.gameObject.SetActive(false);
+                    noElementSelectedView.SetActive(true);
                     break;
+                case null:
+                    noElementSelectedView.SetActive(false);
+                    break;
+                default:
+                    throw new Exception($"Unsupported element ${element} for showing an inspector");
             };
-            switch (note)
+            switch (element)
             {
                 case EditableButtonNote buttonNote:
                     show(buttonNoteInspector, buttonNote);
@@ -80,14 +101,25 @@ public class NoteInspectorsUIController : MonoBehaviour
                 case EditableLeverSequence leverSequence:
                     show(leverSequenceInspector, leverSequence);
                     break;
-                default:
-                    noNoteSelectedView.SetActive(true);
+                case EditableEnvironmentChangeEvent environmentChange:
+                    environmentChangeInspector.Show(environmentChange);
+                    environmentChangeInspector.gameObject.SetActive(true);
+                    noElementSelectedView.SetActive(false);
+                    noteInspectorHeader.SetActive(false);
+                    eventInspectorHeader.SetActive(true);
                     break;
+                case null:
+                    noElementSelectedView.SetActive(true);
+                    noteInspectorHeader.SetActive(true);
+                    eventInspectorHeader.SetActive(false);
+                    break;
+                default:
+                    throw new Exception($"Unsupported element ${element} for showing an inspector");
             };
         }
         catch (Exception e)
         {
-            UIManager.Instance.ShowAlert("Exception While Showing Inspector", $"Tried to show inspector for {note}\n{e.Message}");
+            UIManager.Instance.ShowAlert("Exception While Showing Inspector", $"Tried to show inspector for {element}\n{e.Message}");
             Debug.LogException(e);
         }
         

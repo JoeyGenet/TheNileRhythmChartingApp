@@ -364,7 +364,9 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         Debug.Log("Add environment change");
         var chart = ChartManager.SelectedChart;
         int startTime = PlaybackManager.ClampTime((int) (PlaybackManager.Instance.MillisecondsInChart + PlaybackManager.Instance.VerticalViewSize / 2));
-        chart.AddEvent(new EditableEnvironmentChangeEvent(chart, startTime, startTime + chart.Package.BeatToTime(1), EnvironmentManager.DefaultEnvironment));
+        var evt = new EditableEnvironmentChangeEvent(chart, startTime, startTime + chart.Package.BeatToTime(1), EnvironmentManager.DefaultEnvironment);
+        chart.AddEvent(evt);
+        UIManager.SelectedElement = evt;
     }
     void AddChartEvent(EnvironmentChangeEvent evt)
     {

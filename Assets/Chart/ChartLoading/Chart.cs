@@ -17,11 +17,15 @@ public class Chart : INoteContainer<Note>, IComparable<Chart>
 	public int DifficultyRating => difficultyRating;
 	public string DifficultyName => difficultyName.Trim();
 
-    protected readonly SortedSet<Note> notes = new();
-	public IReadOnlySortedSet<Note> Notes => (ReadOnlySortedSet<Note>) notes;
+	protected Environment environment;
+	public Environment Environment => environment;
 
     protected readonly HashSet<EnvironmentChangeEvent> events = new();
 	public IReadOnlyCollection<EnvironmentChangeEvent> Events => events;
+
+    protected readonly SortedSet<Note> notes = new();
+	public IReadOnlySortedSet<Note> Notes => (ReadOnlySortedSet<Note>) notes;
+
 
 	public IReadOnlyCollection<Note> GetNotesBefore(int time, bool inclusive = true) 
 		=> notes.GetViewBetween(DummyNote.Min, new DummyNote(time, inclusive ? int.MaxValue : int.MinValue));
@@ -52,6 +56,13 @@ public class Chart : INoteContainer<Note>, IComparable<Chart>
 			["Rating"] = val => difficultyRating = int.Parse(val),
 			["Name"] = val => difficultyName = val,
 		});
+
+		parser["Visuals"] = (line, args) => parser.KeyValue(new()
+		{
+			["Environment"] = name => environment = EnvironmentManager.GetEnvironment(name) is Environment env ? env
+				: throw new ArgumentException($"Unsupported environment name '{args[3]}'"),
+		});
+
 
 		parser["Notes"] = (line, args) =>
 		{
@@ -145,9 +156,9 @@ public class Chart : INoteContainer<Note>, IComparable<Chart>
 				parser.AssertArgCount(4);
 				int startTime = int.Parse(args[1]);
 				int endTime = int.Parse(args[2]);
-				if (!EnvironmentManager.Environments.TryGetValue(args[3].ToLower(), out Environment environment))
+				if (EnvironmentManager.GetEnvironment(args[3]) is not Environment environment)
 				{
-					throw new ArgumentException($"Invalid environment name '{args[3]}'");
+					throw new ArgumentException($"Unsupported environment name '{args[3]}'");
 				}
 				events.Add(new EnvironmentChangeEvent(this, startTime, endTime, environment));
 			}

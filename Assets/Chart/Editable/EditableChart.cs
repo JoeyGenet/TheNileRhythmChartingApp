@@ -44,6 +44,12 @@ public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
 		}
     }
 
+	public new Environment Environment
+    {
+        get => base.Environment;
+        set => this.RegisterChange(ref environment, value);
+    }
+
     public EditableChart(EditableChartPackage package) : base(package) {}
     public EditableChart(EditableChartPackage package, Stream stream) : base(package, stream)
 	{
@@ -101,8 +107,11 @@ public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
 		writer.WriteLine($"Name: {DifficultyName}");
 		writer.WriteLine();
 
-		writer.WriteLine("[Notes]");
+		writer.WriteLine("[Visuals]");
+		writer.WriteLine($"Environment: {Environment.Name}");
+		writer.WriteLine();
 
+		writer.WriteLine("[Notes]");
 		static char lrToString(LeftRight lr) => lr switch
 		{
 			LeftRight.Left => 'L',
@@ -118,7 +127,6 @@ public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
 			LeverPos.Middle => '.',
 			_ => throw new Exception($"Unable to serialize LeverPos {pos}"),
 		};
-
 		foreach (Note note in notes)
 		{
 			string line = note switch
@@ -133,6 +141,7 @@ public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
 			};
 			writer.WriteLine(line);
 		}
+		writer.WriteLine();
 
 
 		writer.WriteLine("[Events]");

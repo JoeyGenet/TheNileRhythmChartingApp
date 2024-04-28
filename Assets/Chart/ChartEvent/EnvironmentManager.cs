@@ -10,7 +10,7 @@ public class EnvironmentManager : MonoBehaviour
     public static EnvironmentManager Instance { get; private set; }
 
     [SerializeField] List<Environment> environments = new();
-    public static IReadOnlyDictionary<string, Environment> Environments { get; private set; }
+    public static IReadOnlyList<Environment> Environments => Instance.environments;
     public static Environment DefaultEnvironment => Instance.environments[0];
 
     new Camera camera;
@@ -20,9 +20,10 @@ public class EnvironmentManager : MonoBehaviour
         Instance = this;
         
         camera = GetComponent<Camera>();
-
-        Environments = environments.ToDictionary(env => env.Name.ToLower(), env => env);
     }
+
+    public static Environment GetEnvironment(string name) => Environments.FirstOrDefault(env => env.Name == name);
+    public static int GetEnvironmentIndex(Environment env) => Instance.environments.IndexOf(env);
 
     // Update is called once per frame
     void Update()
