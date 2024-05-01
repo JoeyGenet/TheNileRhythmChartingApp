@@ -35,7 +35,7 @@ public class LeverSequenceInspector : NoteContainerInspector<EditableLeverSequen
 
     protected override EditableLeverNote NewChildNote()
     {
-        LeverNote lastNote = Note.Notes.Max;
+        LeverNote lastNote = Note.Notes.Last;
         int time = lastNote.EndTime + ChartManager.ChartPackage.BeatToTime(1); // place 1 beat after last note
         // TODO: maybe place same distance as prev 2 notes?
         LeverPos pos = lastNote.Pos == LeverPos.Middle ? LeverPos.Left : LeverPos.Middle;

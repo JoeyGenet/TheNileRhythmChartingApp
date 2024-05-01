@@ -27,6 +27,7 @@ public class Chart : INoteContainer<Note>, IComparable<Chart>
     protected readonly SortedSet<Note> notes = new();
 	public IReadOnlySortedSet<Note> Notes => (ReadOnlySortedSet<Note>) notes;
 
+	public bool AddNote(Note note) => notes.Add(note); // Don't remove. for creating test chart in the game
 
 	public IReadOnlyCollection<Note> GetNotesBefore(int time, bool inclusive = true) 
 		=> notes.GetViewBetween(DummyNote.Min, new DummyNote(time, inclusive ? int.MaxValue : int.MinValue));

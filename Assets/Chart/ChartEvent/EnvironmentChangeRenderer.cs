@@ -34,6 +34,14 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerClickHandler, IB
     void Awake()
     {
         rect = GetComponent<RectTransform>();
+        
+        gameObject.SetActive(false);
+        // static void setAlpha(Image image, float alpha)
+        //     => image.color = new Color(image.color.r, image.color.g, image.color.b, alpha);
+        // setAlpha(gradientStartColor, 0);
+        // setAlpha(gradientEndColor, 0);
+        // startHandle.gameObject.SetActive(false);
+        // endHandle.gameObject.SetActive(false);
 
         ChartManager.OnChartChanged += DestroyOnChartChanged;
         UIManager.OnElementSelected += OnElementSelected;
@@ -42,7 +50,6 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerClickHandler, IB
     void Start()
     {
 
-        OnElementSelected(null, null);
     }
 
     void OnDestroy()
@@ -75,17 +82,20 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerClickHandler, IB
             => image.color = new Color(image.color.r, image.color.g, image.color.b, alpha);
         if (newElement == Event)
         {
-            setAlpha(gradientStartColor, 1);
-            setAlpha(gradientEndColor, 1);
-            startHandle.gameObject.SetActive(true);
-            endHandle.gameObject.SetActive(true);
+            gameObject.SetActive(true);
+            // setAlpha(gradientStartColor, 1);
+            // setAlpha(gradientEndColor, 1);
+            // startHandle.gameObject.SetActive(true);
+            // endHandle.gameObject.SetActive(true);
+            transform.SetAsLastSibling();
         }
         else
         {
-            setAlpha(gradientStartColor, 0);
-            setAlpha(gradientEndColor, 0);
-            startHandle.gameObject.SetActive(false);
-            endHandle.gameObject.SetActive(false);
+            gameObject.SetActive(false);
+            // setAlpha(gradientStartColor, 0);
+            // setAlpha(gradientEndColor, 0);
+            // startHandle.gameObject.SetActive(false);
+            // endHandle.gameObject.SetActive(false);
         }
     }
 

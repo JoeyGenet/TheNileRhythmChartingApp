@@ -241,9 +241,11 @@ MonoBehaviour:
   environments:
   - {fileID: 11400000, guid: 7141aea89f4c34c2bad41c76b490884c, type: 2}
   - {fileID: 11400000, guid: e547f420121bb4d589951ae78d2b6f6f, type: 2}
+  - {fileID: 11400000, guid: 4c7b0a371fc204c8584eea60fd4d6b40, type: 2}
   - {fileID: 11400000, guid: 7426effc3b2f74f749885dc4423c9039, type: 2}
   - {fileID: 11400000, guid: 5248ef0237c6d4a34ab2da773ae4ec6f, type: 2}
   - {fileID: 11400000, guid: 273ffc5a853384aefab2a02689195dd4, type: 2}
+  - {fileID: 11400000, guid: a6381f3153b0845f096c9b28e6d1acc9, type: 2}
 --- !u!1 &546658872
 GameObject:
   m_ObjectHideFlags: 0

@@ -4,8 +4,8 @@ using System.Linq;
 
 public interface IReadOnlySortedSet<T> : IReadOnlyCollection<T>
 {
-    T Min { get; }
-    T Max { get; }
+    T First { get; }
+    T Last { get; }
     bool Contains(T item);
     IReadOnlySortedSet<T> GetViewBetween(T lowerValue, T upperValue);
 }
@@ -15,8 +15,8 @@ public readonly struct ReadOnlySortedSet<T> : IReadOnlySortedSet<T>
     readonly SortedSet<T> set;
 
     public int Count => set.Count;
-    public T Min => set.Min;
-    public T Max => set.Max;
+    public T First => set.Min;
+    public T Last => set.Max;
 
     public IEnumerator<T> GetEnumerator() => set.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => set.GetEnumerator();
@@ -40,8 +40,8 @@ where T : B
     readonly SortedSet<B> set;
 
     public int Count => set.Count;
-    public T Min => (T) set.Min;
-    public T Max => (T) set.Max;
+    public T First => (T) set.Min;
+    public T Last => (T) set.Max;
 
     public IEnumerator<T> GetEnumerator() => set.Cast<T>().GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => set.GetEnumerator();

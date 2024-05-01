@@ -49,12 +49,12 @@ public static class ChartManager
             {
                 var newSelectedChart = pkg.Charts.FirstOrDefault(c => c.DifficultyName == SelectedChart.DifficultyName);
                 newSelectedChart ??= pkg.Charts.OrderBy(c => Math.Abs(c.DifficultyRating - SelectedChart.DifficultyRating)).FirstOrDefault();
-                newSelectedChart ??= chartPackage.Charts.Min;
+                newSelectedChart ??= chartPackage.Charts.First;
                 SelectedChart = newSelectedChart;
             }
             else
             {
-                SelectedChart = chartPackage.Charts.Min;
+                SelectedChart = chartPackage.Charts.First;
             }
 
             if (oldPackage != null)

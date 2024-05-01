@@ -212,7 +212,7 @@ public class MetadataUIController : MonoBehaviour
         foreach (var chart in newPackage.Charts) OnChartAdded(chart);
 
         // Select the first chart of the new package
-        ChartManager.SelectedChart = newPackage.Charts.Min;
+        ChartManager.SelectedChart = newPackage.Charts.First;
         // ChartManager.SelectedChart = newPackage.Charts.OrderBy() chartInspectorsParent.GetChild(0).GetComponent<ChartInspector>().Chart;
     }
 

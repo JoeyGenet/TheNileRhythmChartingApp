@@ -78,7 +78,7 @@ public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
 			events.Add(new EditableEnvironmentChangeEvent(this, evt));
 		}
 		LinkEvents();
-		Debug.Log(EventsAsString());
+		// Debug.Log(EventsAsString());
 	}
 
     public bool AddNote(Note note, bool notify = true) => this.RegisterChange(
