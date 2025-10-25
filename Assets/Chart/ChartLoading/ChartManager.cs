@@ -117,6 +117,18 @@ public static class ChartManager
         // OnChartLoaded?.Invoke(path);
     }
 
+    // restore a chart state but do not change the selected chart
+    public static async Task LoadChartState(string path)
+    {
+        var pkg = new EditableChartPackage();
+        using (var stream = File.OpenRead(path))
+        {
+            await pkg.Load(stream);
+        }
+        // trigger reload of notes to restore previous state
+        OnChartChanged?.Invoke(null, pkg.Charts.ElementAt(0));
+    }
+
     public static void SaveChart(string path)
     {
         using (var stream = File.Open(path, FileMode.Create))
@@ -126,6 +138,15 @@ public static class ChartManager
         ChartPath = path;
         // HasChanges = false;
         // OnChartSaved?.Invoke(path);
+    }
+
+    // record the current state of the chart but do not update the chart path.
+    public static void SaveChartState(string path)
+    {
+        using (var stream = File.Open(path, FileMode.Create))
+        {
+            ChartPackage.Save(stream);
+        }
     }
 
     static void SendOnChartAdded(EditableChart chart) => OnChartAdded?.Invoke(chart);

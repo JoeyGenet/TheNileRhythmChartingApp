@@ -15,7 +15,7 @@ where C : IEditableNoteContainer<NoteType>
 {}
 
 [RequireComponent(typeof(RectTransform))]
-public abstract class NoteRenderer<NoteType, C, N> : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDragHandler
+public abstract class NoteRenderer<NoteType, C, N> : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
 where NoteType : N, IEditableNote<C, N>
 where N : Note
 where C : IEditableNoteContainer<N>
@@ -119,6 +119,8 @@ where C : IEditableNoteContainer<N>
         OnDragStart();
     }
 
+    // TODO: when note is dragged, we need to track how it is changed and log it to undo log
+    // This is start of the note changing behavior
     public virtual void OnDrag(PointerEventData eventData)
     {
         if (eventData.button != PointerEventData.InputButton.Left) return;
@@ -131,6 +133,13 @@ where C : IEditableNoteContainer<N>
         OnDrag();
     }
 
+    public virtual void OnEndDrag(PointerEventData eventData)
+    {
+        IEditableExtensions.AddEditHistoryEntry();
+        OnEndDrag();
+    }
+
     protected virtual void OnDragStart() {}
     protected virtual void OnDrag() {}
+    protected virtual void OnEndDrag() {}
 }

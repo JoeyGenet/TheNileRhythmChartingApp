@@ -71,10 +71,11 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         Reload();
     }
 
+    // TODO: before, ChartManager.selectedChart was being used--was there a reason newChart was not being used here?
     void Reload(EditableChart oldChart = null, EditableChart newChart = null)
     {
-        foreach (var note in ChartManager.SelectedChart.Notes) AddNote(note);
-        foreach (var evt in ChartManager.SelectedChart.Events) AddChartEvent(evt);
+        foreach (var note in newChart.Notes) AddNote(note);
+        foreach (var evt in newChart.Events) AddChartEvent(evt);
     }
 
     void ReloadBeatMarkers()
