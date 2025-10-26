@@ -125,8 +125,11 @@ public static class ChartManager
         {
             await pkg.Load(stream);
         }
+        // TODO: what does changing the chart package really do?
         // trigger reload of notes to restore previous state
-        OnChartChanged?.Invoke(null, pkg.Charts.ElementAt(0));
+        ChartPackage = pkg;
+        // OnChartChanged?.Invoke(null, pkg.Charts.ElementAt(0));
+        // OnChartPackageChanged?.Invoke(null, pkg);
     }
 
     public static void SaveChart(string path)

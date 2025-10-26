@@ -59,6 +59,7 @@ public class LoadSaveUIController : MonoBehaviour
             try 
             {
                 await ChartManager.LoadChart(paths[0]);
+                IEditableExtensions.ResetEditHistory();
             }
             catch (Exception e)
             {

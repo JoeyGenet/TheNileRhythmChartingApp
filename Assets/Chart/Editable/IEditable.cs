@@ -58,8 +58,19 @@ public static class IEditableExtensions
     // -1 signifies empty edit history
     private static int currentEditHistoryHead = -1;
     private const int maxSaveStateCount = 20;
+    // TODO: make this dynamic with maxSaveStateCount
     private static Queue<int> freeSaveStateSlots = new Queue<int>(new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 });
     private static List<int> usedSaveStateSlots = new List<int>();
+
+    public static void ResetEditHistory()
+    {
+        // TODO: implement this
+        editHistory = new List<EditLogEntry>();
+        currentEditHistoryHead = -1;
+        new Queue<int>(new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 });
+        usedSaveStateSlots = new List<int>();
+        AddEditHistoryEntry();
+    }
 
     // TODO: make sure old chart states are properly deleted/cleared
     public static void AddEditHistoryEntry()
