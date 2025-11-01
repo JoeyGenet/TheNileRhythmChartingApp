@@ -7,8 +7,8 @@ public class UndoRedoUIController : MonoBehaviour
 
     void Awake()
     {
-        // undoEvent.Event.AddListener(EditHistoryManager.Undo);
-        // redoEvent.Event.AddListener(EditHistoryManager.Redo);
+        undoEvent.Event.AddListener(EditHistoryManager.Undo);
+        redoEvent.Event.AddListener(EditHistoryManager.Redo);
     }
 
 }
