@@ -100,7 +100,18 @@ public class EditableWheelSequence : WheelSequence, IEditableNote<EditableChart,
 		InitializeNotes(seq.Notes.Select(turn => new EditableWheelTurn(this, turn.EndTime, turn.DeltaAngle)));
 	}
 
-	public bool AddNote(EditableWheelTurn note, bool notify = true) => this.RegisterChange(
+	public bool AddNote(EditableWheelTurn note, bool notify = true)
+	{
+		// track undo/redoable note add action
+		if (notify)
+		{
+			AddNoteToWheelSequenceAction addNoteToWheelSequenceAction = new AddNoteToWheelSequenceAction(note, this);
+			addNoteToWheelSequenceAction.AddAction();
+		}
+		return AddNoteToSequence(note, notify);
+	}
+	// when redoing note add or undoing note remove, only this is called
+	public bool AddNoteToSequence(EditableWheelTurn note, bool notify = true) => this.RegisterChange(
 		() =>
 		{
 			if (notes.Contains(note)) return false;
@@ -124,7 +135,18 @@ public class EditableWheelSequence : WheelSequence, IEditableNote<EditableChart,
 		onChanged: () => OnNoteAdded?.Invoke(note)
 	);
 
-	public bool RemoveNote(EditableWheelTurn note, bool notify = true) => this.RegisterChange(
+	public bool RemoveNote(EditableWheelTurn note, bool notify = true)
+	{
+		// track undo/redoable note remove action
+		if (notify)
+		{
+			RemoveNoteFromWheelSequenceAction removeNoteFromWheelSequenceAction = new RemoveNoteFromWheelSequenceAction(note, this);
+			removeNoteFromWheelSequenceAction.AddAction();
+		}
+		return RemoveNoteFromSequence(note, notify);
+	}
+	// when redoing note remove or undoing note add, only this is called
+	public bool RemoveNoteFromSequence(EditableWheelTurn note, bool notify = true) => this.RegisterChange(
 		() =>
 		{
 			if (!notes.Contains(note)) return false;

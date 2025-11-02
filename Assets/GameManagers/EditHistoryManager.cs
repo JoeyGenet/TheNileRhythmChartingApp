@@ -145,3 +145,53 @@ public class RemoveNoteAction : UndoRedoAction
         editableChart.AddNoteToChart(note, true);
     }
 }
+
+// MARK: Sequence Notes
+
+public class AddNoteToWheelSequenceAction : UndoRedoAction
+{
+    [SerializeField] private EditableWheelSequence editableWheelSequence;
+    [SerializeField] private EditableWheelTurn editableWheelTurn;
+
+    public AddNoteToWheelSequenceAction(EditableWheelTurn editableWheelTurn, EditableWheelSequence editableWheelSequence)
+    {
+        this.editableWheelSequence = editableWheelSequence;
+        this.editableWheelTurn = editableWheelTurn;
+    }
+
+    public override void Redo()
+    {
+        Debug.Log("Redo wheel turn note sequence add");
+        editableWheelSequence.AddNoteToSequence(editableWheelTurn, true);
+    }
+
+    public override void Undo()
+    {
+        Debug.Log("Undo wheel turn note sequence add");
+        editableWheelSequence.RemoveNoteFromSequence(editableWheelTurn, true);
+    }
+}
+
+public class RemoveNoteFromWheelSequenceAction : UndoRedoAction
+{
+    [SerializeField] private EditableWheelSequence editableWheelSequence;
+    [SerializeField] private EditableWheelTurn editableWheelTurn;
+
+    public RemoveNoteFromWheelSequenceAction(EditableWheelTurn editableWheelTurn, EditableWheelSequence editableWheelSequence)
+    {
+        this.editableWheelSequence = editableWheelSequence;
+        this.editableWheelTurn = editableWheelTurn;
+    }
+
+    public override void Redo()
+    {
+        Debug.Log("Redo wheel turn note sequence remove");
+        editableWheelSequence.RemoveNoteFromSequence(editableWheelTurn, true);
+    }
+
+    public override void Undo()
+    {
+        Debug.Log("Undo wheel turn note sequence remove");
+        editableWheelSequence.AddNoteToSequence(editableWheelTurn, true);
+    }
+}
