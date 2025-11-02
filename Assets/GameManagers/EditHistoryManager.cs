@@ -64,6 +64,7 @@ public abstract class UndoRedoAction
 // specific classes for different actions you can perform in the editor
 // each defines its own parameters and behavior for undo/redo
 
+// MARK: Button note classes
 public class MoveButtonNoteAction : UndoRedoAction
 {
     [SerializeField] private EditableButtonNote buttonNote;
@@ -94,5 +95,53 @@ public class MoveButtonNoteAction : UndoRedoAction
         buttonNote.StartTime -= startTimeDelta;
         buttonNote.LeftPos -= leftPosDelta;
         buttonNote.RightPos -= rightPosDelta;
+    }
+}
+
+public class AddNoteAction : UndoRedoAction
+{
+    [SerializeField] private EditableChart editableChart;
+    [SerializeField] private Note note;
+
+    public AddNoteAction(Note note, EditableChart editableChart)
+    {
+        this.editableChart = editableChart;
+        this.note = note;
+    }
+
+    public override void Redo()
+    {
+        Debug.Log("Redo note add");
+        editableChart.AddNoteToChart(note, true);
+    }
+
+    public override void Undo()
+    {
+        Debug.Log("Undo note add");
+        editableChart.RemoveNoteFromChart(note, true);
+    }
+}
+
+public class RemoveNoteAction : UndoRedoAction
+{
+    [SerializeField] private EditableChart editableChart;
+    [SerializeField] private Note note;
+
+    public RemoveNoteAction(Note note, EditableChart editableChart)
+    {
+        this.editableChart = editableChart;
+        this.note = note;
+    }
+
+    public override void Redo()
+    {
+        Debug.Log("Redo note remove");
+        editableChart.RemoveNoteFromChart(note, true);
+    }
+
+    public override void Undo()
+    {
+        Debug.Log("Undo note remove");
+        editableChart.AddNoteToChart(note, true);
     }
 }
