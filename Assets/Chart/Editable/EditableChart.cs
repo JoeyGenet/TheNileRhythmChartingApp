@@ -81,37 +81,34 @@ public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
 		// Debug.Log(EventsAsString());
 	}
 
-	public bool AddNote(Note note, bool notify = true)
+	public bool AddNote(Note note, bool notify = true, bool updateEditHistory = true)
 	{
 		// track undo/redoable note add action
-		if (notify)
+		if (updateEditHistory)
 		{
 			AddNoteAction noteAddAction = new AddNoteAction(note, this);
 			noteAddAction.AddAction();
 		}
-		return AddNoteToChart(note, notify);
+		return this.RegisterChange
+		(
+			() => notes.Add(note) && notify,
+			() => OnNoteAdded?.Invoke(note)
+		);
 	}
-	// when redoing note add or undoing note remove, only this is called
-	public bool AddNoteToChart(Note note, bool notify = true) => this.RegisterChange(
-		() => notes.Add(note) && notify,
-		() => OnNoteAdded?.Invoke(note)
-	);
 
-	public bool RemoveNote(Note note, bool notify = true)
+	public bool RemoveNote(Note note, bool notify = true, bool updateEditHistory = true)
 	{
 		// track undo/redoable note remove action
-		if (notify)
+		if (updateEditHistory)
 		{
 			RemoveNoteAction removeNoteAction = new RemoveNoteAction(note, this);
 			removeNoteAction.AddAction();
 		}
-		return RemoveNoteFromChart(note, notify);
+		return this.RegisterChange(
+			() => notes.Remove(note) && notify,
+			() => OnNoteRemoved?.Invoke(note)
+		);
 	}
-	// when redoing note remove or undoing note add, only this is called
-	public bool RemoveNoteFromChart(Note note, bool notify = true) => this.RegisterChange(
-		() => notes.Remove(note) && notify,
-		() => OnNoteRemoved?.Invoke(note)
-	);
 	
 	public bool ContainsNote(Note note) => notes.Contains(note);
 	public void NotifyMoved(Note note) => OnNoteMoved?.Invoke(note);

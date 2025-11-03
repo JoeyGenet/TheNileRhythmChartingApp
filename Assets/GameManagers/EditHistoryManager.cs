@@ -112,13 +112,13 @@ public class AddNoteAction : UndoRedoAction
     public override void Redo()
     {
         Debug.Log("Redo note add");
-        editableChart.AddNoteToChart(note, true);
+        editableChart.AddNote(note, notify: true, updateEditHistory: false);
     }
 
     public override void Undo()
     {
         Debug.Log("Undo note add");
-        editableChart.RemoveNoteFromChart(note, true);
+        editableChart.RemoveNote(note, notify: true, updateEditHistory: false);
     }
 }
 
@@ -136,13 +136,13 @@ public class RemoveNoteAction : UndoRedoAction
     public override void Redo()
     {
         Debug.Log("Redo note remove");
-        editableChart.RemoveNoteFromChart(note, true);
+        editableChart.RemoveNote(note, notify: true, updateEditHistory: false);
     }
 
     public override void Undo()
     {
         Debug.Log("Undo note remove");
-        editableChart.AddNoteToChart(note, true);
+        editableChart.AddNote(note, notify: true, updateEditHistory: false);
     }
 }
 
@@ -162,13 +162,13 @@ public class AddNoteToWheelSequenceAction : UndoRedoAction
     public override void Redo()
     {
         Debug.Log("Redo wheel turn note sequence add");
-        editableWheelSequence.AddNoteToSequence(editableWheelTurn, true);
+        editableWheelSequence.AddNote(editableWheelTurn, notify: true, updateEditHistory: false);
     }
 
     public override void Undo()
     {
         Debug.Log("Undo wheel turn note sequence add");
-        editableWheelSequence.RemoveNoteFromSequence(editableWheelTurn, true);
+        editableWheelSequence.RemoveNote(editableWheelTurn, notify: true, updateEditHistory: false);
     }
 }
 
@@ -186,12 +186,12 @@ public class RemoveNoteFromWheelSequenceAction : UndoRedoAction
     public override void Redo()
     {
         Debug.Log("Redo wheel turn note sequence remove");
-        editableWheelSequence.RemoveNoteFromSequence(editableWheelTurn, true);
+        editableWheelSequence.RemoveNote(editableWheelTurn, notify: true, updateEditHistory: false);
     }
 
     public override void Undo()
     {
         Debug.Log("Undo wheel turn note sequence remove");
-        editableWheelSequence.AddNoteToSequence(editableWheelTurn, true);
+        editableWheelSequence.AddNote(editableWheelTurn, notify: true, updateEditHistory: false);
     }
 }
