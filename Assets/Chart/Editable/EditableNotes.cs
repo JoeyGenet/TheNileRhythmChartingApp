@@ -248,43 +248,61 @@ public class EditableLeverSequence : LeverSequence, IEditableNote<EditableChart,
 
 	// TODO: update linked list
 	// TODO: register sorting change when adding/removing a lever note caused start time to change
-    public bool AddNote(EditableLeverNote note, bool notify = true, bool updateEditHistory = true) => this.RegisterChange(
-		() =>
+	public bool AddNote(EditableLeverNote note, bool notify = true, bool updateEditHistory = true)
+	{
+		// track undo/redoable note remove action
+		if (updateEditHistory)
 		{
-			if (notes.Contains(note)) return false;
+			AddNoteToLeverSequenceAction addNoteToLeverSequenceAction = new AddNoteToLeverSequenceAction(note, this);
+			addNoteToLeverSequenceAction.CommitAction();
+		}
+		return this.RegisterChange
+		(() =>
+			{
+				if (notes.Contains(note)) return false;
 
-			// Note will be inserted between these 2 notes:
-			EditableLeverNote prevNote = (EditableLeverNote) notes.GetViewBetween(DummyLeverNote.Min, note).Max;
-			EditableLeverNote nextNote = prevNote == null ? (EditableLeverNote) notes.Min : prevNote.NextNote;
+				// Note will be inserted between these 2 notes:
+				EditableLeverNote prevNote = (EditableLeverNote)notes.GetViewBetween(DummyLeverNote.Min, note).Max;
+				EditableLeverNote nextNote = prevNote == null ? (EditableLeverNote)notes.Min : prevNote.NextNote;
 
-			// Update linked list
-			if (prevNote != null) prevNote.NextNote = note;
-			if (nextNote != null) nextNote.PreviousNote = note;
-			note.NextNote = nextNote;
-			note.PreviousNote = prevNote;
+				// Update linked list
+				if (prevNote != null) prevNote.NextNote = note;
+				if (nextNote != null) nextNote.PreviousNote = note;
+				note.NextNote = nextNote;
+				note.PreviousNote = prevNote;
 
-			Assert.IsTrue(notes.Add(note));
-			return notify;
-		},
-		onChanged: () => OnNoteAdded?.Invoke(note)
-	);
+				Assert.IsTrue(notes.Add(note));
+				return notify;
+			},
+			onChanged: () => OnNoteAdded?.Invoke(note)
+		);
+	}
 
-    public bool RemoveNote(EditableLeverNote note, bool notify = true, bool updateEditHistory = true) => this.RegisterChange(
-		() => 
+	public bool RemoveNote(EditableLeverNote note, bool notify = true, bool updateEditHistory = true)
+	{
+		// track undo/redoable note remove action
+		if (updateEditHistory)
 		{
-			if (!notes.Contains(note)) return false;
+			RemoveNoteFromLeverSequenceAction removeNoteFromLeverSequenceAction = new RemoveNoteFromLeverSequenceAction(note, this);
+			removeNoteFromLeverSequenceAction.CommitAction();
+		}
+		return this.RegisterChange
+		(() =>
+			{
+				if (!notes.Contains(note)) return false;
 
-			// Update linked list
-			if (note.PreviousNote != null) note.PreviousNote.NextNote = note.NextNote;
-			if (note.NextNote != null) note.NextNote.PreviousNote = note.PreviousNote;
+				// Update linked list
+				if (note.PreviousNote != null) note.PreviousNote.NextNote = note.NextNote;
+				if (note.NextNote != null) note.NextNote.PreviousNote = note.PreviousNote;
 
-			note.PreviousNote = note.NextNote = null;
+				note.PreviousNote = note.NextNote = null;
 
-			Assert.IsTrue(notes.Remove(note));
-			return notify;
-		},
-		onChanged: () => OnNoteRemoved?.Invoke(note)
-	);
+				Assert.IsTrue(notes.Remove(note));
+				return notify;
+			},
+			onChanged: () => OnNoteRemoved?.Invoke(note)
+		);
+	}
 
 	public void NotifyMoved(EditableLeverNote note) => OnNoteMoved?.Invoke(note);
 
