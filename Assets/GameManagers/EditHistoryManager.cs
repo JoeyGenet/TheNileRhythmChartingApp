@@ -7,7 +7,7 @@ public static class EditHistoryManager
     private static List<UndoRedoAction> editHistory = new List<UndoRedoAction>();
     private static int editHistoryHeadIndex = -1;
 
-    public static void AddAction(UndoRedoAction newAction)
+    public static void CommitAction(UndoRedoAction newAction)
     {
         Debug.Log("AddAction called");
         // remove any history entries above the current head when we make a new change
@@ -47,9 +47,9 @@ public abstract class UndoRedoAction
     // each action has its own arguments that are serialized here
 
     // serialize the arguments necessary for the action and call Redo() to perform it
-    public void AddAction()
+    public void CommitAction()
     {
-        EditHistoryManager.AddAction(this);
+        EditHistoryManager.CommitAction(this);
         // Redo();
     }
 

@@ -119,6 +119,6 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
         }
 
         MoveButtonNoteAction moveButtonNoteAction = new MoveButtonNoteAction(Note, startTimeDelta, leftPosDelta, rightPosDelta);
-        moveButtonNoteAction.AddAction();
+        moveButtonNoteAction.CommitAction();
     }
 }

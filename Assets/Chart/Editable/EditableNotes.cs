@@ -106,7 +106,7 @@ public class EditableWheelSequence : WheelSequence, IEditableNote<EditableChart,
 		if (updateEditHistory)
 		{
 			AddNoteToWheelSequenceAction addNoteToWheelSequenceAction = new AddNoteToWheelSequenceAction(note, this);
-			addNoteToWheelSequenceAction.AddAction();
+			addNoteToWheelSequenceAction.CommitAction();
 		}
 
 		return this.RegisterChange
@@ -140,7 +140,7 @@ public class EditableWheelSequence : WheelSequence, IEditableNote<EditableChart,
 		if (updateEditHistory)
 		{
 			RemoveNoteFromWheelSequenceAction removeNoteFromWheelSequenceAction = new RemoveNoteFromWheelSequenceAction(note, this);
-			removeNoteFromWheelSequenceAction.AddAction();
+			removeNoteFromWheelSequenceAction.CommitAction();
 		}
 		return this.RegisterChange
 		( () =>

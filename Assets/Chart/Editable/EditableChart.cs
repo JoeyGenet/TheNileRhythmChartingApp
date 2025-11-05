@@ -87,7 +87,7 @@ public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
 		if (updateEditHistory)
 		{
 			AddNoteAction noteAddAction = new AddNoteAction(note, this);
-			noteAddAction.AddAction();
+			noteAddAction.CommitAction();
 		}
 		return this.RegisterChange
 		(
@@ -102,7 +102,7 @@ public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
 		if (updateEditHistory)
 		{
 			RemoveNoteAction removeNoteAction = new RemoveNoteAction(note, this);
-			removeNoteAction.AddAction();
+			removeNoteAction.CommitAction();
 		}
 		return this.RegisterChange(
 			() => notes.Remove(note) && notify,
