@@ -9,7 +9,6 @@ public static class EditHistoryManager
 
     public static void CommitAction(UndoRedoAction newAction)
     {
-        Debug.Log("AddAction called");
         // remove any history entries above the current head when we make a new change
         if (editHistory.Count != 0 && editHistoryHeadIndex + 1 < editHistory.Count)
         {
@@ -18,32 +17,36 @@ public static class EditHistoryManager
             editHistory.RemoveRange(firstOverwrittenIndex, numberOfEntriesToRemove);
         }
         editHistory.Add(newAction);
+        Debug.Log("Performed "+newAction.Message);
         editHistoryHeadIndex += 1;
     }
 
     public static void Undo()
     {
-        Debug.Log("Undo button pressed");
         if (editHistoryHeadIndex >= 0)
         {
             editHistory[editHistoryHeadIndex].Undo();
+            Debug.Log("Undid "+editHistory[editHistoryHeadIndex].Message);
             editHistoryHeadIndex -= 1;
         }
     }
 
     public static void Redo()
     {
-        Debug.Log("Redo button pressed");
         if (editHistoryHeadIndex < editHistory.Count - 1)
         {
             editHistoryHeadIndex += 1;
             editHistory[editHistoryHeadIndex].Redo();
+            Debug.Log("Redid "+editHistory[editHistoryHeadIndex].Message);
         }
     }
 }
 
 public abstract class UndoRedoAction
 {
+    // message that describes the action performed, i.e. "add note"
+    public abstract string Message { get; }
+
     // each action has its own arguments that are serialized here
 
     // serialize the arguments necessary for the action and call Redo() to perform it
@@ -67,6 +70,7 @@ public abstract class UndoRedoAction
 // MARK: Button note classes
 public class MoveButtonNoteAction : UndoRedoAction
 {
+    public override string Message { get {return "move button note"; } }
     [SerializeField] private EditableButtonNote buttonNote;
     [SerializeField] private int startTimeDelta;
     [SerializeField] private int leftPosDelta;
@@ -82,7 +86,6 @@ public class MoveButtonNoteAction : UndoRedoAction
 
     public override void Redo()
     {
-        Debug.Log("Redo button note move");
         buttonNote.StartTime += startTimeDelta;
         buttonNote.LeftPos += leftPosDelta;
         buttonNote.RightPos += rightPosDelta;
@@ -91,7 +94,6 @@ public class MoveButtonNoteAction : UndoRedoAction
 
     public override void Undo()
     {
-        Debug.Log("Undo button note move");
         buttonNote.StartTime -= startTimeDelta;
         buttonNote.LeftPos -= leftPosDelta;
         buttonNote.RightPos -= rightPosDelta;
@@ -100,6 +102,7 @@ public class MoveButtonNoteAction : UndoRedoAction
 
 public class AddNoteAction : UndoRedoAction
 {
+    public override string Message { get {return "add "+note?.GetType(); } }
     [SerializeField] private EditableChart editableChart;
     [SerializeField] private Note note;
 
@@ -111,19 +114,18 @@ public class AddNoteAction : UndoRedoAction
 
     public override void Redo()
     {
-        Debug.Log("Redo note add");
         editableChart.AddNote(note, notify: true, updateEditHistory: false);
     }
 
     public override void Undo()
     {
-        Debug.Log("Undo note add");
         editableChart.RemoveNote(note, notify: true, updateEditHistory: false);
     }
 }
 
 public class RemoveNoteAction : UndoRedoAction
 {
+    public override string Message { get {return "remove "+note?.GetType(); } }
     [SerializeField] private EditableChart editableChart;
     [SerializeField] private Note note;
 
@@ -135,13 +137,11 @@ public class RemoveNoteAction : UndoRedoAction
 
     public override void Redo()
     {
-        Debug.Log("Redo note remove");
         editableChart.RemoveNote(note, notify: true, updateEditHistory: false);
     }
 
     public override void Undo()
     {
-        Debug.Log("Undo note remove");
         editableChart.AddNote(note, notify: true, updateEditHistory: false);
     }
 }
@@ -150,6 +150,7 @@ public class RemoveNoteAction : UndoRedoAction
 
 public class AddNoteToWheelSequenceAction : UndoRedoAction
 {
+    public override string Message { get {return "add note to wheel sequence"; } }
     [SerializeField] private EditableWheelSequence editableWheelSequence;
     [SerializeField] private EditableWheelTurn editableWheelTurn;
 
@@ -161,19 +162,18 @@ public class AddNoteToWheelSequenceAction : UndoRedoAction
 
     public override void Redo()
     {
-        Debug.Log("Redo wheel turn note sequence add");
         editableWheelSequence.AddNote(editableWheelTurn, notify: true, updateEditHistory: false);
     }
 
     public override void Undo()
     {
-        Debug.Log("Undo wheel turn note sequence add");
         editableWheelSequence.RemoveNote(editableWheelTurn, notify: true, updateEditHistory: false);
     }
 }
 
 public class RemoveNoteFromWheelSequenceAction : UndoRedoAction
 {
+    public override string Message { get {return "remove note from wheel sequence"; } }
     [SerializeField] private EditableWheelSequence editableWheelSequence;
     [SerializeField] private EditableWheelTurn editableWheelTurn;
 
@@ -185,19 +185,18 @@ public class RemoveNoteFromWheelSequenceAction : UndoRedoAction
 
     public override void Redo()
     {
-        Debug.Log("Redo wheel turn note sequence remove");
         editableWheelSequence.RemoveNote(editableWheelTurn, notify: true, updateEditHistory: false);
     }
 
     public override void Undo()
     {
-        Debug.Log("Undo wheel turn note sequence remove");
         editableWheelSequence.AddNote(editableWheelTurn, notify: true, updateEditHistory: false);
     }
 }
 
 public class AddNoteToLeverSequenceAction : UndoRedoAction
 {
+    public override string Message { get {return "add note to lever sequence"; } }
     [SerializeField] private EditableLeverSequence editableLeverSequence;
     [SerializeField] private EditableLeverNote editableLeverNote;
 
@@ -209,19 +208,18 @@ public class AddNoteToLeverSequenceAction : UndoRedoAction
 
     public override void Redo()
     {
-        Debug.Log("Redo wheel turn note sequence add");
         editableLeverSequence.AddNote(editableLeverNote, notify: true, updateEditHistory: false);
     }
 
     public override void Undo()
     {
-        Debug.Log("Undo wheel turn note sequence add");
         editableLeverSequence.RemoveNote(editableLeverNote, notify: true, updateEditHistory: false);
     }
 }
 
 public class RemoveNoteFromLeverSequenceAction : UndoRedoAction
 {
+    public override string Message { get {return "remove note from lever sequence"; } }
     [SerializeField] private EditableLeverSequence editableLeverSequence;
     [SerializeField] private EditableLeverNote editableLeverNote;
 
@@ -233,13 +231,11 @@ public class RemoveNoteFromLeverSequenceAction : UndoRedoAction
 
     public override void Redo()
     {
-        Debug.Log("Redo wheel turn note sequence remove");
         editableLeverSequence.RemoveNote(editableLeverNote, notify: true, updateEditHistory: false);
     }
 
     public override void Undo()
     {
-        Debug.Log("Undo wheel turn note sequence remove");
         editableLeverSequence.AddNote(editableLeverNote, notify: true, updateEditHistory: false);
     }
 }
