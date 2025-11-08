@@ -109,16 +109,10 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
     protected override void OnEndDrag()
     {
         int startTimeDelta = Note.StartTime - dragStartTime;
-        int leftPosDelta;
-        int rightPosDelta = 0;
+        int newLeftPos = Note.LeftPos;
+        int? newRightPos = Note.RightPos;
 
-        leftPosDelta = Note.LeftPos - dragStartLeftPos;
-        if (Note.RightPos is int rightPos && dragStartRightPos is int startRightPos)
-        {
-            rightPosDelta = rightPos - startRightPos;
-        }
-
-        MoveButtonNoteAction moveButtonNoteAction = new MoveButtonNoteAction(Note, startTimeDelta, leftPosDelta, rightPosDelta);
+        EditButtonNoteAction moveButtonNoteAction = new EditButtonNoteAction(Note, startTimeDelta, dragStartLeftPos, dragStartRightPos, newLeftPos, newRightPos);
         moveButtonNoteAction.CommitAction();
     }
 }

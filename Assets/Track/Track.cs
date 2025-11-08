@@ -171,6 +171,8 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
                 showButtonNoteCursor = true;
                 if (addToButtonNote)
                 {
+                    int oldLeftPos = closestButtonNote.LeftPos;
+                    int? oldRightPos = closestButtonNote.RightPos; 
                     var existingAnchor = PlaybackManager.Instance.TrackToUIPosition(closestButtonNote.LeftPos, closestButtonNote.StartTime);
                     var newAnchor = PlaybackManager.Instance.TrackToUIPosition(pos, closestButtonNote.StartTime);
                     if (closestButtonNote.LeftPos > pos)
@@ -193,6 +195,16 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
                             closestButtonNote.RightPos = pos;
                             UIManager.SelectedElement = closestButtonNote;
                         }
+                    }
+                    
+                    // adding a linked button note is essentially changing the left and/or right note position
+                    // log this action in edit history as MoveButtonNoteAction
+                    if (placeNote)
+                    {
+                        int newLeftPos = closestButtonNote.LeftPos;
+                        int? newRightPos = closestButtonNote.RightPos; 
+                        EditButtonNoteAction moveButtonNoteAction = new EditButtonNoteAction(closestButtonNote, 0, oldLeftPos, oldRightPos, newLeftPos, newRightPos);
+                        moveButtonNoteAction.CommitAction();
                     }
                 }
                 else

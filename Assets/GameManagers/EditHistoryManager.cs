@@ -118,35 +118,40 @@ public class RemoveNoteAction : UndoRedoAction
 }
 
 // MARK: Button note actions
-public class MoveButtonNoteAction : UndoRedoAction
+public class EditButtonNoteAction : UndoRedoAction
 {
-    public override string Message { get {return "move button note"; } }
+    public override string Message { get {return "edit button note"; } }
     [SerializeField] private EditableButtonNote buttonNote;
     [SerializeField] private int startTimeDelta;
-    [SerializeField] private int leftPosDelta;
-    [SerializeField] private int rightPosDelta;
+    [SerializeField] private int oldLeftPos;
+    [SerializeField] private int? oldRightPos;
+    [SerializeField] private int newLeftPos;
+    [SerializeField] private int? newRightPos;
 
-    public MoveButtonNoteAction(EditableButtonNote buttonNote, int startTimeDelta, int leftPosDelta, int rightPosDelta)
+    public EditButtonNoteAction(EditableButtonNote buttonNote, int startTimeDelta, int oldLeftPos, int? oldRightPos,
+                                int newLeftPos, int? newRightPos)
     {
         this.buttonNote = buttonNote;
         this.startTimeDelta = startTimeDelta;
-        this.leftPosDelta = leftPosDelta;
-        this.rightPosDelta = rightPosDelta;
+        this.oldLeftPos = oldLeftPos;
+        this.oldRightPos = oldRightPos;        
+        this.newLeftPos = newLeftPos;
+        this.newRightPos = newRightPos;
     }
 
     public override void Redo()
     {
         buttonNote.StartTime += startTimeDelta;
-        buttonNote.LeftPos += leftPosDelta;
-        buttonNote.RightPos += rightPosDelta;
+        buttonNote.LeftPos = newLeftPos;
+        buttonNote.RightPos = newRightPos;
 
     }
 
     public override void Undo()
     {
         buttonNote.StartTime -= startTimeDelta;
-        buttonNote.LeftPos -= leftPosDelta;
-        buttonNote.RightPos -= rightPosDelta;
+        buttonNote.LeftPos = oldLeftPos;
+        buttonNote.RightPos = oldRightPos;
     }
 }
 
