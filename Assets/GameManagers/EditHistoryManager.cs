@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+// MARK: Manager
+
 public static class EditHistoryManager
 {
     private static List<UndoRedoAction> editHistory = new List<UndoRedoAction>();
@@ -17,7 +19,7 @@ public static class EditHistoryManager
             editHistory.RemoveRange(firstOverwrittenIndex, numberOfEntriesToRemove);
         }
         editHistory.Add(newAction);
-        Debug.Log("Performed "+newAction.Message);
+        Debug.Log("Performed " + newAction.Message);
         editHistoryHeadIndex += 1;
     }
 
@@ -26,7 +28,7 @@ public static class EditHistoryManager
         if (editHistoryHeadIndex >= 0)
         {
             editHistory[editHistoryHeadIndex].Undo();
-            Debug.Log("Undid "+editHistory[editHistoryHeadIndex].Message);
+            Debug.Log("Undid " + editHistory[editHistoryHeadIndex].Message);
             editHistoryHeadIndex -= 1;
         }
     }
@@ -37,10 +39,12 @@ public static class EditHistoryManager
         {
             editHistoryHeadIndex += 1;
             editHistory[editHistoryHeadIndex].Redo();
-            Debug.Log("Redid "+editHistory[editHistoryHeadIndex].Message);
+            Debug.Log("Redid " + editHistory[editHistoryHeadIndex].Message);
         }
     }
 }
+
+// MARK: Abstract action
 
 public abstract class UndoRedoAction
 {
@@ -63,11 +67,57 @@ public abstract class UndoRedoAction
     public abstract void Undo();
 }
 
-// MARK: UndoRedoAction Implementor classes
+// MARK: Basic note actions
 // specific classes for different actions you can perform in the editor
 // each defines its own parameters and behavior for undo/redo
 
-// MARK: Button note classes
+public class AddNoteAction : UndoRedoAction
+{
+    public override string Message { get {return "add "+note?.GetType(); } }
+    [SerializeField] private EditableChart editableChart;
+    [SerializeField] private Note note;
+
+    public AddNoteAction(Note note, EditableChart editableChart)
+    {
+        this.editableChart = editableChart;
+        this.note = note;
+    }
+
+    public override void Redo()
+    {
+        editableChart.AddNote(note, notify: true, updateEditHistory: false);
+    }
+
+    public override void Undo()
+    {
+        editableChart.RemoveNote(note, notify: true, updateEditHistory: false);
+    }
+}
+
+public class RemoveNoteAction : UndoRedoAction
+{
+    public override string Message { get { return "remove " + note?.GetType(); } }
+    [SerializeField] private EditableChart editableChart;
+    [SerializeField] private Note note;
+
+    public RemoveNoteAction(Note note, EditableChart editableChart)
+    {
+        this.editableChart = editableChart;
+        this.note = note;
+    }
+
+    public override void Redo()
+    {
+        editableChart.RemoveNote(note, notify: true, updateEditHistory: false);
+    }
+
+    public override void Undo()
+    {
+        editableChart.AddNote(note, notify: true, updateEditHistory: false);
+    }
+}
+
+// MARK: Button note actions
 public class MoveButtonNoteAction : UndoRedoAction
 {
     public override string Message { get {return "move button note"; } }
@@ -100,57 +150,11 @@ public class MoveButtonNoteAction : UndoRedoAction
     }
 }
 
-public class AddNoteAction : UndoRedoAction
-{
-    public override string Message { get {return "add "+note?.GetType(); } }
-    [SerializeField] private EditableChart editableChart;
-    [SerializeField] private Note note;
-
-    public AddNoteAction(Note note, EditableChart editableChart)
-    {
-        this.editableChart = editableChart;
-        this.note = note;
-    }
-
-    public override void Redo()
-    {
-        editableChart.AddNote(note, notify: true, updateEditHistory: false);
-    }
-
-    public override void Undo()
-    {
-        editableChart.RemoveNote(note, notify: true, updateEditHistory: false);
-    }
-}
-
-public class RemoveNoteAction : UndoRedoAction
-{
-    public override string Message { get {return "remove "+note?.GetType(); } }
-    [SerializeField] private EditableChart editableChart;
-    [SerializeField] private Note note;
-
-    public RemoveNoteAction(Note note, EditableChart editableChart)
-    {
-        this.editableChart = editableChart;
-        this.note = note;
-    }
-
-    public override void Redo()
-    {
-        editableChart.RemoveNote(note, notify: true, updateEditHistory: false);
-    }
-
-    public override void Undo()
-    {
-        editableChart.AddNote(note, notify: true, updateEditHistory: false);
-    }
-}
-
-// MARK: Sequence Notes
+// MARK: Sequence actions
 
 public class AddNoteToWheelSequenceAction : UndoRedoAction
 {
-    public override string Message { get {return "add note to wheel sequence"; } }
+    public override string Message { get { return "add note to wheel sequence"; } }
     [SerializeField] private EditableWheelSequence editableWheelSequence;
     [SerializeField] private EditableWheelTurn editableWheelTurn;
 
