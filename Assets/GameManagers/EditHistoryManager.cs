@@ -153,7 +153,7 @@ public class EditButtonNoteAction : UndoRedoAction
                "Affects score: " + buttonNote.AffectsScore + "\n" +
                "Start time delta: " + startTimeDelta + "\n" +
                "old left note position: " + oldLeftPos + ", new position: " + newLeftPos + "\n" +
-               "old right note position: " + oldRightPos + ", new position: " + newRightPos;
+               "old right note position: " + (oldRightPos!=null? oldRightPos : "null") + ", new position: " + (newRightPos!=null? newRightPos : "null");
     }
 
     public EditButtonNoteAction(EditableButtonNote buttonNote, int startTimeDelta, int oldLeftPos, int? oldRightPos,

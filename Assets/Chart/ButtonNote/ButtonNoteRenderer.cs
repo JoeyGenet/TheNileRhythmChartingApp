@@ -56,6 +56,9 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
 
         if (Track.PointerToTrackPosition(pointerEventData.position, clamp: false) is not var (clickPos, _)) return;
 
+        int oldLeftPos = Note.LeftPos;
+        int? oldRightPos = Note.RightPos;
+
         if (Math.Abs(clickPos - rightPos) < Math.Abs(clickPos - Note.LeftPos))
         {
             Note.RightPos = null;
@@ -65,6 +68,10 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
             Note.LeftPos = rightPos;
             Note.RightPos = null;
         }
+
+        EditButtonNoteAction moveButtonNoteAction = new EditButtonNoteAction(Note, 0, oldLeftPos, oldRightPos, Note.LeftPos, Note.RightPos);
+        moveButtonNoteAction.CommitAction();
+        
     }
 
     protected override void OnDragStart()
@@ -109,10 +116,7 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
     protected override void OnEndDrag()
     {
         int startTimeDelta = Note.StartTime - dragStartTime;
-        int newLeftPos = Note.LeftPos;
-        int? newRightPos = Note.RightPos;
-
-        EditButtonNoteAction moveButtonNoteAction = new EditButtonNoteAction(Note, startTimeDelta, dragStartLeftPos, dragStartRightPos, newLeftPos, newRightPos);
+        EditButtonNoteAction moveButtonNoteAction = new EditButtonNoteAction(Note, startTimeDelta, dragStartLeftPos, dragStartRightPos, Note.LeftPos, Note.RightPos);
         moveButtonNoteAction.CommitAction();
     }
 }
