@@ -100,70 +100,65 @@ public class EditableWheelSequence : WheelSequence, IEditableNote<EditableChart,
 		InitializeNotes(seq.Notes.Select(turn => new EditableWheelTurn(this, turn.EndTime, turn.DeltaAngle)));
 	}
 
-	public bool AddNote(EditableWheelTurn note, bool notify = true, bool updateEditHistory = true)
-	{
-		// track undo/redoable note add action
-		if (updateEditHistory)
+	public bool AddNote(EditableWheelTurn note, bool notify = true, bool updateEditHistory = true) => this.RegisterChange
+	( () =>
 		{
-			AddNoteToWheelSequenceAction addNoteToWheelSequenceAction = new AddNoteToWheelSequenceAction(note, this);
-			addNoteToWheelSequenceAction.CommitAction();
-		}
+			if (notes.Contains(note)) return false;
 
-		return this.RegisterChange
-		( () =>
+			// Note will be inserted between these 2 notes:
+			EditableWheelTurn prevTurn = (EditableWheelTurn)notes.GetViewBetween(DummyWheelTurn.Min, note).Max;
+			EditableWheelTurn nextTurn = prevTurn == null ? (EditableWheelTurn)notes.Min : prevTurn.NextTurn;
+
+			// Update linked list
+			if (prevTurn != null) prevTurn.NextTurn = note;
+			if (nextTurn != null) nextTurn.PreviousTurn = note;
+			note.NextTurn = nextTurn;
+			note.PreviousTurn = prevTurn;
+
+			if (note.NextTurn != null) note.NextTurn.DeltaAngle -= note.DeltaAngle;
+			note.RecomputeStartAngle();
+
+			// track undo/redoable note add action
+			if (updateEditHistory)
 			{
-				if (notes.Contains(note)) return false;
+				AddNoteToWheelSequenceAction addNoteToWheelSequenceAction = new AddNoteToWheelSequenceAction(note, this);
+				addNoteToWheelSequenceAction.CommitAction();
+			}
 
-				// Note will be inserted between these 2 notes:
-				EditableWheelTurn prevTurn = (EditableWheelTurn)notes.GetViewBetween(DummyWheelTurn.Min, note).Max;
-				EditableWheelTurn nextTurn = prevTurn == null ? (EditableWheelTurn)notes.Min : prevTurn.NextTurn;
+			Assert.IsTrue(notes.Add(note));
+			return notify;
+		},
+		onChanged: () => OnNoteAdded?.Invoke(note)
+	);
 
-				// Update linked list
-				if (prevTurn != null) prevTurn.NextTurn = note;
-				if (nextTurn != null) nextTurn.PreviousTurn = note;
-				note.NextTurn = nextTurn;
-				note.PreviousTurn = prevTurn;
-
-				if (note.NextTurn != null) note.NextTurn.DeltaAngle -= note.DeltaAngle;
-				note.RecomputeStartAngle();
-
-				Assert.IsTrue(notes.Add(note));
-				return notify;
-			},
-			onChanged: () => OnNoteAdded?.Invoke(note)
-		);
-	}
-
-	public bool RemoveNote(EditableWheelTurn note, bool notify = true, bool updateEditHistory = true)
-	{
-		// track undo/redoable note remove action
-		if (updateEditHistory)
+	public bool RemoveNote(EditableWheelTurn note, bool notify = true, bool updateEditHistory = true) => this.RegisterChange
+	( () =>
 		{
-			RemoveNoteFromWheelSequenceAction removeNoteFromWheelSequenceAction = new RemoveNoteFromWheelSequenceAction(note, this);
-			removeNoteFromWheelSequenceAction.CommitAction();
-		}
-		return this.RegisterChange
-		( () =>
+			if (!notes.Contains(note)) return false;
+
+			// Update linked list
+			if (note.PreviousTurn != null) note.PreviousTurn.NextTurn = note.NextTurn;
+			if (note.NextTurn != null)
 			{
-				if (!notes.Contains(note)) return false;
+				note.NextTurn.PreviousTurn = note.PreviousTurn;
+				note.NextTurn.DeltaAngle += note.DeltaAngle;
+				note.NextTurn.RecomputeStartAngle();
+			}
 
-				// Update linked list
-				if (note.PreviousTurn != null) note.PreviousTurn.NextTurn = note.NextTurn;
-				if (note.NextTurn != null)
-				{
-					note.NextTurn.PreviousTurn = note.PreviousTurn;
-					note.NextTurn.DeltaAngle += note.DeltaAngle;
-					note.NextTurn.RecomputeStartAngle();
-				}
+			note.PreviousTurn = note.NextTurn = null;
 
-				note.PreviousTurn = note.NextTurn = null;
+			// track undo/redoable note remove action
+			if (updateEditHistory)
+			{
+				RemoveNoteFromWheelSequenceAction removeNoteFromWheelSequenceAction = new RemoveNoteFromWheelSequenceAction(note, this);
+				removeNoteFromWheelSequenceAction.CommitAction();
+			}
 
-				Assert.IsTrue(notes.Remove(note));
-				return notify;
-			},
-			onChanged: () => OnNoteRemoved?.Invoke(note)
-		);
-	}
+			Assert.IsTrue(notes.Remove(note));
+			return notify;
+		},
+		onChanged: () => OnNoteRemoved?.Invoke(note)
+	);
 
 	public void NotifyMoved(EditableWheelTurn note) => OnNoteMoved?.Invoke(note);
 
@@ -248,61 +243,57 @@ public class EditableLeverSequence : LeverSequence, IEditableNote<EditableChart,
 
 	// TODO: update linked list
 	// TODO: register sorting change when adding/removing a lever note caused start time to change
-	public bool AddNote(EditableLeverNote note, bool notify = true, bool updateEditHistory = true)
-	{
-		// track undo/redoable note remove action
-		if (updateEditHistory)
+	public bool AddNote(EditableLeverNote note, bool notify = true, bool updateEditHistory = true) => this.RegisterChange
+	(() =>
 		{
-			AddNoteToLeverSequenceAction addNoteToLeverSequenceAction = new AddNoteToLeverSequenceAction(note, this);
-			addNoteToLeverSequenceAction.CommitAction();
-		}
-		return this.RegisterChange
-		(() =>
+			if (notes.Contains(note)) return false;
+
+			// Note will be inserted between these 2 notes:
+			EditableLeverNote prevNote = (EditableLeverNote)notes.GetViewBetween(DummyLeverNote.Min, note).Max;
+			EditableLeverNote nextNote = prevNote == null ? (EditableLeverNote)notes.Min : prevNote.NextNote;
+
+			// Update linked list
+			if (prevNote != null) prevNote.NextNote = note;
+			if (nextNote != null) nextNote.PreviousNote = note;
+			note.NextNote = nextNote;
+			note.PreviousNote = prevNote;
+
+			// track undo/redoable note remove action
+			if (updateEditHistory)
 			{
-				if (notes.Contains(note)) return false;
+				AddNoteToLeverSequenceAction addNoteToLeverSequenceAction = new AddNoteToLeverSequenceAction(note, this);
+				addNoteToLeverSequenceAction.CommitAction();
+			}
 
-				// Note will be inserted between these 2 notes:
-				EditableLeverNote prevNote = (EditableLeverNote)notes.GetViewBetween(DummyLeverNote.Min, note).Max;
-				EditableLeverNote nextNote = prevNote == null ? (EditableLeverNote)notes.Min : prevNote.NextNote;
+			Assert.IsTrue(notes.Add(note));
+			return notify;
+		},
+		onChanged: () => OnNoteAdded?.Invoke(note)
+	);
 
-				// Update linked list
-				if (prevNote != null) prevNote.NextNote = note;
-				if (nextNote != null) nextNote.PreviousNote = note;
-				note.NextNote = nextNote;
-				note.PreviousNote = prevNote;
-
-				Assert.IsTrue(notes.Add(note));
-				return notify;
-			},
-			onChanged: () => OnNoteAdded?.Invoke(note)
-		);
-	}
-
-	public bool RemoveNote(EditableLeverNote note, bool notify = true, bool updateEditHistory = true)
-	{
-		// track undo/redoable note remove action
-		if (updateEditHistory)
+	public bool RemoveNote(EditableLeverNote note, bool notify = true, bool updateEditHistory = true) => this.RegisterChange
+	(() =>
 		{
-			RemoveNoteFromLeverSequenceAction removeNoteFromLeverSequenceAction = new RemoveNoteFromLeverSequenceAction(note, this);
-			removeNoteFromLeverSequenceAction.CommitAction();
-		}
-		return this.RegisterChange
-		(() =>
+			if (!notes.Contains(note)) return false;
+
+			// Update linked list
+			if (note.PreviousNote != null) note.PreviousNote.NextNote = note.NextNote;
+			if (note.NextNote != null) note.NextNote.PreviousNote = note.PreviousNote;
+
+			note.PreviousNote = note.NextNote = null;
+
+			// track undo/redoable note remove action
+			if (updateEditHistory)
 			{
-				if (!notes.Contains(note)) return false;
+				RemoveNoteFromLeverSequenceAction removeNoteFromLeverSequenceAction = new RemoveNoteFromLeverSequenceAction(note, this);
+				removeNoteFromLeverSequenceAction.CommitAction();
+			}
 
-				// Update linked list
-				if (note.PreviousNote != null) note.PreviousNote.NextNote = note.NextNote;
-				if (note.NextNote != null) note.NextNote.PreviousNote = note.PreviousNote;
-
-				note.PreviousNote = note.NextNote = null;
-
-				Assert.IsTrue(notes.Remove(note));
-				return notify;
-			},
-			onChanged: () => OnNoteRemoved?.Invoke(note)
-		);
-	}
+			Assert.IsTrue(notes.Remove(note));
+			return notify;
+		},
+		onChanged: () => OnNoteRemoved?.Invoke(note)
+	);
 
 	public void NotifyMoved(EditableLeverNote note) => OnNoteMoved?.Invoke(note);
 

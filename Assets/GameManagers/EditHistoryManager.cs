@@ -19,7 +19,7 @@ public static class EditHistoryManager
             editHistory.RemoveRange(firstOverwrittenIndex, numberOfEntriesToRemove);
         }
         editHistory.Add(newAction);
-        Debug.Log("Performed " + newAction.Message);
+        Debug.Log("Performed " + newAction.Message + "\n\n" + newAction.ToString() + "\n");
         editHistoryHeadIndex += 1;
     }
 
@@ -27,8 +27,9 @@ public static class EditHistoryManager
     {
         if (editHistoryHeadIndex >= 0)
         {
-            editHistory[editHistoryHeadIndex].Undo();
-            Debug.Log("Undid " + editHistory[editHistoryHeadIndex].Message);
+            UndoRedoAction undoRedoAction = editHistory[editHistoryHeadIndex];
+            undoRedoAction.Undo();
+            Debug.Log("Undid " + undoRedoAction.Message + "\n\n" + undoRedoAction.ToString() + "\n");
             editHistoryHeadIndex -= 1;
         }
     }
@@ -38,8 +39,9 @@ public static class EditHistoryManager
         if (editHistoryHeadIndex < editHistory.Count - 1)
         {
             editHistoryHeadIndex += 1;
-            editHistory[editHistoryHeadIndex].Redo();
-            Debug.Log("Redid " + editHistory[editHistoryHeadIndex].Message);
+            UndoRedoAction undoRedoAction = editHistory[editHistoryHeadIndex];
+            undoRedoAction.Redo();
+            Debug.Log("Redid " + undoRedoAction.Message + "\n\n" + undoRedoAction.ToString() + "\n");
         }
     }
 }
@@ -50,6 +52,9 @@ public abstract class UndoRedoAction
 {
     // message that describes the action performed, i.e. "add note"
     public abstract string Message { get; }
+
+    // each UndoRedoAction implements a way to display its fields
+    public abstract override string ToString();
 
     // each action has its own arguments that are serialized here
 
@@ -77,6 +82,13 @@ public class AddNoteAction : UndoRedoAction
     [SerializeField] private EditableChart editableChart;
     [SerializeField] private Note note;
 
+    public override string ToString()
+    {
+        return "ID: " + note.Id + "\n" + 
+               "Affects score: " + note.AffectsScore + "\n" +
+               "Start time: " + note.StartTime + ", end time: " + note.EndTime;
+    }
+
     public AddNoteAction(Note note, EditableChart editableChart)
     {
         this.editableChart = editableChart;
@@ -99,6 +111,13 @@ public class RemoveNoteAction : UndoRedoAction
     public override string Message { get { return "remove " + note?.GetType(); } }
     [SerializeField] private EditableChart editableChart;
     [SerializeField] private Note note;
+
+    public override string ToString()
+    {
+        return "ID: " + note.Id + "\n" + 
+               "Affects score: " + note.AffectsScore + "\n" +
+               "Start time: " + note.StartTime + ", end time: " + note.EndTime;
+    }
 
     public RemoveNoteAction(Note note, EditableChart editableChart)
     {
@@ -127,6 +146,15 @@ public class EditButtonNoteAction : UndoRedoAction
     [SerializeField] private int? oldRightPos;
     [SerializeField] private int newLeftPos;
     [SerializeField] private int? newRightPos;
+
+    public override string ToString()
+    {
+        return "ID: " + buttonNote.Id + "\n" +
+               "Affects score: " + buttonNote.AffectsScore + "\n" +
+               "Start time delta: " + startTimeDelta + "\n" +
+               "old left note position: " + oldLeftPos + ", new position: " + newLeftPos + "\n" +
+               "old right note position: " + oldRightPos + ", new position: " + newRightPos;
+    }
 
     public EditButtonNoteAction(EditableButtonNote buttonNote, int startTimeDelta, int oldLeftPos, int? oldRightPos,
                                 int newLeftPos, int? newRightPos)
@@ -163,6 +191,18 @@ public class AddNoteToWheelSequenceAction : UndoRedoAction
     [SerializeField] private EditableWheelSequence editableWheelSequence;
     [SerializeField] private EditableWheelTurn editableWheelTurn;
 
+    public override string ToString()
+    {
+        EditableWheelTurn prevTurn = editableWheelTurn.PreviousTurn;
+        EditableWheelTurn nextTurn = editableWheelTurn.NextTurn;
+        return "Sequence ID: " + editableWheelSequence.Id + "\n" +
+               "Previous turn ID: " + (prevTurn!=null? prevTurn.Id : "none") + ", next turn ID: " + (nextTurn!=null? nextTurn.Id : "none") + "\n" +
+               "ID: " + editableWheelTurn.Id + "\n" +
+               "Affects score: " + editableWheelTurn.AffectsScore + "\n" +
+               "Start time: " + editableWheelTurn.StartTime + ", end time: " + editableWheelTurn.EndTime + "\n" +
+               "Delta angle: " + editableWheelTurn.DeltaAngle + "\n";
+    }
+
     public AddNoteToWheelSequenceAction(EditableWheelTurn editableWheelTurn, EditableWheelSequence editableWheelSequence)
     {
         this.editableWheelSequence = editableWheelSequence;
@@ -185,6 +225,18 @@ public class RemoveNoteFromWheelSequenceAction : UndoRedoAction
     public override string Message { get {return "remove note from wheel sequence"; } }
     [SerializeField] private EditableWheelSequence editableWheelSequence;
     [SerializeField] private EditableWheelTurn editableWheelTurn;
+
+    public override string ToString()
+    {
+        EditableWheelTurn prevTurn = editableWheelTurn.PreviousTurn;
+        EditableWheelTurn nextTurn = editableWheelTurn.NextTurn;
+        return "Sequence ID: " + editableWheelSequence.Id + "\n" +
+               "Previous turn ID: " + (prevTurn!=null? prevTurn.Id : "none") + ", next turn ID: " + (nextTurn!=null? nextTurn.Id : "none") + "\n" +
+               "ID: " + editableWheelTurn.Id + "\n" +
+               "Affects score: " + editableWheelTurn.AffectsScore + "\n" +
+               "Start time: " + editableWheelTurn.StartTime + ", end time: " + editableWheelTurn.EndTime + "\n" +
+               "Delta angle: " + editableWheelTurn.DeltaAngle + "\n";
+    }
 
     public RemoveNoteFromWheelSequenceAction(EditableWheelTurn editableWheelTurn, EditableWheelSequence editableWheelSequence)
     {
@@ -209,6 +261,18 @@ public class AddNoteToLeverSequenceAction : UndoRedoAction
     [SerializeField] private EditableLeverSequence editableLeverSequence;
     [SerializeField] private EditableLeverNote editableLeverNote;
 
+    public override string ToString()
+    {
+        EditableLeverNote prevNote = editableLeverNote.PreviousNote;
+        EditableLeverNote nextNote = editableLeverNote.NextNote;
+        return "Sequence ID: " + editableLeverSequence.Id + "\n" +
+               "Previous note: " + (prevNote!=null? prevNote.Id : "none") + ", next note: " + (nextNote!=null? nextNote.Id : "none") + "\n" +
+               "ID: " + editableLeverNote.Id + "\n" +
+               "Affects score: " + editableLeverNote.AffectsScore + "\n" +
+               "Start time: " + editableLeverNote.StartTime + ", end time: " + editableLeverNote.EndTime + "\n" +
+               "Lever direction: " + editableLeverNote.Pos + "\n";
+    }
+
     public AddNoteToLeverSequenceAction(EditableLeverNote editableLeverNote, EditableLeverSequence editableLeverSequence)
     {
         this.editableLeverSequence = editableLeverSequence;
@@ -231,6 +295,18 @@ public class RemoveNoteFromLeverSequenceAction : UndoRedoAction
     public override string Message { get {return "remove note from lever sequence"; } }
     [SerializeField] private EditableLeverSequence editableLeverSequence;
     [SerializeField] private EditableLeverNote editableLeverNote;
+
+    public override string ToString()
+    {
+        EditableLeverNote prevNote = editableLeverNote.PreviousNote;
+        EditableLeverNote nextNote = editableLeverNote.NextNote;
+        return "Sequence ID: " + editableLeverSequence.Id + "\n" +
+               "Previous note: " + (prevNote!=null? prevNote.Id : "none") + ", next note: " + (nextNote!=null? nextNote.Id : "none") + "\n" +
+               "ID: " + editableLeverNote.Id + "\n" +
+               "Affects score: " + editableLeverNote.AffectsScore + "\n" +
+               "Start time: " + editableLeverNote.StartTime + ", end time: " + editableLeverNote.EndTime + "\n" +
+               "Lever direction: " + editableLeverNote.Pos + "\n";
+    }
 
     public RemoveNoteFromLeverSequenceAction(EditableLeverNote editableLeverNote, EditableLeverSequence editableLeverSequence)
     {
