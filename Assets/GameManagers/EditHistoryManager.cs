@@ -1,5 +1,5 @@
-using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 // MARK: Manager
@@ -183,7 +183,76 @@ public class EditButtonNoteAction : UndoRedoAction
     }
 }
 
-// MARK: Sequence actions
+// MARK: Wheel Sequence actions
+
+public class EditWheelSequenceAction : UndoRedoAction
+{
+    public override string Message { get {return "edit wheel sequence"; } }
+    [SerializeField] private EditableWheelSequence wheelSequence;
+    [SerializeField] private int startTimeDelta;
+    [SerializeField] private int PosDelta;
+    [SerializeField] private Dictionary<EditableWheelTurn, int> oldEndTimes;
+    [SerializeField] private Dictionary<EditableWheelTurn, int> newEndTimes;
+    [SerializeField] private Dictionary<EditableWheelTurn, int> oldDeltaAngles;
+    [SerializeField] private Dictionary<EditableWheelTurn, int> newDeltaAngles;
+
+    public override string ToString()
+    {
+        return "ID: " + wheelSequence.Id + "\n" +
+               "Affects score: " + wheelSequence.AffectsScore + "\n" +
+               "Start time delta: " + startTimeDelta + "\n" +
+               "Position delta: " + PosDelta + "\n" + 
+               "Old end times: " + string.Join(", ", oldEndTimes.Select(x => x.Value)) + "\n" +
+               "New end times: " + string.Join(", ", newEndTimes.Select(x => x.Value)) + "\n" +
+               "Old delta angles: " + string.Join(", ", oldDeltaAngles.Select(x => x.Value)) + "\n" +
+               "New delta angles: " + string.Join(", ", newDeltaAngles.Select(x => x.Value));
+    }
+
+    public EditWheelSequenceAction(EditableWheelSequence wheelSequence, int startTimeDelta, int PosDelta,
+                                   Dictionary<EditableWheelTurn, int> oldEndTimes, Dictionary<EditableWheelTurn, int> newEndTimes,
+                                   Dictionary<EditableWheelTurn, int> oldDeltaAngles, Dictionary<EditableWheelTurn, int> newDeltaAngles)
+    {
+        this.wheelSequence = wheelSequence;
+        this.startTimeDelta = startTimeDelta;
+        this.PosDelta = PosDelta;
+        this.oldEndTimes = oldEndTimes;
+        this.newEndTimes = newEndTimes;
+        this.oldDeltaAngles = oldDeltaAngles;
+        this.newDeltaAngles = newDeltaAngles;
+    }
+
+    public override void Redo()
+    {
+        wheelSequence.StartTime += startTimeDelta;
+        foreach (var note in newEndTimes.Keys)
+        {
+            note.EndTime = newEndTimes[note];
+        }
+        // changing the delta angle and wheel sequence position calls RecomputeStartAngle()
+        // so these must be done after all other changes have been made (for some reason)
+        foreach (var note in newDeltaAngles.Keys)
+        {
+            note.DeltaAngle = newDeltaAngles[note];
+        }
+        wheelSequence.Pos += PosDelta;
+    }
+
+    public override void Undo()
+    {
+        wheelSequence.StartTime -= startTimeDelta;
+        foreach (var note in oldEndTimes.Keys)
+        {
+            note.EndTime = oldEndTimes[note];
+        }
+        // changing the delta angle and wheel sequence position calls RecomputeStartAngle()
+        // so these must be done after all other changes have been made (for some reason)
+        foreach (var note in oldDeltaAngles.Keys)
+        {
+            note.DeltaAngle = oldDeltaAngles[note];
+        }
+        wheelSequence.Pos -= PosDelta;
+    }
+}
 
 public class AddNoteToWheelSequenceAction : UndoRedoAction
 {
@@ -254,6 +323,8 @@ public class RemoveNoteFromWheelSequenceAction : UndoRedoAction
         editableWheelSequence.AddNote(editableWheelTurn, notify: true, updateEditHistory: false);
     }
 }
+
+// MARK: Lever Sequence actions
 
 public class AddNoteToLeverSequenceAction : UndoRedoAction
 {
