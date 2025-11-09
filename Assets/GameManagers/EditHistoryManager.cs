@@ -183,6 +183,44 @@ public class EditButtonNoteAction : UndoRedoAction
     }
 }
 
+// MARK: Wheel Flick actions
+
+public class EditWheelFlickAction : UndoRedoAction
+{
+    public override string Message { get { return "edit wheel flick"; } }
+
+    [SerializeField] EditableWheelFlick editableWheelFlick;
+    [SerializeField] int startTimeDelta;
+    [SerializeField] int dirDelta;
+
+    public override string ToString()
+    {
+        return "ID: " + editableWheelFlick.Id + "\n" +
+               "Affects score: " + editableWheelFlick.AffectsScore + "\n" + 
+               "Start time delta: " + startTimeDelta + "\n" +
+               "Direction delta: " + dirDelta;
+    }
+
+    public EditWheelFlickAction(EditableWheelFlick editableWheelFlick, int startTimeDelta, int dirDelta)
+    {
+        this.editableWheelFlick = editableWheelFlick;
+        this.startTimeDelta = startTimeDelta;
+        this.dirDelta = dirDelta;
+    }
+
+    public override void Redo()
+    {
+        editableWheelFlick.StartTime += startTimeDelta;
+        editableWheelFlick.Dir += dirDelta;
+    }
+
+    public override void Undo()
+    {
+        editableWheelFlick.StartTime -= startTimeDelta;
+        editableWheelFlick.Dir -= dirDelta;
+    }
+}
+
 // MARK: Wheel Sequence actions
 
 public class EditWheelSequenceAction : UndoRedoAction
