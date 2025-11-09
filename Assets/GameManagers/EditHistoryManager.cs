@@ -198,7 +198,7 @@ public class EditWheelSequenceAction : UndoRedoAction
 
     public override string ToString()
     {
-        return "ID: " + wheelSequence.Id + "\n" +
+        return "Sequence ID: " + wheelSequence.Id + "\n" +
                "Affects score: " + wheelSequence.AffectsScore + "\n" +
                "Start time delta: " + startTimeDelta + "\n" +
                "Position delta: " + PosDelta + "\n" + 
@@ -325,6 +325,60 @@ public class RemoveNoteFromWheelSequenceAction : UndoRedoAction
 }
 
 // MARK: Lever Sequence actions
+
+public class EditLeverSequenceAction : UndoRedoAction
+{
+    public override string Message { get {return "edit wheel sequence"; } }
+    [SerializeField] private EditableLeverSequence leverSequence;
+    [SerializeField] private int dirDelta;
+    [SerializeField] private Dictionary<EditableLeverNote, int> oldStartTimes;
+    [SerializeField] private Dictionary<EditableLeverNote, int> newStartTimes;
+    [SerializeField] private Dictionary<EditableLeverNote, LeverPos> oldLeverPositions;
+    [SerializeField] private Dictionary<EditableLeverNote, LeverPos> newLeverPositions;
+
+    public override string ToString()
+    {
+        return "Sequence ID: " + leverSequence.Id + "\n" +
+               "Affects score: " + leverSequence.AffectsScore + "\n" +
+               "Direction delta: " + dirDelta + "\n" +
+               "Old start times: " + string.Join(", ", oldStartTimes.Select(x => x.Value)) + "\n" +
+               "New start times: " + string.Join(", ", newStartTimes.Select(x => x.Value)) + "\n" +
+               "Old lever positions: " + string.Join(", ", oldLeverPositions.Select(x => x.Value)) + "\n" + 
+               "New lever positions: " + string.Join(", ", newLeverPositions.Select(x => x.Value)) + "\n";
+    }
+
+    public EditLeverSequenceAction(EditableLeverSequence leverSequence, int dirDelta,
+                                   Dictionary<EditableLeverNote, int> oldStartTimes, Dictionary<EditableLeverNote, int> newStartTimes,
+                                   Dictionary<EditableLeverNote, LeverPos> oldLeverPositions, Dictionary<EditableLeverNote, LeverPos> newLeverPositions)
+    {
+        this.leverSequence = leverSequence;
+        this.dirDelta = dirDelta;
+        this.oldStartTimes = oldStartTimes;
+        this.newStartTimes = newStartTimes;
+        this.oldLeverPositions = oldLeverPositions;
+        this.newLeverPositions = newLeverPositions;
+    }
+
+    public override void Redo()
+    {
+        leverSequence.Dir += dirDelta;
+        foreach (EditableLeverNote note in newStartTimes.Keys)
+        {
+            note.StartTime = newStartTimes[note];
+            note.Pos = newLeverPositions[note];
+        }
+    }
+
+    public override void Undo()
+    {
+        leverSequence.Dir -= dirDelta;
+        foreach (EditableLeverNote note in oldStartTimes.Keys)
+        {
+            note.StartTime = oldStartTimes[note];
+            note.Pos = oldLeverPositions[note];
+        }
+    }
+}
 
 public class AddNoteToLeverSequenceAction : UndoRedoAction
 {
