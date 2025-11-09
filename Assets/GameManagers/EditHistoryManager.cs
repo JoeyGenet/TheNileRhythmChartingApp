@@ -78,7 +78,7 @@ public abstract class UndoRedoAction
 
 public class AddNoteAction : UndoRedoAction
 {
-    public override string Message { get {return "add "+note?.GetType(); } }
+    public override string Message { get { return "add "+note?.GetType(); } }
     [SerializeField] private EditableChart editableChart;
     [SerializeField] private Note note;
 
@@ -139,7 +139,7 @@ public class RemoveNoteAction : UndoRedoAction
 // MARK: Button note actions
 public class EditButtonNoteAction : UndoRedoAction
 {
-    public override string Message { get {return "edit button note"; } }
+    public override string Message { get { return "edit button note"; } }
     [SerializeField] private EditableButtonNote buttonNote;
     [SerializeField] private int startTimeDelta;
     [SerializeField] private int oldLeftPos;
@@ -225,7 +225,7 @@ public class EditWheelFlickAction : UndoRedoAction
 
 public class EditWheelSequenceAction : UndoRedoAction
 {
-    public override string Message { get {return "edit wheel sequence"; } }
+    public override string Message { get { return "edit wheel sequence"; } }
     [SerializeField] private EditableWheelSequence wheelSequence;
     [SerializeField] private int startTimeDelta;
     [SerializeField] private int PosDelta;
@@ -329,7 +329,7 @@ public class AddNoteToWheelSequenceAction : UndoRedoAction
 
 public class RemoveNoteFromWheelSequenceAction : UndoRedoAction
 {
-    public override string Message { get {return "remove note from wheel sequence"; } }
+    public override string Message { get { return "remove note from wheel sequence"; } }
     [SerializeField] private EditableWheelSequence editableWheelSequence;
     [SerializeField] private EditableWheelTurn editableWheelTurn;
 
@@ -366,7 +366,7 @@ public class RemoveNoteFromWheelSequenceAction : UndoRedoAction
 
 public class EditLeverSequenceAction : UndoRedoAction
 {
-    public override string Message { get {return "edit wheel sequence"; } }
+    public override string Message { get { return "edit lever sequence"; } }
     [SerializeField] private EditableLeverSequence leverSequence;
     [SerializeField] private int dirDelta;
     [SerializeField] private Dictionary<EditableLeverNote, int> oldStartTimes;
@@ -420,7 +420,7 @@ public class EditLeverSequenceAction : UndoRedoAction
 
 public class AddNoteToLeverSequenceAction : UndoRedoAction
 {
-    public override string Message { get {return "add note to lever sequence"; } }
+    public override string Message { get { return "add note to lever sequence"; } }
     [SerializeField] private EditableLeverSequence editableLeverSequence;
     [SerializeField] private EditableLeverNote editableLeverNote;
 
@@ -455,7 +455,7 @@ public class AddNoteToLeverSequenceAction : UndoRedoAction
 
 public class RemoveNoteFromLeverSequenceAction : UndoRedoAction
 {
-    public override string Message { get {return "remove note from lever sequence"; } }
+    public override string Message { get { return "remove note from lever sequence"; } }
     [SerializeField] private EditableLeverSequence editableLeverSequence;
     [SerializeField] private EditableLeverNote editableLeverNote;
 
