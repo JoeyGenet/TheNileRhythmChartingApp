@@ -508,8 +508,6 @@ public class EditMetadataAction : UndoRedoAction
     [SerializeField] public uint bpmDelta;
     [SerializeField] public int bpmOffsetDelta;
     [SerializeField] public float gainDelta;
-    [SerializeField] public int songStartDelta;
-    [SerializeField] public int songEndDelta;
     [SerializeField] public uint previewStartDelta;
     [SerializeField] public uint previewDurationDelta;
 
@@ -523,8 +521,6 @@ public class EditMetadataAction : UndoRedoAction
                ((bpmDelta!=0) ? "BPM delta: "+bpmDelta+"\n" : "") +
                ((bpmOffsetDelta!=0) ? "BPM offset delta: "+bpmOffsetDelta+"\n" : "") +
                ((gainDelta!=0) ? "Gain delta: "+gainDelta+"\n" : "") +
-               ((songStartDelta!=0) ? "Song start delta: "+songStartDelta+"\n" : "") +
-               ((songEndDelta!=0) ? "Song end delta: "+songEndDelta+"\n" : "") +
                ((previewStartDelta!=0) ? "Preview start delta: "+previewStartDelta+"\n" : "") +
                ((previewDurationDelta!=0) ? "Preview duration delta: "+previewDurationDelta+"\n" : "");
     }
@@ -549,8 +545,6 @@ public class EditMetadataAction : UndoRedoAction
         this.bpmDelta = bpmDelta;
         this.bpmOffsetDelta = bpmOffsetDelta;
         this.gainDelta = gainDelta;
-        this.songStartDelta = songStartDelta;
-        this.songEndDelta = songEndDelta;
         this.previewStartDelta = previewStartDelta;
         this.previewDurationDelta = previewDurationDelta;        
     }
@@ -565,8 +559,6 @@ public class EditMetadataAction : UndoRedoAction
         editableChartPackage.bpm += bpmDelta;
         editableChartPackage.bpmOffset += bpmOffsetDelta;
         editableChartPackage.gain += gainDelta;
-        editableChartPackage.songStart += songStartDelta;
-        editableChartPackage.songEnd += songEndDelta;
         editableChartPackage.previewStart += previewStartDelta;
         editableChartPackage.previewDuration += previewDurationDelta;
     }
@@ -581,8 +573,6 @@ public class EditMetadataAction : UndoRedoAction
         editableChartPackage.bpm -= bpmDelta;
         editableChartPackage.bpmOffset -= bpmOffsetDelta;
         editableChartPackage.gain -= gainDelta;
-        editableChartPackage.songStart -= songStartDelta;
-        editableChartPackage.songEnd -= songEndDelta;
         editableChartPackage.previewStart -= previewStartDelta;
         editableChartPackage.previewDuration -= previewDurationDelta;
     }

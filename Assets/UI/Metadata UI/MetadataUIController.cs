@@ -186,6 +186,15 @@ public class MetadataUIController : MonoBehaviour
         {
             if (value == "") return;
 
+            // track starting value of edit
+            if (!isEditInProgress)
+            {
+                editMetadataAction = new EditMetadataAction(ChartManager.ChartPackage);
+                editMetadataAction.previewStartDelta = ChartManager.ChartPackage.PreviewStart;
+                isEditInProgress = true;
+            }
+
+            // process new value
             uint minutes = 0, seconds = 0, milliseconds = 0;
 
             int colonPos = value.IndexOf(':');
@@ -199,12 +208,30 @@ public class MetadataUIController : MonoBehaviour
 
             ChartManager.ChartPackage.PreviewStart = minutes * 60000 + seconds * 1000 + milliseconds;
         });
+        previewStartField.onEndEdit.AddListener(_ =>
+        {
+            if (isEditInProgress)
+            {
+                editMetadataAction.previewStartDelta = ChartManager.ChartPackage.PreviewStart - editMetadataAction.previewStartDelta;
+                editMetadataAction.CommitAction();
+                isEditInProgress = false;
+            }
+        });
 
         previewDurationField.onValueChanged.AddListener(value =>
         {
             previewDurationField.text = value = value.Replace("-", "");
             if (value == "") return;
 
+            // track starting value of edit
+            if (!isEditInProgress)
+            {
+                editMetadataAction = new EditMetadataAction(ChartManager.ChartPackage);
+                editMetadataAction.previewDurationDelta = ChartManager.ChartPackage.PreviewDuration;
+                isEditInProgress = true;
+            }
+
+            // process new value
             uint seconds = 0, milliseconds = 0;
 
             if (double.TryParse(value, out double v))
@@ -214,6 +241,15 @@ public class MetadataUIController : MonoBehaviour
             }
 
             ChartManager.ChartPackage.PreviewDuration = seconds * 1000 + milliseconds;
+        });
+        previewDurationField.onEndEdit.AddListener(_ =>
+        {
+            if (isEditInProgress)
+            {
+                editMetadataAction.previewDurationDelta = ChartManager.ChartPackage.PreviewDuration - editMetadataAction.previewDurationDelta;
+                editMetadataAction.CommitAction();
+                isEditInProgress = false;
+            }
         });
 
         OnChartPackageChanged(null, ChartManager.ChartPackage);
