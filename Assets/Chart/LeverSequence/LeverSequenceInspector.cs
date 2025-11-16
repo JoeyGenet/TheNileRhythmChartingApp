@@ -15,8 +15,31 @@ public class LeverSequenceInspector : NoteContainerInspector<EditableLeverSequen
     {
         base.Awake();
 
-        leftToggle.Event.AddListener(() => Note.Dir = LeftRight.Left);
-        rightToggle.Event.AddListener(() => Note.Dir = LeftRight.Right);
+        leftToggle.Event.AddListener(() => 
+        {
+            int dirDelta = LeftRight.Left - Note.Dir;
+            if (dirDelta != 0)
+            {
+                Dictionary<EditableLeverNote, int> startTimes = Note.Notes.ToDictionary(n => n, n => n.StartTime);
+                Dictionary<EditableLeverNote, LeverPos> leverPositions = Note.Notes.ToDictionary(n => n, n => n.Pos);
+                EditLeverSequenceAction editLeverSequenceAction = new EditLeverSequenceAction(Note, dirDelta, startTimes, startTimes, leverPositions, leverPositions);
+                editLeverSequenceAction.CommitAction();
+            }
+            Note.Dir = LeftRight.Left;
+        });
+
+        rightToggle.Event.AddListener(() => 
+        {
+            int dirDelta = LeftRight.Right - Note.Dir;
+            if (dirDelta != 0)
+            {
+                Dictionary<EditableLeverNote, int> startTimes = Note.Notes.ToDictionary(n => n, n => n.StartTime);
+                Dictionary<EditableLeverNote, LeverPos> leverPositions = Note.Notes.ToDictionary(n => n, n => n.Pos);
+                EditLeverSequenceAction editLeverSequenceAction = new EditLeverSequenceAction(Note, dirDelta, startTimes, startTimes, leverPositions, leverPositions);
+                editLeverSequenceAction.CommitAction();
+            }
+            Note.Dir = LeftRight.Right;
+        });
     }
 
     void Update()

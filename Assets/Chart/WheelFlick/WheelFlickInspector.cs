@@ -10,7 +10,6 @@ public class WheelFlickInspector : NoteInspector<EditableWheelFlick>
     private int editStartTime;
     [SerializeField] EventRelay leftToggle;
     [SerializeField] EventRelay rightToggle;
-    private LeftRight editStartDir; 
     private bool isEditInProgress;
 
     void Awake()
