@@ -5,7 +5,9 @@ using System.IO;
 using System.Linq;
 using SFB;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class MetadataUIController : MonoBehaviour
@@ -41,6 +43,9 @@ public class MetadataUIController : MonoBehaviour
     [SerializeField] TMP_InputField previewStartField;
     [SerializeField] TMP_InputField previewDurationField;
 
+    private EditMetadataAction editMetadataAction;
+    private bool isEditInProgress;
+
     void Awake()
     {
         loadImageEvent.AddListener(LoadImage);
@@ -48,14 +53,75 @@ public class MetadataUIController : MonoBehaviour
         loadSongEvent.AddListener(LoadSong);
         defaultSongText = songText.text;
 
+        titleInputField.onValidateInput += (text, _, c) => c == '\n' ? '\0' : c;
         titleInputField.onValueChanged.AddListener(title =>
-            ChartManager.ChartPackage.Title = titleInputField.text = title.Replace("\n", ""));
+        {
+            // track starting value of edit
+            if (!isEditInProgress)
+            {
+                editMetadataAction = new EditMetadataAction(ChartManager.ChartPackage);
+                editMetadataAction.oldTitle = ChartManager.ChartPackage.Title;
+                isEditInProgress = true;
+            }
+            // process new value
+            ChartManager.ChartPackage.Title = titleInputField.text = title.Replace("\n", "");
+        });
+        titleInputField.onEndEdit.AddListener(_ =>
+        {
+            if (isEditInProgress)
+            {
+                editMetadataAction.newTitle = ChartManager.ChartPackage.Title;
+                editMetadataAction.CommitAction();
+                isEditInProgress = false;
+            }
+        });
 
+        artistInputField.onValidateInput += (text, _, c) => c == '\n' ? '\0' : c;
         artistInputField.onValueChanged.AddListener(artist =>
-            ChartManager.ChartPackage.Artist = artistInputField.text = artist.Replace("\n", ""));
+        {
+            // track starting value of edit
+            if (!isEditInProgress)
+            {
+                editMetadataAction = new EditMetadataAction(ChartManager.ChartPackage);
+                editMetadataAction.oldArtist = ChartManager.ChartPackage.Artist;
+                isEditInProgress = true;
+            }
+            // process new value
+            ChartManager.ChartPackage.Artist = artistInputField.text = artist.Replace("\n", "");
+        });
+        artistInputField.onEndEdit.AddListener(_ =>
+        {
+            if (isEditInProgress)
+            {
+                editMetadataAction.newArtist = ChartManager.ChartPackage.Artist;
+                editMetadataAction.CommitAction();
+                isEditInProgress = false;
+            }
+        });
 
+        charterInputField.onValidateInput += (text, _, c) => c == '\n' ? '\0' : c;
         charterInputField.onValueChanged.AddListener(charter =>
-            ChartManager.ChartPackage.Charter = charterInputField.text = charter.Replace("\n", ""));
+        {
+            // track starting value of edit
+            if (!isEditInProgress)
+            {
+                editMetadataAction = new EditMetadataAction(ChartManager.ChartPackage);
+                editMetadataAction.oldCharter = ChartManager.ChartPackage.Charter;
+                isEditInProgress = true;
+            }
+            // process new value
+            ChartManager.ChartPackage.Charter = charterInputField.text = charter.Replace("\n", "");
+        });
+        charterInputField.onEndEdit.AddListener(_ =>
+        {
+            if (isEditInProgress)
+            {
+                editMetadataAction.newCharter = ChartManager.ChartPackage.Charter;
+                editMetadataAction.CommitAction();
+                isEditInProgress = false;
+            }
+        });
+
 
         addChartButton.onClick.AddListener(() => ChartManager.ChartPackage.AddChart());
         

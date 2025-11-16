@@ -29,10 +29,10 @@ public class ChartPackage
     }
 
     // Metadata
-    protected string title = "No Title";
-    protected string artist = "Unknown";
-    protected string charter = "Unknown";
-    protected Texture2D coverImage = null;
+    public string title = "No Title";
+    public string artist = "Unknown";
+    public string charter = "Unknown";
+    public Texture2D coverImage = null;
 
     public string Title => title.Trim();
     public string Artist => artist.Trim();
@@ -40,14 +40,14 @@ public class ChartPackage
     public Texture2D CoverImage => coverImage;
 
     // Song
-    protected AudioClip songClip = null;
-    protected uint bpm = 120;
-    protected int bpmOffset = 0;
-    protected float gain = 0f;
-    protected int songStart = 0; // Start offset relative to song start
-    protected int songEnd = 0; // End offset relative to song end
-    protected uint previewStart = 0;
-    protected uint previewDuration = 10000;
+    public AudioClip songClip = null;
+    public uint bpm = 120;
+    public int bpmOffset = 0;
+    public float gain = 0f;
+    public int songStart = 0; // Start offset relative to song start
+    public int songEnd = 0; // End offset relative to song end
+    public uint previewStart = 0;
+    public uint previewDuration = 10000;
 
     public AudioClip SongClip => songClip;
     public uint BPM => Math.Max(bpm, 1);

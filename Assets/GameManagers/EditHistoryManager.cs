@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 
 // MARK: Manager
 
@@ -485,5 +486,104 @@ public class RemoveNoteFromLeverSequenceAction : UndoRedoAction
     public override void Undo()
     {
         editableLeverSequence.AddNote(editableLeverNote, notify: true, updateEditHistory: false);
+    }
+}
+
+// MARK: Metadata actions
+
+public class EditMetadataAction : UndoRedoAction
+{
+    public override string Message { get { return "edit metadata"; } }
+    [SerializeField] public EditableChartPackage editableChartPackage;
+    [SerializeField] public Texture2D oldCoverImage;
+    [SerializeField] public Texture2D newCoverImage;
+    [SerializeField] public string oldTitle;
+    [SerializeField] public string newTitle;
+    [SerializeField] public string oldArtist;
+    [SerializeField] public string newArtist;
+    [SerializeField] public string oldCharter;
+    [SerializeField] public string newCharter;
+    [SerializeField] public AudioClip oldSongClip;
+    [SerializeField] public AudioClip newSongClip;
+    [SerializeField] public uint bpmDelta;
+    [SerializeField] public int bpmOffsetDelta;
+    [SerializeField] public int gainDelta;
+    [SerializeField] public int songStartDelta;
+    [SerializeField] public int songEndDelta;
+    [SerializeField] public uint previewStartDelta;
+    [SerializeField] public uint previewDurationDelta;
+
+    public override string ToString()
+    {
+        return ((oldTitle!=null && newTitle!=null) ? "Old title: "+oldTitle+", new title: "+newTitle+"\n" : "") +
+               ((oldArtist!=null && newArtist!=null) ? "Old artist: "+oldArtist+", new artist: "+newArtist+"\n" : "") +
+               ((oldCharter!=null && newCharter!=null) ? "Old charter: "+oldCharter+", new charter: "+newCharter+"\n" : "") +
+               ((oldSongClip!=null && newSongClip!=null) ? "Old song clip: "+oldSongClip+", new song clip: "+newSongClip+"\n" : "") +
+               ((oldCoverImage!=null && newCoverImage!=null) ? "Old cover image: "+oldCoverImage+", new cover image: "+newCoverImage+"\n" : "") +
+               ((bpmDelta!=0) ? "BPM delta: "+bpmDelta+"\n" : "") +
+               ((bpmOffsetDelta!=0) ? "BPM offset delta: "+bpmOffsetDelta+"\n" : "") +
+               ((gainDelta!=0) ? "Gain delta: "+gainDelta+"\n" : "") +
+               ((songStartDelta!=0) ? "Song start delta: "+songStartDelta+"\n" : "") +
+               ((songEndDelta!=0) ? "Song end delta: "+songEndDelta+"\n" : "") +
+               ((previewStartDelta!=0) ? "Preview start delta: "+previewStartDelta+"\n" : "") +
+               ((previewDurationDelta!=0) ? "Preview duration delta: "+previewDurationDelta+"\n" : "");
+    }
+
+    public EditMetadataAction(EditableChartPackage editableChartPackage, Texture2D oldCoverImage=null, Texture2D newCoverImage=null,
+                              string oldTitle=null, string newTitle=null, string oldArtist=null, string newArtist=null,
+                              string oldCharter=null, string newCharter=null, AudioClip oldSongClip=null, AudioClip newSongClip=null,
+                              uint bpmDelta=0, int bpmOffsetDelta=0, int gainDelta=0, int songStartDelta=0, int songEndDelta=0,
+                              uint previewStartDelta=0, uint previewDurationDelta=0)
+    {
+        this.editableChartPackage = editableChartPackage;
+        this.oldTitle = oldTitle;
+        this.newTitle = newTitle;
+        this.oldArtist = oldArtist;
+        this.newArtist = newArtist;
+        this.oldCharter = oldCharter;
+        this.newCharter = newCharter;
+        this.oldCoverImage = oldCoverImage;
+        this.newCoverImage = newCoverImage;
+        this.oldSongClip = oldSongClip;
+        this.newSongClip = newSongClip;
+        this.bpmDelta = bpmDelta;
+        this.bpmOffsetDelta = bpmOffsetDelta;
+        this.gainDelta = gainDelta;
+        this.songStartDelta = songStartDelta;
+        this.songEndDelta = songEndDelta;
+        this.previewStartDelta = previewStartDelta;
+        this.previewDurationDelta = previewDurationDelta;        
+    }
+
+    public override void Redo()
+    {
+        editableChartPackage.title = newTitle ?? editableChartPackage.Title;
+        editableChartPackage.artist = newArtist ?? editableChartPackage.Artist;
+        editableChartPackage.charter = newCharter ?? editableChartPackage.Charter;
+        editableChartPackage.coverImage = newCoverImage ?? editableChartPackage.CoverImage;
+        editableChartPackage.songClip = newSongClip ?? editableChartPackage.SongClip;
+        editableChartPackage.bpm += bpmDelta;
+        editableChartPackage.bpmOffset += bpmOffsetDelta;
+        editableChartPackage.gain += gainDelta;
+        editableChartPackage.songStart += songStartDelta;
+        editableChartPackage.songEnd += songEndDelta;
+        editableChartPackage.previewStart += previewStartDelta;
+        editableChartPackage.previewDuration += previewDurationDelta;
+    }
+
+    public override void Undo()
+    {
+        editableChartPackage.title = oldTitle ?? editableChartPackage.Title;
+        editableChartPackage.artist = oldArtist ?? editableChartPackage.Artist;
+        editableChartPackage.charter = oldCharter ?? editableChartPackage.Charter;
+        editableChartPackage.coverImage = oldCoverImage ?? editableChartPackage.CoverImage;
+        editableChartPackage.songClip = oldSongClip ?? editableChartPackage.SongClip;
+        editableChartPackage.bpm -= bpmDelta;
+        editableChartPackage.bpmOffset -= bpmOffsetDelta;
+        editableChartPackage.gain -= gainDelta;
+        editableChartPackage.songStart -= songStartDelta;
+        editableChartPackage.songEnd -= songEndDelta;
+        editableChartPackage.previewStart -= previewStartDelta;
+        editableChartPackage.previewDuration -= previewDurationDelta;
     }
 }
