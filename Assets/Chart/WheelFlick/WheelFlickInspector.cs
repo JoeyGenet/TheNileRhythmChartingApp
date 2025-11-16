@@ -7,21 +7,61 @@ using UnityEngine.UI;
 public class WheelFlickInspector : NoteInspector<EditableWheelFlick>
 {
     [SerializeField] TMP_InputField timeInput;
+    private int editStartTime;
     [SerializeField] EventRelay leftToggle;
     [SerializeField] EventRelay rightToggle;
+    private LeftRight editStartDir; 
+    private bool isEditInProgress;
 
     void Awake()
     {
         timeInput.onValidateInput += (text, _, c) => c == '-' ? '\0' : c;
         timeInput.onValueChanged.AddListener(text =>
         {
+            // track starting value of edit
+            if (!isEditInProgress)
+            {
+                editStartTime = Note.StartTime;
+                isEditInProgress = true;
+            }
+            // process new value
             if (int.TryParse(text, out int time) && time >= 0)
             {
                 Note.StartTime = time;
             }
         });
-        leftToggle.Event.AddListener(() => Note.Dir = LeftRight.Left);
-        rightToggle.Event.AddListener(() => Note.Dir = LeftRight.Right);
+        timeInput.onEndEdit.AddListener(text =>
+        {
+            if (isEditInProgress)
+            {
+                int startTimeDelta = Note.StartTime - editStartTime;
+                EditWheelFlickAction editWheelFlickAction = new EditWheelFlickAction(Note, startTimeDelta, 0);
+                editWheelFlickAction.CommitAction();
+                isEditInProgress = false;
+            }
+        });
+
+        leftToggle.Event.AddListener(() => 
+        {
+            int dirDelta = LeftRight.Left - Note.Dir;
+            if (dirDelta != 0)
+            {
+                EditWheelFlickAction editWheelFlickAction = new EditWheelFlickAction(Note, 0, dirDelta);
+                editWheelFlickAction.CommitAction();
+            }
+            Note.Dir = LeftRight.Left;
+        });
+
+        rightToggle.Event.AddListener(() => 
+        {
+            int dirDelta = LeftRight.Right - Note.Dir;
+            if (dirDelta != 0)
+            {
+                EditWheelFlickAction editWheelFlickAction = new EditWheelFlickAction(Note, 0, dirDelta);
+                editWheelFlickAction.CommitAction();
+            }
+            Note.Dir = LeftRight.Right;
+        });
     }
 
     void Update()

@@ -11,8 +11,8 @@ public class ButtonNoteInspector : NoteInspector<EditableButtonNote>
     [SerializeField] TMP_InputField leftPosInput;
     private int editStartLeftPos;
     [SerializeField] TMP_InputField rightPosInput;
-    private bool isEditInProgress;
     private int? editStartRightPos;
+    private bool isEditInProgress;
 
     void Awake()
     {
