@@ -507,7 +507,7 @@ public class EditMetadataAction : UndoRedoAction
     [SerializeField] public AudioClip newSongClip;
     [SerializeField] public uint bpmDelta;
     [SerializeField] public int bpmOffsetDelta;
-    [SerializeField] public int gainDelta;
+    [SerializeField] public float gainDelta;
     [SerializeField] public int songStartDelta;
     [SerializeField] public int songEndDelta;
     [SerializeField] public uint previewStartDelta;
@@ -532,7 +532,7 @@ public class EditMetadataAction : UndoRedoAction
     public EditMetadataAction(EditableChartPackage editableChartPackage, Texture2D oldCoverImage=null, Texture2D newCoverImage=null,
                               string oldTitle=null, string newTitle=null, string oldArtist=null, string newArtist=null,
                               string oldCharter=null, string newCharter=null, AudioClip oldSongClip=null, AudioClip newSongClip=null,
-                              uint bpmDelta=0, int bpmOffsetDelta=0, int gainDelta=0, int songStartDelta=0, int songEndDelta=0,
+                              uint bpmDelta=0, int bpmOffsetDelta=0, float gainDelta=0, int songStartDelta=0, int songEndDelta=0,
                               uint previewStartDelta=0, uint previewDurationDelta=0)
     {
         this.editableChartPackage = editableChartPackage;

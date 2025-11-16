@@ -127,12 +127,46 @@ public class MetadataUIController : MonoBehaviour
         
         bpmInputField.onValueChanged.AddListener(bpmStr =>
         {
+            // track starting value of edit
+            if (!isEditInProgress)
+            {
+                editMetadataAction = new EditMetadataAction(ChartManager.ChartPackage);
+                editMetadataAction.bpmDelta = ChartManager.ChartPackage.BPM;
+                isEditInProgress = true;
+            }
+            // process new value
             if (int.TryParse(bpmStr, out int bpm)) ChartManager.ChartPackage.BPM = (uint) Math.Abs(bpm);
+        });
+        bpmInputField.onEndEdit.AddListener(_ =>
+        {
+            if (isEditInProgress)
+            {
+                editMetadataAction.bpmDelta = ChartManager.ChartPackage.BPM - editMetadataAction.bpmDelta;
+                editMetadataAction.CommitAction();
+                isEditInProgress = false;
+            }
         });
 
         bpmOffsetInputField.onValueChanged.AddListener(offsetStr =>
         {
+            // track starting value of edit
+            if (!isEditInProgress)
+            {
+                editMetadataAction = new EditMetadataAction(ChartManager.ChartPackage);
+                editMetadataAction.bpmOffsetDelta = ChartManager.ChartPackage.BPMOffset;
+                isEditInProgress = true;
+            }
+            // process new value
             if (int.TryParse(offsetStr, out int offset)) ChartManager.ChartPackage.BPMOffset = offset;
+        });
+        bpmOffsetInputField.onEndEdit.AddListener(_ =>
+        {
+            if (isEditInProgress)
+            {
+                editMetadataAction.bpmOffsetDelta = ChartManager.ChartPackage.BPMOffset - editMetadataAction.bpmOffsetDelta;
+                editMetadataAction.CommitAction();
+                isEditInProgress = false;
+            }
         });
 
         gainSlider.onValueChanged.AddListener(gain => ChartManager.ChartPackage.Gain = gain);
