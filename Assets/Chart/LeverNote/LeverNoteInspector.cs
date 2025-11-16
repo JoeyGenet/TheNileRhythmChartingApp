@@ -8,9 +8,9 @@ using UnityEngine.UI;
 public class LeverNoteInspector : LeverSequenceInspector.ChildInspector
 {
     [SerializeField] TMP_InputField timeInput;
-    private Dictionary<EditableLeverNote, int> startEditStartTimes;
+    private Dictionary<EditableLeverNote, int> editStartTimes;
     [SerializeField] TMP_Dropdown posDropdown;
-    private Dictionary<EditableLeverNote, LeverPos> startEditLeverPositions;
+    private Dictionary<EditableLeverNote, LeverPos> editStartLeverPositions;
     private bool isEditInProgress;
 
     [Header("Colors")]
@@ -30,7 +30,7 @@ public class LeverNoteInspector : LeverSequenceInspector.ChildInspector
             // track starting value of edit
             if (!isEditInProgress)
             {
-                startEditStartTimes = Note.Container.Notes.ToDictionary(n => n, n => n.StartTime);
+                editStartTimes = Note.Container.Notes.ToDictionary(n => n, n => n.StartTime);
                 isEditInProgress = true;
             }
             // process new value
@@ -45,7 +45,7 @@ public class LeverNoteInspector : LeverSequenceInspector.ChildInspector
             {
                 Dictionary<EditableLeverNote, int> newStartTimes = Note.Container.Notes.ToDictionary(n => n, n => n.StartTime);
                 Dictionary<EditableLeverNote, LeverPos> leverPositions = Note.Container.Notes.ToDictionary(n => n, n => n.Pos);
-                EditLeverSequenceAction editLeverSequenceAction = new EditLeverSequenceAction(Note.Container, 0, startEditStartTimes, newStartTimes, leverPositions, leverPositions);
+                EditLeverSequenceAction editLeverSequenceAction = new EditLeverSequenceAction(Note.Container, 0, editStartTimes, newStartTimes, leverPositions, leverPositions);
                 editLeverSequenceAction.CommitAction();
                 isEditInProgress = false;
             }
@@ -57,10 +57,10 @@ public class LeverNoteInspector : LeverSequenceInspector.ChildInspector
             {
                 Dictionary<EditableLeverNote, int> startTimes = Note.Container.Notes.ToDictionary(n => n, n => n.StartTime);
                 // set dictionary of lever positions before and after setting the new position
-                startEditLeverPositions = Note.Container.Notes.ToDictionary(n => n, n => n.Pos);
+                editStartLeverPositions = Note.Container.Notes.ToDictionary(n => n, n => n.Pos);
                 Note.Pos = (LeverPos) value;
                 Dictionary<EditableLeverNote, LeverPos> newLeverPositions = Note.Container.Notes.ToDictionary(n => n, n => n.Pos);
-                EditLeverSequenceAction editLeverSequenceAction = new EditLeverSequenceAction(Note.Container, 0, startTimes, startTimes, startEditLeverPositions, newLeverPositions);
+                EditLeverSequenceAction editLeverSequenceAction = new EditLeverSequenceAction(Note.Container, 0, startTimes, startTimes, editStartLeverPositions, newLeverPositions);
                 editLeverSequenceAction.CommitAction();
             }
 
