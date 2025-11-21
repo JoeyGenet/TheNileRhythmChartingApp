@@ -37,6 +37,7 @@ public class MetadataUIController : MonoBehaviour
     [SerializeField] TMP_InputField bpmOffsetInputField;
     [SerializeField] Slider gainSlider;
     [SerializeField] TMP_Text gainText;
+    [SerializeField] EventTrigger gainEndEditEvent;
     [SerializeField] EventRelay gainResetEvent;
 
     [Header("Preview")]
@@ -169,8 +170,43 @@ public class MetadataUIController : MonoBehaviour
             }
         });
 
-        gainSlider.onValueChanged.AddListener(gain => ChartManager.ChartPackage.Gain = gain);
-        gainResetEvent.AddListener(() => gainSlider.value = 0);
+        // add callback to OnPointerDown event set on the slider game object
+        gainEndEditEvent.triggers[0].callback.AddListener(_ => 
+        {
+            // track starting value of edit
+            if (!isEditInProgress)
+            {
+                editMetadataAction = new EditMetadataAction(ChartManager.ChartPackage);
+                editMetadataAction.gainDelta = ChartManager.ChartPackage.Gain;
+                isEditInProgress = true;
+            }
+        });
+        gainSlider.onValueChanged.AddListener(gain =>
+        {
+            ChartManager.ChartPackage.Gain = gain;
+        });
+        // add callback to OnPointerUp event set on the slider game object
+        gainEndEditEvent.triggers[1].callback.AddListener(_ => 
+        {
+            if (isEditInProgress)
+            {
+                editMetadataAction.gainDelta = ChartManager.ChartPackage.Gain - editMetadataAction.gainDelta;
+                editMetadataAction.CommitAction();
+                isEditInProgress = false;
+            }
+        });
+        gainResetEvent.AddListener(() => 
+        {
+            // if value changed, commit the action to edit history
+            float oldGain = ChartManager.ChartPackage.Gain;
+            if (oldGain != 0)
+            {
+                editMetadataAction = new EditMetadataAction(ChartManager.ChartPackage);
+                editMetadataAction.gainDelta = -oldGain;
+                editMetadataAction.CommitAction();
+            }
+            gainSlider.value = 0;
+        });
 
         previewStartField.onValidateInput = (text, charIndex, addedChar) =>
         {
