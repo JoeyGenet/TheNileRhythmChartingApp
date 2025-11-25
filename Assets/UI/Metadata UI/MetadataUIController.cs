@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using SFB;
 using TMPro;
 using Unity.VisualScripting;
@@ -15,6 +16,8 @@ public class MetadataUIController : MonoBehaviour
     [Header("Image")]
     [SerializeField] EventRelay loadImageEvent;
     [SerializeField] RawImage coverImage;
+    [SerializeField] string newCoverImagePath;
+    [SerializeField] string oldCoverImagePath;
 
     [Header("Song")]
     [SerializeField] EventRelay loadSongEvent;
@@ -345,6 +348,16 @@ public class MetadataUIController : MonoBehaviour
         try
         {
             await ChartManager.ChartPackage.SetCoverImage(paths[0]);
+            oldCoverImagePath = newCoverImagePath;
+            newCoverImagePath = paths[0];
+            // if we have selected a new image, commit it
+            if (!newCoverImagePath.Equals(oldCoverImagePath))
+            {
+                editMetadataAction = new EditMetadataAction(ChartManager.ChartPackage);
+                editMetadataAction.oldCoverImagePath = oldCoverImagePath;
+                editMetadataAction.newCoverImagePath = newCoverImagePath;
+                editMetadataAction.CommitAction();
+            } 
         }
         catch (Exception e)
         {
