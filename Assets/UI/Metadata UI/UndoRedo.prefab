@@ -219,7 +219,7 @@ MonoBehaviour:
   - {fileID: 6646374866580174949}
   toggles: []
   subRelays: []
-  keyBinds: 3201000079000000
+  keyBinds: 
   audioClips: []
   Event:
     m_PersistentCalls:
@@ -630,7 +630,7 @@ MonoBehaviour:
   - {fileID: 7236864454269072085}
   toggles: []
   subRelays: []
-  keyBinds: 320100007a000000
+  keyBinds: 
   audioClips: []
   Event:
     m_PersistentCalls:
