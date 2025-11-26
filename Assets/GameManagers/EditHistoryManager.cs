@@ -562,7 +562,7 @@ public class EditMetadataAction : UndoRedoAction
         // cover image
         if (!string.IsNullOrEmpty(newCoverImagePath))
         {
-            editableChartPackage.SetCoverImage(newCoverImagePath);
+            _ = editableChartPackage.SetCoverImage(newCoverImagePath);
         }
         else if (!string.IsNullOrEmpty(oldCoverImagePath))
         {
@@ -573,7 +573,7 @@ public class EditMetadataAction : UndoRedoAction
         // song file
         if (!string.IsNullOrEmpty(newSongPath))
         {
-            editableChartPackage.SetSong(newSongPath);
+            _ = editableChartPackage.SetSong(newSongPath);
         }
         else if (!string.IsNullOrEmpty(oldSongPath))
         {
@@ -596,7 +596,7 @@ public class EditMetadataAction : UndoRedoAction
         // cover image
         if (!string.IsNullOrEmpty(oldCoverImagePath))
         {
-            editableChartPackage.SetCoverImage(oldCoverImagePath);
+            _ = editableChartPackage.SetCoverImage(oldCoverImagePath);
         }
         else if (!string.IsNullOrEmpty(newCoverImagePath))
         {
@@ -606,7 +606,7 @@ public class EditMetadataAction : UndoRedoAction
         // song file
         if (!string.IsNullOrEmpty(oldSongPath))
         {
-            editableChartPackage.SetSong(oldSongPath);
+            _ = editableChartPackage.SetSong(oldSongPath);
         }
         else if (!string.IsNullOrEmpty(newSongPath))
         {
