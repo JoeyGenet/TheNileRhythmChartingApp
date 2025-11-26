@@ -503,8 +503,8 @@ public class EditMetadataAction : UndoRedoAction
     [SerializeField] public string newArtist;
     [SerializeField] public string oldCharter;
     [SerializeField] public string newCharter;
-    [SerializeField] public AudioClip oldSongClip;
-    [SerializeField] public AudioClip newSongClip;
+    [SerializeField] public string oldSongPath;
+    [SerializeField] public string newSongPath;
     [SerializeField] public uint bpmDelta;
     [SerializeField] public int bpmOffsetDelta;
     [SerializeField] public float gainDelta;
@@ -516,7 +516,7 @@ public class EditMetadataAction : UndoRedoAction
         return ((oldTitle!=null && newTitle!=null) ? "Old title: "+oldTitle+", new title: "+newTitle+"\n" : "") +
                ((oldArtist!=null && newArtist!=null) ? "Old artist: "+oldArtist+", new artist: "+newArtist+"\n" : "") +
                ((oldCharter!=null && newCharter!=null) ? "Old charter: "+oldCharter+", new charter: "+newCharter+"\n" : "") +
-               ((oldSongClip!=null && newSongClip!=null) ? "Old song clip: "+oldSongClip+", new song clip: "+newSongClip+"\n" : "") +
+               ((oldSongPath!=null || newSongPath!=null) ? "Old song clip: "+oldSongPath+", new song clip: "+newSongPath+"\n" : "") +
                ((oldCoverImagePath!=null || newCoverImagePath!=null) ? "Old cover image: "+oldCoverImagePath+", new cover image: "+newCoverImagePath+"\n" : "") +
                ((bpmDelta!=0) ? "BPM delta: "+bpmDelta+"\n" : "") +
                ((bpmOffsetDelta!=0) ? "BPM offset delta: "+bpmOffsetDelta+"\n" : "") +
@@ -527,9 +527,8 @@ public class EditMetadataAction : UndoRedoAction
 
     public EditMetadataAction(EditableChartPackage editableChartPackage, string oldCoverImagePath=null, string newCoverImagePath=null,
                               string oldTitle=null, string newTitle=null, string oldArtist=null, string newArtist=null,
-                              string oldCharter=null, string newCharter=null, AudioClip oldSongClip=null, AudioClip newSongClip=null,
-                              uint bpmDelta=0, int bpmOffsetDelta=0, float gainDelta=0, int songStartDelta=0, int songEndDelta=0,
-                              uint previewStartDelta=0, uint previewDurationDelta=0)
+                              string oldCharter=null, string newCharter=null, string oldSongPath=null, string newSongPath=null,
+                              uint bpmDelta=0, int bpmOffsetDelta=0, float gainDelta=0, uint previewStartDelta=0, uint previewDurationDelta=0)
     {
         this.editableChartPackage = editableChartPackage;
         this.oldTitle = oldTitle;
@@ -540,8 +539,8 @@ public class EditMetadataAction : UndoRedoAction
         this.newCharter = newCharter;
         this.oldCoverImagePath = oldCoverImagePath;
         this.newCoverImagePath = newCoverImagePath;
-        this.oldSongClip = oldSongClip;
-        this.newSongClip = newSongClip;
+        this.oldSongPath = oldSongPath;
+        this.newSongPath = newSongPath;
         this.bpmDelta = bpmDelta;
         this.bpmOffsetDelta = bpmOffsetDelta;
         this.gainDelta = gainDelta;
@@ -560,13 +559,25 @@ public class EditMetadataAction : UndoRedoAction
         editableChartPackage.previewStart += previewStartDelta;
         editableChartPackage.previewDuration += previewDurationDelta;
 
+        // cover image
         if (!string.IsNullOrEmpty(newCoverImagePath))
         {
             editableChartPackage.SetCoverImage(newCoverImagePath);
         }
-        else
+        else if (!string.IsNullOrEmpty(oldCoverImagePath))
         {
             editableChartPackage.coverImage = null;
+            editableChartPackage.SetChanged();
+        }
+
+        // song file
+        if (!string.IsNullOrEmpty(newSongPath))
+        {
+            editableChartPackage.SetSong(newSongPath);
+        }
+        else if (!string.IsNullOrEmpty(oldSongPath))
+        {
+            editableChartPackage.songClip = null;
             editableChartPackage.SetChanged();
         }
     }
@@ -582,14 +593,24 @@ public class EditMetadataAction : UndoRedoAction
         editableChartPackage.previewStart -= previewStartDelta;
         editableChartPackage.previewDuration -= previewDurationDelta;
 
+        // cover image
         if (!string.IsNullOrEmpty(oldCoverImagePath))
         {
             editableChartPackage.SetCoverImage(oldCoverImagePath);
         }
-        else
+        else if (!string.IsNullOrEmpty(newCoverImagePath))
         {
-            editableChartPackage.coverImage = null;
-            editableChartPackage.SetChanged();
+            editableChartPackage.ResetCoverImage();
+        }
+
+        // song file
+        if (!string.IsNullOrEmpty(oldSongPath))
+        {
+            editableChartPackage.SetSong(oldSongPath);
+        }
+        else if (!string.IsNullOrEmpty(newSongPath))
+        {
+            editableChartPackage.ResetSong();
         }
     }
 }

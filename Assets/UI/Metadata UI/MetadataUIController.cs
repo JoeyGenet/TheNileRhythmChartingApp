@@ -16,12 +16,14 @@ public class MetadataUIController : MonoBehaviour
     [Header("Image")]
     [SerializeField] EventRelay loadImageEvent;
     [SerializeField] RawImage coverImage;
-    [SerializeField] string newCoverImagePath;
     [SerializeField] string oldCoverImagePath;
+    [SerializeField] string newCoverImagePath;
 
     [Header("Song")]
     [SerializeField] EventRelay loadSongEvent;
     [SerializeField] TMP_Text songText;
+    [SerializeField] string oldSongPath;
+    [SerializeField] string newSongPath;
     string defaultSongText;
 
     [Header("Names")]
@@ -378,6 +380,16 @@ public class MetadataUIController : MonoBehaviour
         try
         {
             await ChartManager.ChartPackage.SetSong(paths[0]);
+            oldSongPath = newSongPath;
+            newSongPath = paths[0];
+            // if we have selected a new image, commit it
+            if (!newSongPath.Equals(oldSongPath))
+            {
+                editMetadataAction = new EditMetadataAction(ChartManager.ChartPackage);
+                editMetadataAction.oldSongPath = oldSongPath;
+                editMetadataAction.newSongPath = newSongPath;
+                editMetadataAction.CommitAction();
+            } 
         }
         catch (Exception e)
         {

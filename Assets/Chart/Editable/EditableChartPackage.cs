@@ -98,6 +98,11 @@ public class EditableChartPackage : ChartPackage, IEditable
         coverImage = await FileManager.OpenTexture(stream);
         SetChanged();
     }
+    public void ResetCoverImage()
+    {
+        coverImage = null;
+        SetChanged();
+    }
 
     protected override async Task LoadSong(ZipArchiveEntry entry)
     {
@@ -108,6 +113,12 @@ public class EditableChartPackage : ChartPackage, IEditable
     {
         songCache = FileManager.CopyToTempPath(path, "ChartPackageCache");
         songClip = await FileManager.OpenAudioClip(path);
+        SetChanged();
+    }
+    public void ResetSong()
+    {
+        songCache = null;
+        songClip = null;
         SetChanged();
     }
 
