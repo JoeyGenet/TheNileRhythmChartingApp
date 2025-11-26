@@ -489,6 +489,74 @@ public class RemoveNoteFromLeverSequenceAction : UndoRedoAction
     }
 }
 
+// MARK: Environment actions
+
+public class AddEnvironmentChangeAction : UndoRedoAction
+{
+    public override string Message { get { return "add environment change"; }}
+    [SerializeField] EditableEnvironmentChangeEvent editableEnvironmentChangeEvent;
+    [SerializeField] EditableChart editableChart;
+
+    public override string ToString()
+    {
+        return $"Environment: {editableEnvironmentChangeEvent.Environment} \n"+
+               $"Start Time: {editableEnvironmentChangeEvent.StartTime} \n"+
+               $"End Time: {editableEnvironmentChangeEvent.EndTime} \n"+
+               $"Duration: {editableEnvironmentChangeEvent.Duration}";
+    }
+
+    public AddEnvironmentChangeAction(EditableEnvironmentChangeEvent editableEnvironmentChangeEvent, EditableChart editableChart)
+    {
+        this.editableEnvironmentChangeEvent = editableEnvironmentChangeEvent;
+        this.editableChart = editableChart;
+    }
+
+    public override void Redo()
+    {
+        editableChart.AddEvent(editableEnvironmentChangeEvent);
+        UIManager.SelectedElement = editableEnvironmentChangeEvent;
+    }
+
+    public override void Undo()
+    {
+        editableChart.RemoveEvent(editableEnvironmentChangeEvent);
+        UIManager.SelectedElement = null;
+    }
+}
+
+public class RemoveEnvironmentChangeAction : UndoRedoAction
+{
+    public override string Message { get { return "remove environment change"; }}
+    [SerializeField] EditableEnvironmentChangeEvent editableEnvironmentChangeEvent;
+    [SerializeField] EditableChart editableChart;
+
+    public override string ToString()
+    {
+        return $"Environment: {editableEnvironmentChangeEvent.Environment} \n"+
+               $"Start Time: {editableEnvironmentChangeEvent.StartTime} \n"+
+               $"End Time: {editableEnvironmentChangeEvent.EndTime} \n"+
+               $"Duration: {editableEnvironmentChangeEvent.Duration}";
+    }
+
+    public RemoveEnvironmentChangeAction(EditableEnvironmentChangeEvent editableEnvironmentChangeEvent, EditableChart editableChart)
+    {
+        this.editableEnvironmentChangeEvent = editableEnvironmentChangeEvent;
+        this.editableChart = editableChart;
+    }
+
+    public override void Redo()
+    {
+        editableChart.RemoveEvent(editableEnvironmentChangeEvent);
+        UIManager.SelectedElement = null;
+    }
+
+    public override void Undo()
+    {
+        editableChart.AddEvent(editableEnvironmentChangeEvent);
+        UIManager.SelectedElement = editableEnvironmentChangeEvent;
+    }
+}
+
 // MARK: Metadata actions
 
 public class EditMetadataAction : UndoRedoAction

@@ -120,7 +120,11 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerClickHandler, IB
                 UIManager.SelectedElement = Event;
                 break;
             case PointerEventData.InputButton.Right:
+                // track the deletion for undo/redo
+                RemoveEnvironmentChangeAction removeEnvironmentChangeAction = new RemoveEnvironmentChangeAction(Event, Event.Chart);
+                removeEnvironmentChangeAction.CommitAction();
                 Event.Chart.RemoveEvent(Event);
+                UIManager.SelectedElement = null; // TODO: find better way to unfocus the event inspector
                 break;
         }
     }
