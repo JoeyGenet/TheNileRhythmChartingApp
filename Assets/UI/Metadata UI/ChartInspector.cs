@@ -12,9 +12,12 @@ public class ChartInspector : MonoBehaviour
     public EditableChart Chart { get; private set; }
 
     [SerializeField] TMP_InputField ratingInput;
+    private int editStartRating;
     [SerializeField] TMP_InputField nameInput;
+    private string editStartName;
     [SerializeField] Button editButton;
     [SerializeField] Button deleteButton;
+    private bool isEditInProgress = false;
 
     public void Init(MetadataUIController metadataUI, EditableChart chart)
     {
@@ -26,13 +29,49 @@ public class ChartInspector : MonoBehaviour
     {
         ratingInput.onValueChanged.AddListener(ratingStr =>
         {
+            // track starting value of edit
+            if (!isEditInProgress)
+            {
+                editStartRating = Chart.DifficultyRating;
+                isEditInProgress = true;
+            }
+            // process new value
             ratingInput.text = ratingStr = ratingStr.Replace("-", "");
             if (int.TryParse(ratingStr, out int rating)) Chart.DifficultyRating = Math.Abs(rating);
         });
-        ratingInput.onEndEdit.AddListener(_ => metadataUI.UpdateChartInspectorsOrder());
+        ratingInput.onEndEdit.AddListener(_ => 
+        {
+            if (isEditInProgress)
+            {
+                int ratingDelta = Chart.DifficultyRating - editStartRating;
+                EditChartAction editChartAction = new EditChartAction(Chart, ratingDelta, Chart.DifficultyName, Chart.DifficultyName);
+                editChartAction.CommitAction();
+                isEditInProgress = false;
+            }
+            metadataUI.UpdateChartInspectorsOrder();
+        });
 
-        nameInput.onValueChanged.AddListener(name => Chart.DifficultyName = name);
-        nameInput.onEndEdit.AddListener(_ => metadataUI.UpdateChartInspectorsOrder());
+        nameInput.onValueChanged.AddListener(name => 
+        {
+            // track starting value of edit
+            if (!isEditInProgress)
+            {
+                editStartName = Chart.DifficultyName;
+                isEditInProgress = true;
+            }
+            // process new value
+            Chart.DifficultyName = name;
+        });
+        nameInput.onEndEdit.AddListener(_ => 
+        {
+            if (isEditInProgress)
+            {
+                EditChartAction editChartAction = new EditChartAction(Chart, 0, editStartName, Chart.DifficultyName);
+                editChartAction.CommitAction();
+                isEditInProgress = false;
+            }
+            metadataUI.UpdateChartInspectorsOrder();
+        });
 
         editButton.onClick.AddListener(() =>
         {

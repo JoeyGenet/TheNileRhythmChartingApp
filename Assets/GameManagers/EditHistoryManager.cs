@@ -784,3 +784,39 @@ public class RemoveChartAction : UndoRedoAction
         ChartManager.ChartPackage.AddChart(editableChart, updateEditHistory: false);
     }
 }
+
+public class EditChartAction : UndoRedoAction
+{
+    public override string Message { get { return "edit chart settings"; }}
+    [SerializeField] EditableChart editableChart;
+    [SerializeField] int ratingDelta;
+    [SerializeField] string oldName;
+    [SerializeField] string newName;
+
+    public override string ToString()
+    {
+        return $"Rating delta: {ratingDelta} \n"+
+               $"Old difficulty name: {oldName} \n"+
+               $"New difficulty name: {newName}";
+    }
+
+    public EditChartAction(EditableChart editableChart, int ratingDelta, string oldName, string newName)
+    {
+        this.editableChart = editableChart;
+        this.ratingDelta = ratingDelta;
+        this.oldName = oldName;
+        this.newName = newName;
+    }
+
+    public override void Redo()
+    {
+        editableChart.DifficultyRating += ratingDelta;
+        editableChart.DifficultyName = newName;
+    }
+
+    public override void Undo()
+    {
+        editableChart.DifficultyRating -= ratingDelta;
+        editableChart.DifficultyName = oldName;
+    }
+}
