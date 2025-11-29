@@ -45,6 +45,13 @@ public static class EditHistoryManager
             Debug.Log("Redid " + undoRedoAction.Message + "\n\n" + undoRedoAction.ToString() + "\n");
         }
     }
+
+    public static void ClearEditHistory()
+    {
+        editHistory = new List<UndoRedoAction>();
+        editHistoryHeadIndex = -1;
+        Debug.Log("Edit history cleared.");
+    }
 }
 
 // MARK: Abstract action
