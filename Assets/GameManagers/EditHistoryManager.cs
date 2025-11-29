@@ -557,6 +557,47 @@ public class RemoveEnvironmentChangeAction : UndoRedoAction
     }
 }
 
+public class EditEnvironmentChangeAction : UndoRedoAction
+{
+    public override string Message { get { return "edit environment change"; }}
+    [SerializeField] EditableEnvironmentChangeEvent editableEnvironmentChangeEvent;
+    [SerializeField] public int startTimeDelta;
+    [SerializeField] public int endTimeDelta;
+    [SerializeField] public Environment oldEnvironment;
+    [SerializeField] public Environment newEnvironment;
+
+    public override string ToString()
+    {
+        return $"Old environment: {oldEnvironment}, new environment: {newEnvironment} \n"+
+               $"Start Time delta: {startTimeDelta} \n"+
+               $"End Time delta: {endTimeDelta} \n";
+    }
+
+    public EditEnvironmentChangeAction(EditableEnvironmentChangeEvent editableEnvironmentChangeEvent, int startTimeDelta,
+                                       int endTimeDelta, Environment oldEnvironment, Environment newEnvironment)
+    {
+        this.editableEnvironmentChangeEvent = editableEnvironmentChangeEvent;
+        this.startTimeDelta = startTimeDelta;
+        this.endTimeDelta = endTimeDelta;
+        this.oldEnvironment = oldEnvironment;
+        this.newEnvironment = newEnvironment;
+    }
+
+    public override void Redo()
+    {
+        editableEnvironmentChangeEvent.StartTime += startTimeDelta;
+        editableEnvironmentChangeEvent.EndTime += endTimeDelta;
+        editableEnvironmentChangeEvent.Environment = newEnvironment;
+    }
+
+    public override void Undo()
+    {
+        editableEnvironmentChangeEvent.StartTime -= startTimeDelta;
+        editableEnvironmentChangeEvent.EndTime -= endTimeDelta;
+        editableEnvironmentChangeEvent.Environment = oldEnvironment;
+    }
+}
+
 // MARK: Metadata actions
 
 public class EditMetadataAction : UndoRedoAction

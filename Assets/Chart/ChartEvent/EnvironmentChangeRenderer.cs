@@ -4,7 +4,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(RectTransform))]
-public class EnvironmentChangeRenderer : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDragHandler
+public class EnvironmentChangeRenderer : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     public Track Track { get; private set; }
     public EditableEnvironmentChangeEvent Event { get; private set; }
@@ -22,6 +22,8 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerClickHandler, IB
     int dragStartPointerTime;
     int dragStartStartTime;
     int dragStartEndTime;
+    int oldDuration;
+    Environment oldEnvironment;
 
     public virtual void Init(Track track, EditableEnvironmentChangeEvent evt)
     {
@@ -141,6 +143,8 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerClickHandler, IB
         dragStartPointerTime = time;
         dragStartStartTime = Event.StartTime;
         dragStartEndTime = Event.EndTime;
+        oldDuration = Event.Duration;
+        oldEnvironment = Event.Environment;
     }
     void Drag(PointerEventData eventData, bool dragStart, bool dragEnd)
     {
@@ -166,6 +170,20 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerClickHandler, IB
     {
         Drag(eventData, dragStart: true, dragEnd: true);
     }
+    public void OnEndDrag(PointerEventData eventData)
+    {
+        if (eventData.button != PointerEventData.InputButton.Left) return;
+        int startTimeDelta = Event.StartTime - dragStartStartTime;
+        int endTimeDelta = Event.EndTime - dragStartEndTime;
+        int durationDelta = Event.Duration - oldDuration;
+        EditEnvironmentChangeAction editEnvironmentChangeAction = new EditEnvironmentChangeAction
+        (
+            Event, startTimeDelta, endTimeDelta, oldEnvironment, Event.Environment
+        );
+        editEnvironmentChangeAction.CommitAction();
+    }
+    // the following functions are called from EventTrigger components on the the EnvironmentChange prefab
+    // so that the separate handles can all trigger drag events
     public void OnHandleBeginDrag(BaseEventData eventData)
     {
         if (eventData is not PointerEventData pointerEventData) return;
@@ -180,5 +198,10 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerClickHandler, IB
     {
         if (eventData is not PointerEventData pointerEventData) return;
         Drag(pointerEventData, dragStart: Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift), dragEnd: true);
+    }
+    public void OnHandleEndDrag(BaseEventData eventData)
+    {
+        if (eventData is not PointerEventData pointerEventData) return;
+        OnEndDrag(pointerEventData);
     }
 }
