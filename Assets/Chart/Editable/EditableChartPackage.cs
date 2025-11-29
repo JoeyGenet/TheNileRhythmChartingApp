@@ -129,49 +129,66 @@ public class EditableChartPackage : ChartPackage, IEditable
         charts.Add(chart);
     }
 
-    public EditableChart AddChart()
+    public EditableChart AddChart(EditableChart chart = null, bool updateEditHistory = true)
     {
-        var chart = new EditableChart(this);
-
-        bool hasDifficulty(string name) => charts.Any(c => c.DifficultyName == name);
-
-        if (!hasDifficulty("Master"))
+        // if adding a new chart, give it a new difficulty rating
+        if (chart == null)
         {
-            if (hasDifficulty("Expert")) chart.DifficultyName = "Master";
-            else if (hasDifficulty("Hard")) chart.DifficultyName = "Expert";
-            else if (hasDifficulty("Medium")) chart.DifficultyName = "Hard";
-            else if (hasDifficulty("Easy")) chart.DifficultyName = "Medium";
-            else chart.DifficultyName = "Easy";
+            chart = new EditableChart(this);
+
+            bool hasDifficulty(string name) => charts.Any(c => c.DifficultyName == name);
+
+            if (!hasDifficulty("Master"))
+            {
+                if (hasDifficulty("Expert")) chart.DifficultyName = "Master";
+                else if (hasDifficulty("Hard")) chart.DifficultyName = "Expert";
+                else if (hasDifficulty("Medium")) chart.DifficultyName = "Hard";
+                else if (hasDifficulty("Easy")) chart.DifficultyName = "Medium";
+                else chart.DifficultyName = "Easy";
+            }
+            else
+            {
+                if (!hasDifficulty("Expert")) chart.DifficultyName = "Expert";
+                else if (!hasDifficulty("Hard")) chart.DifficultyName = "Hard";
+                else if (!hasDifficulty("Medium")) chart.DifficultyName = "Medium";
+                else if (!hasDifficulty("Easy")) chart.DifficultyName = "Easy";
+                else chart.DifficultyName = $"Unnamed {charts.Count-4}";
+            }
+
+            chart.DifficultyRating = chart.DifficultyName switch
+            {
+                "Easy" => 1,
+                "Medium" => 5,
+                "Hard" => 9,
+                "Expert" => 12,
+                "Master" => 14,
+                _ => 1
+            };
+
         }
-        else
-        {
-            if (!hasDifficulty("Expert")) chart.DifficultyName = "Expert";
-            else if (!hasDifficulty("Hard")) chart.DifficultyName = "Hard";
-            else if (!hasDifficulty("Medium")) chart.DifficultyName = "Medium";
-            else if (!hasDifficulty("Easy")) chart.DifficultyName = "Easy";
-            else chart.DifficultyName = $"Unnamed {charts.Count-4}";
-        }
-
-        chart.DifficultyRating = chart.DifficultyName switch
-        {
-            "Easy" => 1,
-            "Medium" => 5,
-            "Hard" => 9,
-            "Expert" => 12,
-            "Master" => 14,
-            _ => 1
-        };
-
         charts.Add(chart);
         SetChanged();
         OnChartAdded?.Invoke(chart);
+        if (updateEditHistory)
+        {
+            AddChartAction addChartAction = new AddChartAction(chart);
+            addChartAction.CommitAction();
+        }
         return chart;
     }
 
-    public bool RemoveChart(EditableChart chart) => this.RegisterChange(
-        () => charts.Count > 1 && charts.Remove(chart),
-        () => OnChartRemoved?.Invoke(chart)
-    );
+    public bool RemoveChart(EditableChart chart, bool updateEditHistory = true)
+    {
+        if (updateEditHistory)
+        {
+            RemoveChartAction removeChartAction = new RemoveChartAction(chart);
+            removeChartAction.CommitAction();
+        }
+        return this.RegisterChange(
+            () => charts.Count > 1 && charts.Remove(chart),
+            () => OnChartRemoved?.Invoke(chart)
+        );
+    }
 
     public override async Task Load(Stream stream)
     {

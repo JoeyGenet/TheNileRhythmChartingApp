@@ -730,3 +730,57 @@ public class EditMetadataAction : UndoRedoAction
         }
     }
 }
+
+public class AddChartAction : UndoRedoAction
+{
+    public override string Message { get { return "add new chart"; }}
+    [SerializeField] EditableChart editableChart;
+
+    public override string ToString()
+    {
+        return $"Difficulty rating: {editableChart.DifficultyRating} \n"+
+                $"Difficulty name: {editableChart.DifficultyName}";
+    }
+
+    public AddChartAction(EditableChart editableChart)
+    {
+        this.editableChart = editableChart;
+    }
+
+    public override void Redo()
+    {
+        ChartManager.ChartPackage.AddChart(editableChart, updateEditHistory: false);
+    }
+
+    public override void Undo()
+    {
+        ChartManager.ChartPackage.RemoveChart(editableChart, updateEditHistory: false);
+    }
+}
+
+public class RemoveChartAction : UndoRedoAction
+{
+    public override string Message { get { return "remove new chart"; }}
+    [SerializeField] EditableChart editableChart;
+
+    public override string ToString()
+    {
+        return $"Difficulty rating: {editableChart.DifficultyRating} \n"+
+                $"Difficulty name: {editableChart.DifficultyName}";
+    }
+
+    public RemoveChartAction(EditableChart editableChart)
+    {
+        this.editableChart = editableChart;
+    }
+
+    public override void Redo()
+    {
+        ChartManager.ChartPackage.RemoveChart(editableChart, updateEditHistory: false);
+    }
+
+    public override void Undo()
+    {
+        ChartManager.ChartPackage.AddChart(editableChart, updateEditHistory: false);
+    }
+}
