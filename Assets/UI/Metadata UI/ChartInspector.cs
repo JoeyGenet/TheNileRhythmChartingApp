@@ -75,6 +75,8 @@ public class ChartInspector : MonoBehaviour
 
         editButton.onClick.AddListener(() =>
         {
+            SwitchChartAction switchChartAction = new SwitchChartAction(ChartManager.SelectedChart, Chart);
+            switchChartAction.CommitAction();
             ChartManager.SelectedChart = Chart;
         });
 

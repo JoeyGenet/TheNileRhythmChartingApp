@@ -785,6 +785,37 @@ public class RemoveChartAction : UndoRedoAction
     }
 }
 
+public class SwitchChartAction : UndoRedoAction
+{
+    public override string Message { get { return "switch to chart"; }}
+    [SerializeField] EditableChart oldEditableChart;
+    [SerializeField] EditableChart newEditableChart;
+
+    public override string ToString()
+    {
+        return $"Old chart difficulty rating: {oldEditableChart.DifficultyRating} \n"+
+               $"Old chart difficulty name: {oldEditableChart.DifficultyName} \n --- \n" +
+               $"New chart difficulty rating: {newEditableChart.DifficultyRating} \n"+
+               $"New chart difficulty name: {newEditableChart.DifficultyName}";
+    }
+
+    public SwitchChartAction(EditableChart oldEditableChart, EditableChart newEditableChart)
+    {
+        this.oldEditableChart = oldEditableChart;
+        this.newEditableChart = newEditableChart;
+    }
+
+    public override void Redo()
+    {
+        ChartManager.SelectedChart = newEditableChart;
+    }
+
+    public override void Undo()
+    {
+        ChartManager.SelectedChart = oldEditableChart;
+    }
+}
+
 public class EditChartAction : UndoRedoAction
 {
     public override string Message { get { return "edit chart settings"; }}
