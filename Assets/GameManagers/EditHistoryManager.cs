@@ -28,6 +28,8 @@ public static class EditHistoryManager
     {
         if (editHistoryHeadIndex >= 0)
         {
+            // TODO: pause playback when undoing/redoing edits?
+            // PlaybackManager.Instance.Pause();
             UndoRedoAction undoRedoAction = editHistory[editHistoryHeadIndex];
             undoRedoAction.Undo();
             Debug.Log("Undid " + undoRedoAction.Message + "\n\n" + undoRedoAction.ToString() + "\n");
@@ -39,6 +41,8 @@ public static class EditHistoryManager
     {
         if (editHistoryHeadIndex < editHistory.Count - 1)
         {
+            // TODO: pause playback when undoing/redoing edits?
+            // PlaybackManager.Instance.Pause();
             editHistoryHeadIndex += 1;
             UndoRedoAction undoRedoAction = editHistory[editHistoryHeadIndex];
             undoRedoAction.Redo();
@@ -106,6 +110,8 @@ public class AddNoteAction : UndoRedoAction
     public override void Redo()
     {
         editableChart.AddNote(note, notify: true, updateEditHistory: false);
+        // TODO: set timestamp to focus on the undone/redone edit if it is not already in view
+        //PlaybackManager.Instance.SetTimestamp(note.StartTime);
     }
 
     public override void Undo()
@@ -730,6 +736,8 @@ public class EditMetadataAction : UndoRedoAction
         }
     }
 }
+
+// MARK: Chart actions
 
 public class AddChartAction : UndoRedoAction
 {
