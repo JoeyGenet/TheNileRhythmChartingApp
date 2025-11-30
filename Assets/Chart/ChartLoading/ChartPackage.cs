@@ -33,14 +33,17 @@ public class ChartPackage
     protected string artist = "Unknown";
     protected string charter = "Unknown";
     protected Texture2D coverImage = null;
+    protected string coverImagePath = "";
 
     public string Title => title.Trim();
     public string Artist => artist.Trim();
     public string Charter => charter.Trim();
     public Texture2D CoverImage => coverImage;
+    public string CoverImagePath => coverImagePath;
 
     // Song
     protected AudioClip songClip = null;
+    protected string songClipPath = "";
     protected uint bpm = 120;
     protected int bpmOffset = 0;
     protected float gain = 0f;
@@ -50,6 +53,7 @@ public class ChartPackage
     protected uint previewDuration = 10000;
 
     public AudioClip SongClip => songClip;
+    public string SongClipPath => songClipPath;
     public uint BPM => Math.Max(bpm, 1);
     public int BPMOffset => bpmOffset;
     public float Gain => gain;

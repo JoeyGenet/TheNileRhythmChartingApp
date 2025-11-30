@@ -16,14 +16,10 @@ public class MetadataUIController : MonoBehaviour
     [Header("Image")]
     [SerializeField] EventRelay loadImageEvent;
     [SerializeField] RawImage coverImage;
-    private string oldCoverImagePath;
-    private string newCoverImagePath;
 
     [Header("Song")]
     [SerializeField] EventRelay loadSongEvent;
-    [SerializeField] TMP_Text songText;
-    private string oldSongPath;
-    private string newSongPath;
+    [SerializeField] TMP_Text songText;    
     string defaultSongText;
 
     [Header("Names")]
@@ -349,9 +345,9 @@ public class MetadataUIController : MonoBehaviour
 
         try
         {
+            string oldCoverImagePath = ChartManager.ChartPackage.CoverImagePath;
             await ChartManager.ChartPackage.SetCoverImage(paths[0]);
-            oldCoverImagePath = newCoverImagePath;
-            newCoverImagePath = paths[0];
+            string newCoverImagePath = ChartManager.ChartPackage.CoverImagePath;
             // if we have selected a new image, commit it
             if (!newCoverImagePath.Equals(oldCoverImagePath))
             {
@@ -379,15 +375,15 @@ public class MetadataUIController : MonoBehaviour
 
         try
         {
+            string oldSongClipPath = ChartManager.ChartPackage.SongClipPath;
             await ChartManager.ChartPackage.SetSong(paths[0]);
-            oldSongPath = newSongPath;
-            newSongPath = paths[0];
-            // if we have selected a new image, commit it
-            if (!newSongPath.Equals(oldSongPath))
+            string newSongClipPath = ChartManager.ChartPackage.SongClipPath;
+            // if we have selected a new song, commit it
+            if (!newSongClipPath.Equals(oldSongClipPath))
             {
                 editMetadataAction = new EditMetadataAction(ChartManager.ChartPackage);
-                editMetadataAction.oldSongPath = oldSongPath;
-                editMetadataAction.newSongPath = newSongPath;
+                editMetadataAction.oldSongClipPath = oldSongClipPath;
+                editMetadataAction.newSongClipPath = newSongClipPath;
                 editMetadataAction.CommitAction();
             } 
         }

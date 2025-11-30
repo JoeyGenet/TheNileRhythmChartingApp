@@ -38,8 +38,18 @@ public class EditableChartPackage : ChartPackage, IEditable
         get => base.Charter;
         set => this.RegisterChange(ref charter, value);
     }
+    public new string CoverImagePath
+    {
+        get => base.CoverImagePath;
+        set => this.RegisterChange(ref coverImagePath, value);
+    }
 
     // Song
+    public new string SongClipPath
+    {
+        get => base.SongClipPath;
+        set => this.RegisterChange(ref songClipPath, value);
+    }
     public new uint BPM
     {
         get => base.BPM;
@@ -96,11 +106,13 @@ public class EditableChartPackage : ChartPackage, IEditable
         imageCache = FileManager.CopyToTempPath(path, "ChartPackageCache");
         using Stream stream = File.OpenRead(path);
         coverImage = await FileManager.OpenTexture(stream);
+        ChartManager.ChartPackage.CoverImagePath = path;
         SetChanged();
     }
     public void ResetCoverImage()
     {
         coverImage = null;
+        ChartManager.ChartPackage.CoverImagePath = "";
         SetChanged();
     }
 
@@ -113,12 +125,14 @@ public class EditableChartPackage : ChartPackage, IEditable
     {
         songCache = FileManager.CopyToTempPath(path, "ChartPackageCache");
         songClip = await FileManager.OpenAudioClip(path);
+        ChartManager.ChartPackage.SongClipPath = path;
         SetChanged();
     }
     public void ResetSong()
     {
         songCache = null;
         songClip = null;
+        ChartManager.ChartPackage.SongClipPath = "";
         SetChanged();
     }
 
