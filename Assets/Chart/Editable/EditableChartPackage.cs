@@ -85,6 +85,11 @@ public class EditableChartPackage : ChartPackage, IEditable
         get => base.PreviewDuration;
         set => this.RegisterChange(ref previewDuration, value);
     }
+    public uint UnclampedPreviewDuration
+    {
+        get => previewDuration;
+        set => this.RegisterChange(ref previewDuration, value);
+    }
 
     // readonly List<EditableChart> charts = new();
     public new IReadOnlySortedSet<EditableChart> Charts => (ReadOnlySortedSet<EditableChart, Chart>) charts;

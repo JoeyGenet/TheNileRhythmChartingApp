@@ -679,7 +679,7 @@ public class EditMetadataAction : UndoRedoAction
         editableChartPackage.BPMOffset += bpmOffsetDelta;
         editableChartPackage.Gain += gainDelta;
         editableChartPackage.PreviewStart += previewStartDelta;
-        editableChartPackage.PreviewDuration += previewDurationDelta;
+        editableChartPackage.UnclampedPreviewDuration += previewDurationDelta;
 
         // cover image
         if (!string.IsNullOrEmpty(newCoverImagePath))
@@ -711,7 +711,7 @@ public class EditMetadataAction : UndoRedoAction
         editableChartPackage.BPMOffset -= bpmOffsetDelta;
         editableChartPackage.Gain -= gainDelta;
         editableChartPackage.PreviewStart -= previewStartDelta;
-        editableChartPackage.PreviewDuration -= previewDurationDelta;
+        editableChartPackage.UnclampedPreviewDuration -= previewDurationDelta;
 
         // cover image
         if (!string.IsNullOrEmpty(oldCoverImagePath))

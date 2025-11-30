@@ -264,7 +264,7 @@ public class MetadataUIController : MonoBehaviour
             if (!isEditInProgress)
             {
                 editMetadataAction = new EditMetadataAction(ChartManager.ChartPackage);
-                editMetadataAction.previewDurationDelta = ChartManager.ChartPackage.PreviewDuration;
+                editMetadataAction.previewDurationDelta = ChartManager.ChartPackage.UnclampedPreviewDuration;
                 isEditInProgress = true;
             }
 
@@ -283,7 +283,7 @@ public class MetadataUIController : MonoBehaviour
         {
             if (isEditInProgress)
             {
-                editMetadataAction.previewDurationDelta = ChartManager.ChartPackage.PreviewDuration - editMetadataAction.previewDurationDelta;
+                editMetadataAction.previewDurationDelta = ChartManager.ChartPackage.UnclampedPreviewDuration - editMetadataAction.previewDurationDelta;
                 editMetadataAction.CommitAction();
                 isEditInProgress = false;
             }
