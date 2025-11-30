@@ -672,14 +672,14 @@ public class EditMetadataAction : UndoRedoAction
 
     public override void Redo()
     {
-        editableChartPackage.title = newTitle ?? editableChartPackage.Title;
-        editableChartPackage.artist = newArtist ?? editableChartPackage.Artist;
-        editableChartPackage.charter = newCharter ?? editableChartPackage.Charter;
-        editableChartPackage.bpm += bpmDelta;
-        editableChartPackage.bpmOffset += bpmOffsetDelta;
-        editableChartPackage.gain += gainDelta;
-        editableChartPackage.previewStart += previewStartDelta;
-        editableChartPackage.previewDuration += previewDurationDelta;
+        editableChartPackage.Title = newTitle ?? editableChartPackage.Title;
+        editableChartPackage.Artist = newArtist ?? editableChartPackage.Artist;
+        editableChartPackage.Charter = newCharter ?? editableChartPackage.Charter;
+        editableChartPackage.BPM += bpmDelta;
+        editableChartPackage.BPMOffset += bpmOffsetDelta;
+        editableChartPackage.Gain += gainDelta;
+        editableChartPackage.PreviewStart += previewStartDelta;
+        editableChartPackage.PreviewDuration += previewDurationDelta;
 
         // cover image
         if (!string.IsNullOrEmpty(newCoverImagePath))
@@ -688,8 +688,7 @@ public class EditMetadataAction : UndoRedoAction
         }
         else if (!string.IsNullOrEmpty(oldCoverImagePath))
         {
-            editableChartPackage.coverImage = null;
-            editableChartPackage.SetChanged();
+            editableChartPackage.ResetCoverImage();
         }
 
         // song file
@@ -699,21 +698,20 @@ public class EditMetadataAction : UndoRedoAction
         }
         else if (!string.IsNullOrEmpty(oldSongPath))
         {
-            editableChartPackage.songClip = null;
-            editableChartPackage.SetChanged();
+            editableChartPackage.ResetSong();
         }
     }
 
     public override void Undo()
     {
-        editableChartPackage.title = oldTitle ?? editableChartPackage.Title;
-        editableChartPackage.artist = oldArtist ?? editableChartPackage.Artist;
-        editableChartPackage.charter = oldCharter ?? editableChartPackage.Charter;
-        editableChartPackage.bpm -= bpmDelta;
-        editableChartPackage.bpmOffset -= bpmOffsetDelta;
-        editableChartPackage.gain -= gainDelta;
-        editableChartPackage.previewStart -= previewStartDelta;
-        editableChartPackage.previewDuration -= previewDurationDelta;
+        editableChartPackage.Title = oldTitle ?? editableChartPackage.Title;
+        editableChartPackage.Artist = oldArtist ?? editableChartPackage.Artist;
+        editableChartPackage.Charter = oldCharter ?? editableChartPackage.Charter;
+        editableChartPackage.BPM -= bpmDelta;
+        editableChartPackage.BPMOffset -= bpmOffsetDelta;
+        editableChartPackage.Gain -= gainDelta;
+        editableChartPackage.PreviewStart -= previewStartDelta;
+        editableChartPackage.PreviewDuration -= previewDurationDelta;
 
         // cover image
         if (!string.IsNullOrEmpty(oldCoverImagePath))

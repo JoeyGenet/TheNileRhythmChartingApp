@@ -16,14 +16,14 @@ public class MetadataUIController : MonoBehaviour
     [Header("Image")]
     [SerializeField] EventRelay loadImageEvent;
     [SerializeField] RawImage coverImage;
-    [SerializeField] string oldCoverImagePath;
-    [SerializeField] string newCoverImagePath;
+    private string oldCoverImagePath;
+    private string newCoverImagePath;
 
     [Header("Song")]
     [SerializeField] EventRelay loadSongEvent;
     [SerializeField] TMP_Text songText;
-    [SerializeField] string oldSongPath;
-    [SerializeField] string newSongPath;
+    private string oldSongPath;
+    private string newSongPath;
     string defaultSongText;
 
     [Header("Names")]
