@@ -94,7 +94,7 @@ public class ChartInspector : MonoBehaviour
         deleteButton.gameObject.SetActive(isSelected);
         deleteButton.interactable = ChartManager.ChartPackage.Charts.Count > 1;
 
-        if (!ratingInput.isFocused) ratingInput.text = $"{Chart.DifficultyRating}";
-        if (!nameInput.isFocused) nameInput.text = Chart.DifficultyName;
+        if (!ratingInput.isFocused) ratingInput.SetTextWithoutNotify($"{Chart.DifficultyRating}");
+        if (!nameInput.isFocused) nameInput.SetTextWithoutNotify(Chart.DifficultyName);
     }
 }
