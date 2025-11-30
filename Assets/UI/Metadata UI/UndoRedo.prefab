@@ -162,7 +162,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   undoEvent: {fileID: 6198317076147594612}
+  undoShortcuts:
+  - {fileID: 6039833142067488757}
   redoEvent: {fileID: 7950810269595234244}
+  redoShortcuts:
+  - {fileID: 3624711541736393190}
+  - {fileID: 6954961680724988965}
 --- !u!1 &5419655664203164174
 GameObject:
   m_ObjectHideFlags: 0
@@ -173,6 +178,8 @@ GameObject:
   m_Component:
   - component: {fileID: 419056480425437264}
   - component: {fileID: 7950810269595234244}
+  - component: {fileID: 3624711541736393190}
+  - component: {fileID: 6954961680724988965}
   - component: {fileID: 2752769134439497541}
   - component: {fileID: 4147985858852382042}
   - component: {fileID: 6646374866580174949}
@@ -221,6 +228,44 @@ MonoBehaviour:
   subRelays: []
   keyBinds: 
   audioClips: []
+  Event:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &3624711541736393190
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5419655664203164174}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0698aa20cea66204a9068be29b8202a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  holdKeys1: 3201000031010000
+  holdKeys2: 300100002f010000
+  pressKeys: 7a000000
+  excludeKeys: 
+  Event:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &6954961680724988965
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5419655664203164174}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0698aa20cea66204a9068be29b8202a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  holdKeys1: 3201000031010000
+  holdKeys2: 
+  pressKeys: 79000000
+  excludeKeys: 
   Event:
     m_PersistentCalls:
       m_Calls: []
@@ -584,6 +629,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4432354558908752608}
   - component: {fileID: 6198317076147594612}
+  - component: {fileID: 6039833142067488757}
   - component: {fileID: 2189285618392987125}
   - component: {fileID: 126857750322802666}
   - component: {fileID: 7236864454269072085}
@@ -632,6 +678,25 @@ MonoBehaviour:
   subRelays: []
   keyBinds: 
   audioClips: []
+  Event:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &6039833142067488757
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8314866771920216254}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0698aa20cea66204a9068be29b8202a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  holdKeys1: 3201000031010000
+  holdKeys2: 
+  pressKeys: 7a000000
+  excludeKeys: 300100002f010000
   Event:
     m_PersistentCalls:
       m_Calls: []
