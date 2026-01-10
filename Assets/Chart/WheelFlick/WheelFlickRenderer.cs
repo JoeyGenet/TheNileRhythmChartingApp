@@ -20,6 +20,7 @@ public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerClic
     AudioSource audioSource;
 
     int dragStartTime;
+    LeftRight oldDir;
     float dragDirChangePosX;
 
     protected override void Awake()
@@ -58,6 +59,7 @@ public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerClic
     {
         UIManager.SelectedElement = Note;
         dragStartTime = Note.StartTime;
+        oldDir = Note.Dir;
         dragDirChangePosX = pointerEventData.position.x;
     }
 
@@ -83,5 +85,13 @@ public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerClic
         {
             Note.StartTime = dragStartTime;
         }
+    }
+
+    protected override void OnEndDrag()
+    {
+        int startTimeDelta = Note.StartTime - dragStartTime;
+        int dirDelta = Note.Dir - oldDir;
+        EditWheelFlickAction editWheelFlickAction = new EditWheelFlickAction(Note, startTimeDelta, dirDelta);
+        editWheelFlickAction.CommitAction();
     }
 }

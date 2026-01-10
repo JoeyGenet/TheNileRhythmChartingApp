@@ -15,7 +15,7 @@ where C : IEditableNoteContainer<NoteType>
 {}
 
 [RequireComponent(typeof(RectTransform))]
-public abstract class NoteRenderer<NoteType, C, N> : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDragHandler
+public abstract class NoteRenderer<NoteType, C, N> : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
 where NoteType : N, IEditableNote<C, N>
 where N : Note
 where C : IEditableNoteContainer<N>
@@ -131,6 +131,12 @@ where C : IEditableNoteContainer<N>
         OnDrag();
     }
 
+    public virtual void OnEndDrag(PointerEventData eventData)
+    {
+        OnEndDrag();
+    }
+
     protected virtual void OnDragStart() {}
     protected virtual void OnDrag() {}
+    protected virtual void OnEndDrag() {}
 }

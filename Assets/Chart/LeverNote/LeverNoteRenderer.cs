@@ -30,6 +30,7 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
     LeftRight dragStartDir;
     LeverPos dragStartLeverPos;
     Vector2 dragLeverPosChangePos;
+    Dictionary<EditableLeverNote, LeverPos> oldLeverPositions;
 
     protected override void Awake()
     {
@@ -95,6 +96,7 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
         dragStartLeverPos = Note.Pos;
         dragStartDir = Note.Container.Dir;
         dragLeverPosChangePos = pointerEventData.position;
+        oldLeverPositions = Note.Container.Notes.ToDictionary(n => n, n => n.Pos);
     }
 
     protected override void OnDrag()
@@ -162,5 +164,14 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
 
             Note.Container.Dir = dragStartDir;
         }
+    }
+
+    protected override void OnEndDrag()
+    {
+        int dirDelta = Note.Container.Dir - dragStartDir;
+        Dictionary<EditableLeverNote, int> newStartTimes = Note.Container.Notes.ToDictionary(n => n, n => n.StartTime);
+        Dictionary<EditableLeverNote, LeverPos> newLeverPositions = Note.Container.Notes.ToDictionary(n => n, n => n.Pos);
+        EditLeverSequenceAction editLeverSequenceAction = new EditLeverSequenceAction(Note.Container, dirDelta, dragStartTimes, newStartTimes, oldLeverPositions, newLeverPositions);
+        editLeverSequenceAction.CommitAction();
     }
 }

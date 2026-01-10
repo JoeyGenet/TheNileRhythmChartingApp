@@ -14,6 +14,7 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
     int dragStartSeqPos;
     int dragStartSeqTime;
     Dictionary<EditableWheelTurn, int> dragStartEndTimes;
+    Dictionary<EditableWheelTurn, int> oldDeltaAngles;
 
     public void Init(WheelSequenceRenderer sequenceRenderer, EditableWheelTurn turn)
     {
@@ -73,6 +74,7 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
         dragStartSeqPos = WheelSequence.Pos;
         dragStartSeqTime = WheelSequence.StartTime;
         dragStartEndTimes = WheelSequence.Notes.ToDictionary(n => n, n => n.EndTime);
+        oldDeltaAngles = WheelSequence.Notes.ToDictionary(n => n, n => n.DeltaAngle);
     }
 
     protected override void OnDrag()
@@ -150,5 +152,16 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
                 if (Note.NextTurn != null) Note.NextTurn.DeltaAngle -= deltaAngleDiff;
             }
         }
+    }
+
+    protected override void OnEndDrag()
+    {
+        int startTimeDelta = WheelSequence.StartTime - dragStartSeqTime;
+        int posDelta = WheelSequence.Pos - dragStartSeqPos;
+        Dictionary<EditableWheelTurn, int> newEndTimes = WheelSequence.Notes.ToDictionary(n => n, n => n.EndTime);
+        Dictionary<EditableWheelTurn, int> newDeltaAngles = WheelSequence.Notes.ToDictionary(n => n, n => n.DeltaAngle);
+
+        EditWheelSequenceAction wheelSequenceAction = new EditWheelSequenceAction(WheelSequence, startTimeDelta, posDelta, dragStartEndTimes, newEndTimes, oldDeltaAngles, newDeltaAngles);
+        wheelSequenceAction.CommitAction();
     }
 }

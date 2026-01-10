@@ -3,9 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using SFB;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class MetadataUIController : MonoBehaviour
@@ -16,7 +19,7 @@ public class MetadataUIController : MonoBehaviour
 
     [Header("Song")]
     [SerializeField] EventRelay loadSongEvent;
-    [SerializeField] TMP_Text songText;
+    [SerializeField] TMP_Text songText;    
     string defaultSongText;
 
     [Header("Names")]
@@ -35,11 +38,15 @@ public class MetadataUIController : MonoBehaviour
     [SerializeField] TMP_InputField bpmOffsetInputField;
     [SerializeField] Slider gainSlider;
     [SerializeField] TMP_Text gainText;
+    [SerializeField] EventTrigger gainEndEditEvent;
     [SerializeField] EventRelay gainResetEvent;
 
     [Header("Preview")]
     [SerializeField] TMP_InputField previewStartField;
     [SerializeField] TMP_InputField previewDurationField;
+
+    private EditMetadataAction editMetadataAction;
+    private bool isEditInProgress;
 
     void Awake()
     {
@@ -48,29 +55,159 @@ public class MetadataUIController : MonoBehaviour
         loadSongEvent.AddListener(LoadSong);
         defaultSongText = songText.text;
 
+        titleInputField.onValidateInput += (text, _, c) => c == '\n' ? '\0' : c;
         titleInputField.onValueChanged.AddListener(title =>
-            ChartManager.ChartPackage.Title = titleInputField.text = title.Replace("\n", ""));
+        {
+            // track starting value of edit
+            if (!isEditInProgress)
+            {
+                editMetadataAction = new EditMetadataAction(ChartManager.ChartPackage);
+                editMetadataAction.oldTitle = ChartManager.ChartPackage.Title;
+                isEditInProgress = true;
+            }
+            // process new value
+            ChartManager.ChartPackage.Title = titleInputField.text = title.Replace("\n", "");
+        });
+        titleInputField.onEndEdit.AddListener(_ =>
+        {
+            if (isEditInProgress)
+            {
+                editMetadataAction.newTitle = ChartManager.ChartPackage.Title;
+                editMetadataAction.CommitAction();
+                isEditInProgress = false;
+            }
+        });
 
+        artistInputField.onValidateInput += (text, _, c) => c == '\n' ? '\0' : c;
         artistInputField.onValueChanged.AddListener(artist =>
-            ChartManager.ChartPackage.Artist = artistInputField.text = artist.Replace("\n", ""));
+        {
+            // track starting value of edit
+            if (!isEditInProgress)
+            {
+                editMetadataAction = new EditMetadataAction(ChartManager.ChartPackage);
+                editMetadataAction.oldArtist = ChartManager.ChartPackage.Artist;
+                isEditInProgress = true;
+            }
+            // process new value
+            ChartManager.ChartPackage.Artist = artistInputField.text = artist.Replace("\n", "");
+        });
+        artistInputField.onEndEdit.AddListener(_ =>
+        {
+            if (isEditInProgress)
+            {
+                editMetadataAction.newArtist = ChartManager.ChartPackage.Artist;
+                editMetadataAction.CommitAction();
+                isEditInProgress = false;
+            }
+        });
 
+        charterInputField.onValidateInput += (text, _, c) => c == '\n' ? '\0' : c;
         charterInputField.onValueChanged.AddListener(charter =>
-            ChartManager.ChartPackage.Charter = charterInputField.text = charter.Replace("\n", ""));
+        {
+            // track starting value of edit
+            if (!isEditInProgress)
+            {
+                editMetadataAction = new EditMetadataAction(ChartManager.ChartPackage);
+                editMetadataAction.oldCharter = ChartManager.ChartPackage.Charter;
+                isEditInProgress = true;
+            }
+            // process new value
+            ChartManager.ChartPackage.Charter = charterInputField.text = charter.Replace("\n", "");
+        });
+        charterInputField.onEndEdit.AddListener(_ =>
+        {
+            if (isEditInProgress)
+            {
+                editMetadataAction.newCharter = ChartManager.ChartPackage.Charter;
+                editMetadataAction.CommitAction();
+                isEditInProgress = false;
+            }
+        });
+
 
         addChartButton.onClick.AddListener(() => ChartManager.ChartPackage.AddChart());
         
         bpmInputField.onValueChanged.AddListener(bpmStr =>
         {
+            // track starting value of edit
+            if (!isEditInProgress)
+            {
+                editMetadataAction = new EditMetadataAction(ChartManager.ChartPackage);
+                editMetadataAction.bpmDelta = ChartManager.ChartPackage.BPM;
+                isEditInProgress = true;
+            }
+            // process new value
             if (int.TryParse(bpmStr, out int bpm)) ChartManager.ChartPackage.BPM = (uint) Math.Abs(bpm);
+        });
+        bpmInputField.onEndEdit.AddListener(_ =>
+        {
+            if (isEditInProgress)
+            {
+                editMetadataAction.bpmDelta = ChartManager.ChartPackage.BPM - editMetadataAction.bpmDelta;
+                editMetadataAction.CommitAction();
+                isEditInProgress = false;
+            }
         });
 
         bpmOffsetInputField.onValueChanged.AddListener(offsetStr =>
         {
+            // track starting value of edit
+            if (!isEditInProgress)
+            {
+                editMetadataAction = new EditMetadataAction(ChartManager.ChartPackage);
+                editMetadataAction.bpmOffsetDelta = ChartManager.ChartPackage.BPMOffset;
+                isEditInProgress = true;
+            }
+            // process new value
             if (int.TryParse(offsetStr, out int offset)) ChartManager.ChartPackage.BPMOffset = offset;
         });
+        bpmOffsetInputField.onEndEdit.AddListener(_ =>
+        {
+            if (isEditInProgress)
+            {
+                editMetadataAction.bpmOffsetDelta = ChartManager.ChartPackage.BPMOffset - editMetadataAction.bpmOffsetDelta;
+                editMetadataAction.CommitAction();
+                isEditInProgress = false;
+            }
+        });
 
-        gainSlider.onValueChanged.AddListener(gain => ChartManager.ChartPackage.Gain = gain);
-        gainResetEvent.AddListener(() => gainSlider.value = 0);
+        // add callback to OnPointerDown event set on the slider game object
+        gainEndEditEvent.triggers[0].callback.AddListener(_ => 
+        {
+            // track starting value of edit
+            if (!isEditInProgress)
+            {
+                editMetadataAction = new EditMetadataAction(ChartManager.ChartPackage);
+                editMetadataAction.gainDelta = ChartManager.ChartPackage.Gain;
+                isEditInProgress = true;
+            }
+        });
+        gainSlider.onValueChanged.AddListener(gain =>
+        {
+            ChartManager.ChartPackage.Gain = gain;
+        });
+        // add callback to OnPointerUp event set on the slider game object
+        gainEndEditEvent.triggers[1].callback.AddListener(_ => 
+        {
+            if (isEditInProgress)
+            {
+                editMetadataAction.gainDelta = ChartManager.ChartPackage.Gain - editMetadataAction.gainDelta;
+                editMetadataAction.CommitAction();
+                isEditInProgress = false;
+            }
+        });
+        gainResetEvent.AddListener(() => 
+        {
+            // if value changed, commit the action to edit history
+            float oldGain = ChartManager.ChartPackage.Gain;
+            if (oldGain != 0)
+            {
+                editMetadataAction = new EditMetadataAction(ChartManager.ChartPackage);
+                editMetadataAction.gainDelta = -oldGain;
+                editMetadataAction.CommitAction();
+            }
+            gainSlider.value = 0;
+        });
 
         previewStartField.onValidateInput = (text, charIndex, addedChar) =>
         {
@@ -86,6 +223,15 @@ public class MetadataUIController : MonoBehaviour
         {
             if (value == "") return;
 
+            // track starting value of edit
+            if (!isEditInProgress)
+            {
+                editMetadataAction = new EditMetadataAction(ChartManager.ChartPackage);
+                editMetadataAction.previewStartDelta = ChartManager.ChartPackage.PreviewStart;
+                isEditInProgress = true;
+            }
+
+            // process new value
             uint minutes = 0, seconds = 0, milliseconds = 0;
 
             int colonPos = value.IndexOf(':');
@@ -99,12 +245,30 @@ public class MetadataUIController : MonoBehaviour
 
             ChartManager.ChartPackage.PreviewStart = minutes * 60000 + seconds * 1000 + milliseconds;
         });
+        previewStartField.onEndEdit.AddListener(_ =>
+        {
+            if (isEditInProgress)
+            {
+                editMetadataAction.previewStartDelta = ChartManager.ChartPackage.PreviewStart - editMetadataAction.previewStartDelta;
+                editMetadataAction.CommitAction();
+                isEditInProgress = false;
+            }
+        });
 
         previewDurationField.onValueChanged.AddListener(value =>
         {
             previewDurationField.text = value = value.Replace("-", "");
             if (value == "") return;
 
+            // track starting value of edit
+            if (!isEditInProgress)
+            {
+                editMetadataAction = new EditMetadataAction(ChartManager.ChartPackage);
+                editMetadataAction.previewDurationDelta = ChartManager.ChartPackage.UnclampedPreviewDuration;
+                isEditInProgress = true;
+            }
+
+            // process new value
             uint seconds = 0, milliseconds = 0;
 
             if (double.TryParse(value, out double v))
@@ -114,6 +278,15 @@ public class MetadataUIController : MonoBehaviour
             }
 
             ChartManager.ChartPackage.PreviewDuration = seconds * 1000 + milliseconds;
+        });
+        previewDurationField.onEndEdit.AddListener(_ =>
+        {
+            if (isEditInProgress)
+            {
+                editMetadataAction.previewDurationDelta = ChartManager.ChartPackage.UnclampedPreviewDuration - editMetadataAction.previewDurationDelta;
+                editMetadataAction.CommitAction();
+                isEditInProgress = false;
+            }
         });
 
         OnChartPackageChanged(null, ChartManager.ChartPackage);
@@ -172,7 +345,17 @@ public class MetadataUIController : MonoBehaviour
 
         try
         {
+            string oldCoverImagePath = ChartManager.ChartPackage.CoverImagePath;
             await ChartManager.ChartPackage.SetCoverImage(paths[0]);
+            string newCoverImagePath = ChartManager.ChartPackage.CoverImagePath;
+            // if we have selected a new image, commit it
+            if (!newCoverImagePath.Equals(oldCoverImagePath))
+            {
+                editMetadataAction = new EditMetadataAction(ChartManager.ChartPackage);
+                editMetadataAction.oldCoverImagePath = oldCoverImagePath;
+                editMetadataAction.newCoverImagePath = newCoverImagePath;
+                editMetadataAction.CommitAction();
+            } 
         }
         catch (Exception e)
         {
@@ -192,7 +375,17 @@ public class MetadataUIController : MonoBehaviour
 
         try
         {
+            string oldSongClipPath = ChartManager.ChartPackage.SongClipPath;
             await ChartManager.ChartPackage.SetSong(paths[0]);
+            string newSongClipPath = ChartManager.ChartPackage.SongClipPath;
+            // if we have selected a new song, commit it
+            if (!newSongClipPath.Equals(oldSongClipPath))
+            {
+                editMetadataAction = new EditMetadataAction(ChartManager.ChartPackage);
+                editMetadataAction.oldSongClipPath = oldSongClipPath;
+                editMetadataAction.newSongClipPath = newSongClipPath;
+                editMetadataAction.CommitAction();
+            } 
         }
         catch (Exception e)
         {

@@ -81,14 +81,35 @@ public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
 		// Debug.Log(EventsAsString());
 	}
 
-    public bool AddNote(Note note, bool notify = true) => this.RegisterChange(
-		() => notes.Add(note) && notify,
-		() => OnNoteAdded?.Invoke(note)
-	);
-    public bool RemoveNote(Note note, bool notify = true) => this.RegisterChange(
-		() => notes.Remove(note) && notify,
-		() => OnNoteRemoved?.Invoke(note)
-	);
+	public bool AddNote(Note note, bool notify = true, bool updateEditHistory = true)
+	{
+		// track undo/redoable note add action
+		if (updateEditHistory)
+		{
+			AddNoteAction noteAddAction = new AddNoteAction(note, this);
+			noteAddAction.CommitAction();
+		}
+		return this.RegisterChange
+		(
+			() => notes.Add(note) && notify,
+			() => OnNoteAdded?.Invoke(note)
+		);
+	}
+
+	public bool RemoveNote(Note note, bool notify = true, bool updateEditHistory = true)
+	{
+		// track undo/redoable note remove action
+		if (updateEditHistory)
+		{
+			RemoveNoteAction removeNoteAction = new RemoveNoteAction(note, this);
+			removeNoteAction.CommitAction();
+		}
+		return this.RegisterChange(
+			() => notes.Remove(note) && notify,
+			() => OnNoteRemoved?.Invoke(note)
+		);
+	}
+	
 	public bool ContainsNote(Note note) => notes.Contains(note);
 	public void NotifyMoved(Note note) => OnNoteMoved?.Invoke(note);
 

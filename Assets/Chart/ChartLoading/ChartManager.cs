@@ -43,7 +43,8 @@ public static class ChartManager
             chartPackage = pkg;
             if (pkg.Charts.Count == 0)
             {
-                SelectedChart = chartPackage.AddChart();
+                // create default chart for new chart package. This change should not be undoable
+                SelectedChart = chartPackage.AddChart(updateEditHistory: false);
             }
             else if (SelectedChart != null) // Find the chart that most closely matches the current chart's difficulty
             {
