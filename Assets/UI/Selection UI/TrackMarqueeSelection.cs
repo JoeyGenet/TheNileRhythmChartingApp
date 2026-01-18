@@ -10,6 +10,9 @@ using UnityEngine.UI;
 [RequireComponent(typeof(RectTransform))]
 public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
+    [SerializeField] RectTransform scrollUpArea;
+    [SerializeField] RectTransform scrollDownArea;
+    [SerializeField] float scrollSpeed = 0.1f;
     [SerializeField] Image marqueeImage;
     [SerializeField] Track Track;
     public List<Note> Notes { get; private set; }
@@ -50,6 +53,12 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
     {
         int currTime = PlaybackManager.Instance.MillisecondsInChart;
         prevTime = currTime;
+
+        // scroll the track if you mouse over the scroll areas
+        if (marqueeImage.enabled)
+        {
+            DragScrollTrack();
+        }
     }
 
     void OnNoteSelected(object previousNote, object newNote)
@@ -79,7 +88,6 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        Debug.Log("OnBeginDrag()");
         if (eventData.button != PointerEventData.InputButton.Left || UIManager.CursorMode != UICursorMode.None) return;
         pointerEventData = eventData;
         if (Track.PointerToTrackPosition(eventData.pressPosition, clamp: false) is not var (pos, time)) return;
@@ -90,7 +98,6 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
 
     public void OnDrag(PointerEventData eventData)
     {
-        Debug.Log("OnDrag()");
         if (eventData.button != PointerEventData.InputButton.Left) return;
         pointerEventData = eventData;
         if (Track.PointerToTrackPosition(eventData.position, clamp: false) is not var (dragPos, dragTime)) return;
@@ -103,7 +110,6 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        Debug.Log("OnEndDrag()");
         OnEndDrag();
     }
 
@@ -115,6 +121,7 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
 
     protected void OnDrag() 
     {
+        // draw the selection rectangle
         Vector2 startUiPos = Track.TrackToUIPosition(dragStartPointerPos, dragStartPointerTime);
         Vector2 currentUiPos = Track.TrackToUIPosition(dragPos, dragTime);
         marqueeImage.rectTransform.pivot = new Vector2(currentUiPos.x > startUiPos.x ? 0 : 1, currentUiPos.y > startUiPos.y ? 0 : 1);
@@ -123,8 +130,38 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
     }
 
     protected void OnEndDrag() 
-    {
+    {   
+        Debug.Log("End drag pos: "+Track.TrackToUIPosition(dragPos, dragTime));
         marqueeImage.enabled = false;
+    }
+
+    public void DragScrollTrack()
+    {
+        // check if cursor is above bottom edge of the "scroll up" bounds
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(scrollUpArea, Input.mousePosition, null, out Vector2 localScrollUpPos);
+        bool isScrollingUp = localScrollUpPos.y >= scrollUpArea.rect.yMin;
+        // check if cursor is below top edge of the "scroll down" bounds
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(scrollDownArea, Input.mousePosition, null, out Vector2 localScrollDownPos);
+        bool isScrollingDown = localScrollDownPos.y <= scrollDownArea.rect.yMax;
+        
+        int scrollAmount = isScrollingUp ? (int) (PlaybackManager.Instance.VerticalViewSize * scrollSpeed) :
+                           isScrollingDown ? (int) (PlaybackManager.Instance.VerticalViewSize * -scrollSpeed) : 0;
+        if (scrollAmount != 0)
+        {
+            PlaybackManager.Instance.SetTimestamp(PlaybackManager.Instance.MillisecondsInChart + scrollAmount);
+            Track.IsScrolling = true;
+            // update marquee bounds while scrolling
+            if (Track.PointerToTrackPosition(Input.mousePosition, clamp: false) is not var (dragPos, dragTime)) return;
+            this.dragPos = dragPos;
+            this.dragTime = dragTime;
+            dragPosDiff = dragPos - dragStartPointerPos;
+            dragTimeDiff = dragTime - dragStartPointerTime;
+            OnDrag();
+        }
+        else
+        {
+            Track.IsScrolling = false;
+        }
     }
 
         void MultiSelect()

@@ -43,7 +43,7 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     [SerializeField] EnvironmentChangeRenderer environmentChangePrefab;
 
     public bool IsPointerOverTrack { get; private set; } = false;
-    public bool IsScrolling { get; private set; } = false;
+    public bool IsScrolling { get; set; } = false;
 
     RectTransform rect;
 
