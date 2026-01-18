@@ -5,10 +5,14 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
+// used by singular notes or whole note sequences
+// i.e. notes that are contained by a chart
 public abstract class NoteRenderer<NoteType> : NoteRenderer<NoteType, EditableChart, Note>
 where NoteType : Note, IEditableNote<EditableChart, Note>
 {}
 
+// used for individual notes in sequences
+// i.e. notes that are contained in other notes
 public abstract class NoteRenderer<NoteType, C> : NoteRenderer<NoteType, C, NoteType>
 where NoteType : Note, IEditableNote<C, NoteType>
 where C : IEditableNoteContainer<NoteType>
