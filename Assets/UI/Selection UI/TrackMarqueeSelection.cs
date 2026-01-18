@@ -5,6 +5,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using System.Linq;
 
 // TODO: Should this class be a child of NoteRenderer? i.e. make this a type of "note" that is composed of other notes in selection?
 [RequireComponent(typeof(RectTransform))]
@@ -86,6 +87,7 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
     protected void OnRightClick() {}
 
 
+    // get start timestamp and horizontal position when starting drag
     public void OnBeginDrag(PointerEventData eventData)
     {
         if (eventData.button != PointerEventData.InputButton.Left || UIManager.CursorMode != UICursorMode.None) return;
@@ -95,7 +97,8 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
         dragStartPointerTime = time;
         OnDragStart();
     }
-
+    
+    // get current timestamp and horizontal pos when dragging
     public void OnDrag(PointerEventData eventData)
     {
         if (eventData.button != PointerEventData.InputButton.Left) return;
@@ -132,6 +135,7 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
     protected void OnEndDrag() 
     {   
         Debug.Log("End drag pos: "+Track.TrackToUIPosition(dragPos, dragTime));
+        CheckForSelectedNotes(dragStartPointerTime, dragTime, dragStartPointerPos, dragPos);
         marqueeImage.enabled = false;
     }
 
@@ -143,7 +147,7 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
         // check if cursor is below top edge of the "scroll down" bounds
         RectTransformUtility.ScreenPointToLocalPointInRectangle(scrollDownArea, Input.mousePosition, null, out Vector2 localScrollDownPos);
         bool isScrollingDown = localScrollDownPos.y <= scrollDownArea.rect.yMax;
-        
+
         int scrollAmount = isScrollingUp ? (int) (PlaybackManager.Instance.VerticalViewSize * scrollSpeed) :
                            isScrollingDown ? (int) (PlaybackManager.Instance.VerticalViewSize * -scrollSpeed) : 0;
         if (scrollAmount != 0)
@@ -164,21 +168,45 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
         }
     }
 
-        void MultiSelect()
+    void CheckForSelectedNotes(int startTime, int endTime, int startPos, int endPos)
     {
-        if (UIManager.CursorMode == UICursorMode.None)
+        int minTime = Math.Min(startTime, endTime);
+        int maxTime = Math.Max(startTime, endTime);
+        int minPos = Math.Min(startPos, endPos);
+        int maxPos = Math.Max(startPos, endPos);
+        // highlight all notes that fall under current selection range
+        List<Note> notesInRange = ChartManager.SelectedChart.GetNotesBetween(minTime, maxTime).ToList();
+        List<Note> selectedNotes = new List<Note>();
+        foreach(Note note in notesInRange)
         {
-            bool selectStarted = Input.GetMouseButtonDown(0);
-            var chart = ChartManager.SelectedChart;
-
-            // get start timestamp and horizontal position when starting drag
-
-            // get current timestamp and horizontal pos when dragging
-
-            // highlight all notes that fall under current selection range
-
-            // if release drag, click on any note to begin drag
-
+            switch (note)
+            {
+                case ButtonNote:
+                    ButtonNote buttonNote = note as ButtonNote;
+                    // select both button notes in a pair if either is in marquee
+                    if ((buttonNote.LeftPos >= minPos && buttonNote.LeftPos <= maxPos) ||
+                        (buttonNote.RightPos != null && buttonNote.RightPos >= minPos && buttonNote.RightPos <= maxPos))
+                    {
+                        selectedNotes.Add(note);
+                    }
+                    break;
+                case LeverNote:
+                    break;
+                case WheelFlick:
+                    break;
+                case WheelTurn:
+                    break;
+                default:
+                    break;
+            }
         }
+
+        string selectedNoteLog = "";
+        foreach(Note note in selectedNotes)
+        {
+            selectedNoteLog += "ID: " + note.Id + " " + note.ToString() + "\n";
+        }
+        Debug.Log(selectedNoteLog);
+        // if release drag, click on any note to begin drag
     }
 }

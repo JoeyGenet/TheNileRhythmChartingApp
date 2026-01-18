@@ -32,6 +32,9 @@ public class Chart : INoteContainer<Note>, IComparable<Chart>
 	public IReadOnlyCollection<Note> GetNotesBefore(int time, bool inclusive = true) 
 		=> notes.GetViewBetween(DummyNote.Min, new DummyNote(time, inclusive ? int.MaxValue : int.MinValue));
 
+	public IReadOnlyCollection<Note> GetNotesBetween(int minTime, int maxTime, bool inclusive = true) 
+	=> notes.GetViewBetween(new DummyNote(minTime, inclusive ? int.MinValue : int.MaxValue), new DummyNote(maxTime, inclusive ? int.MinValue : int.MaxValue));
+
 	public IReadOnlyCollection<Note> GetNotesAfter(int time, bool inclusive = true) 
 		=> notes.GetViewBetween(new DummyNote(time, inclusive ? int.MinValue : int.MaxValue), DummyNote.Max);
 
