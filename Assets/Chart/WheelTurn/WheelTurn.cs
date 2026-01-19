@@ -1,6 +1,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class WheelTurn : Note<WheelSequence, WheelTurn>, IComparable<WheelTurn>
@@ -14,6 +15,7 @@ public class WheelTurn : Note<WheelSequence, WheelTurn>, IComparable<WheelTurn>
 	public int DeltaAngle => deltaAngle;
 
 	public int StartAngle { get; private set; } // Cached start angle
+	public int Pos => AngleToPos(WrapAngle(StartAngle + DeltaAngle));
 
 	public WheelTurn PreviousTurn;
 	public WheelTurn NextTurn;
@@ -28,7 +30,7 @@ public class WheelTurn : Note<WheelSequence, WheelTurn>, IComparable<WheelTurn>
 	// Converts an angle between 0-180 to a track position between 0-100
 	public static int AngleToPos(int angle) => Mathf.RoundToInt((float) angle * 100 / 180);
 
-	// Converts an angle between 0-180 to a track position between 0-100
+	// Converts a track position between 0-100 to an angle between 0-180
 	public static int PosToAngle(int pos) => Mathf.RoundToInt((float) pos * 180 / 100);
 
 	// Wraps an angle that may be <0 or >180 so that it is between 0-180

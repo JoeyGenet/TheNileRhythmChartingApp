@@ -71,7 +71,6 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        Debug.Log("OnPointerClick()");
         pointerEventData = eventData;
         switch (eventData.button)
         {
@@ -224,6 +223,22 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
                 case WheelFlick:
                     break;
                 case WheelSequence:
+                    Debug.Log("WheelSequence detected");
+                    WheelSequence wheelSequence = note as WheelSequence;
+                    // the sequence start is not included in list of turns, so consider it separately
+                    if (wheelSequence.Pos >= minPos && wheelSequence.Pos <= maxPos)
+                    {
+                        selectedNotes.Add(wheelSequence);
+                    }
+                    // get all sequence notes that fall within selection range
+                    IReadOnlyCollection<WheelTurn> wheelTurnsInRange = wheelSequence.GetNotesBetween(minTime, maxTime);
+                    foreach (WheelTurn wheelTurn in wheelTurnsInRange)
+                    {
+                        if (wheelTurn.Pos >= minPos && wheelTurn.Pos <= maxPos)
+                        {
+                            selectedNotes.Add(wheelTurn);
+                        }
+                    }
                     break;
                 default:
                     break;
@@ -256,7 +271,27 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
             }
         }
         // check last wheel sequence before start of marquee to see if any wheel turn nodes are captured by selection
+        EditableWheelSequence lastWheelSequence = ChartManager.SelectedChart.GetNotesBefore(minTime).OfType<EditableWheelSequence>().LastOrDefault();
+        if (lastWheelSequence != null)
+        {
+            // the sequence start is not included in list of turns, so consider it separately
+            if (lastWheelSequence.Pos >= minPos && lastWheelSequence.Pos <= maxPos &&
+                lastWheelSequence.StartTime >= minTime && lastWheelSequence.StartTime <= maxTime)
+            {
+                selectedNotes.Add(lastWheelSequence);
+            }
+            // get all sequence notes that fall within selection range
+            IReadOnlyCollection<WheelTurn> wheelTurnsInRange = lastWheelSequence.GetNotesBetween(minTime, maxTime);
+            foreach (WheelTurn wheelTurn in wheelTurnsInRange)
+            {
+                if (wheelTurn.Pos >= minPos && wheelTurn.Pos <= maxPos)
+                {
+                    selectedNotes.Add(wheelTurn);
+                }
+            }
+        }
 
+        // log selected notes
         string selectedNoteLog = "";
         foreach(Note note in selectedNotes)
         {

@@ -40,6 +40,9 @@ public class WheelSequence : TimedNote<Chart, Note>, INoteContainer<WheelTurn>
 	public IReadOnlyCollection<WheelTurn> GetNotesBefore(int time, bool inclusive = true) 
 		=> notes.GetViewBetween(DummyWheelTurn.Min, new DummyWheelTurn(time, inclusive ? int.MaxValue : int.MinValue));
 
+	public IReadOnlyCollection<WheelTurn> GetNotesBetween(int minTime, int maxTime, bool inclusive = true) 
+		=> notes.GetViewBetween(new DummyWheelTurn(minTime, inclusive ? int.MinValue : int.MaxValue), new DummyWheelTurn(maxTime, inclusive ? int.MaxValue : int.MinValue));
+
 	// Get notes that end after the given time
 	public IReadOnlyCollection<WheelTurn> GetNotesAfter(int time, bool inclusive = true) 
 		=> notes.GetViewBetween(new DummyWheelTurn(time, inclusive ? int.MinValue : int.MaxValue), DummyWheelTurn.Max);
