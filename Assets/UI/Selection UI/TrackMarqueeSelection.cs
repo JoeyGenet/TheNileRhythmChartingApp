@@ -184,10 +184,16 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
         Track.LeverTrackArea.GetWorldCorners(leverTrackAreaCorners);
         Vector3 leverTrackAreaGlobalMin = leverTrackAreaCorners[0];
         Vector3 leverTrackAreaGlobalMax = leverTrackAreaCorners[2];
+        Vector3[] mainTrackAreaCorners = new Vector3[4];
+        Track.MainTrackArea.GetWorldCorners(mainTrackAreaCorners);
+        Vector3 mainTrackAreaGlobalMin = mainTrackAreaCorners[0];
+        Vector3 mainTrackAreaGlobalMax = mainTrackAreaCorners[2];
         bool leftTrackSelected = marqueeGlobalMax.x >= leverTrackAreaGlobalMin.x &&
                                  marqueeGlobalMin.x <= leverTrackAreaGlobalMin.x;
         bool rightTrackSelected = marqueeGlobalMax.x >= leverTrackAreaGlobalMax.x &&
                                   marqueeGlobalMin.x <= leverTrackAreaGlobalMax.x;
+        bool mainTrackSelected = marqueeGlobalMax.x >= mainTrackAreaGlobalMin.x &&
+                                 marqueeGlobalMin.x <= mainTrackAreaGlobalMax.x;
 
         // highlight all notes that fall under current selection range
         IReadOnlyCollection<Note> notesInRange = ChartManager.SelectedChart.GetNotesBetween(minTime, maxTime);
@@ -221,6 +227,13 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
                     }
                     break;
                 case EditableWheelFlick:
+                    Debug.Log("wheelFlick detected");
+                    EditableWheelFlick wheelFlick = note as EditableWheelFlick;
+                    // wheel flicks take up whole track, so just check if marquee intersects with track
+                    if (mainTrackSelected)
+                    {
+                        selectedNotes.Add(wheelFlick);
+                    }
                     break;
                 case EditableWheelSequence:
                     Debug.Log("WheelSequence detected");
