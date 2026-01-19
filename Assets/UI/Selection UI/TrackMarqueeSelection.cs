@@ -14,6 +14,7 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
     [SerializeField] RectTransform scrollUpArea;
     [SerializeField] RectTransform scrollDownArea;
     [SerializeField] float scrollSpeed = 0.1f;
+    [SerializeField] RectTransform marquee;
     [SerializeField] Image marqueeImage;
     [SerializeField] Track Track;
     public List<Note> Notes { get; private set; }
@@ -127,9 +128,9 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
         // draw the selection rectangle
         Vector2 startUiPos = Track.TrackToUIPosition(dragStartPointerPos, dragStartPointerTime);
         Vector2 currentUiPos = Track.TrackToUIPosition(dragPos, dragTime);
-        marqueeImage.rectTransform.pivot = new Vector2(currentUiPos.x > startUiPos.x ? 0 : 1, currentUiPos.y > startUiPos.y ? 0 : 1);
-        marqueeImage.rectTransform.localPosition = startUiPos;
-        marqueeImage.rectTransform.sizeDelta = new Vector2(Math.Abs(currentUiPos.x-startUiPos.x), Math.Abs(currentUiPos.y-startUiPos.y));
+        marquee.pivot = new Vector2(currentUiPos.x > startUiPos.x ? 0 : 1, currentUiPos.y > startUiPos.y ? 0 : 1);
+        marquee.localPosition = startUiPos;
+        marquee.sizeDelta = new Vector2(Math.Abs(currentUiPos.x-startUiPos.x), Math.Abs(currentUiPos.y-startUiPos.y));
     }
 
     protected void OnEndDrag() 
@@ -174,8 +175,23 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
         int maxTime = Math.Max(startTime, endTime);
         int minPos = Math.Min(startPos, endPos);
         int maxPos = Math.Max(startPos, endPos);
+        // get the min and max bounds of marquee and lever track
+        // so we can determine if selection includes them
+        Vector3[] marqueeCorners = new Vector3[4];
+        marquee.GetWorldCorners(marqueeCorners);
+        Vector3 marqueeGlobalMin = marqueeCorners[0];
+        Vector3 marqueeGlobalMax = marqueeCorners[2];
+        Vector3[] leverTrackAreaCorners = new Vector3[4];
+        Track.LeverTrackArea.GetWorldCorners(leverTrackAreaCorners);
+        Vector3 leverTrackAreaGlobalMin = leverTrackAreaCorners[0];
+        Vector3 leverTrackAreaGlobalMax = leverTrackAreaCorners[2];
+        bool leftTrackSelected = marqueeGlobalMax.x >= leverTrackAreaGlobalMin.x &&
+                                 marqueeGlobalMin.x <= leverTrackAreaGlobalMin.x;
+        bool rightTrackSelected = marqueeGlobalMax.x >= leverTrackAreaGlobalMax.x &&
+                                  marqueeGlobalMin.x <= leverTrackAreaGlobalMax.x;
+
         // highlight all notes that fall under current selection range
-        List<Note> notesInRange = ChartManager.SelectedChart.GetNotesBetween(minTime, maxTime).ToList();
+        IReadOnlyCollection<Note> notesInRange = ChartManager.SelectedChart.GetNotesBetween(minTime, maxTime);
         List<Note> selectedNotes = new List<Note>();
         foreach(Note note in notesInRange)
         {
@@ -190,16 +206,56 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
                         selectedNotes.Add(note);
                     }
                     break;
-                case LeverNote:
+                case LeverSequence:
+                    Debug.Log("LeverSequence detected");
+                    LeverSequence leverSequence = note as LeverSequence;
+                    // if lever sequence is in range and if marquee covers the correct side of the track...
+                    if ((leverSequence.Dir == LeftRight.Left && leftTrackSelected) ||
+                        (leverSequence.Dir == LeftRight.Right && rightTrackSelected))
+                    {
+                        // get all sequence notes that fall within selection range
+                        IReadOnlyCollection<LeverNote> leverNotesInRange = leverSequence.GetNotesBetween(minTime, maxTime);
+                        foreach (LeverNote leverNote in leverNotesInRange)
+                        {
+                            selectedNotes.Add(leverNote);
+                        }
+                    }
                     break;
                 case WheelFlick:
                     break;
-                case WheelTurn:
+                case WheelSequence:
                     break;
                 default:
                     break;
             }
         }
+
+        // check last lever sequence before start of marquee for any individual lever notes are captured by selection
+        if (leftTrackSelected)
+        {
+            EditableLeverSequence lastLeftLeverSequence = ChartManager.SelectedChart.GetNotesBefore(minTime).OfType<EditableLeverSequence>().LastOrDefault(seq => seq.Dir == LeftRight.Left);
+            if (lastLeftLeverSequence != null)
+            {
+                IReadOnlyCollection<LeverNote> leverNotesInRange = lastLeftLeverSequence.GetNotesBetween(minTime, maxTime);
+                foreach (LeverNote leverNote in leverNotesInRange)
+                {
+                    selectedNotes.Add(leverNote);
+                }
+            }
+        }
+        if (rightTrackSelected)
+        {
+            EditableLeverSequence lastRightLeverSequence = ChartManager.SelectedChart.GetNotesBefore(minTime).OfType<EditableLeverSequence>().LastOrDefault(seq => seq.Dir == LeftRight.Right);
+            if (lastRightLeverSequence != null)
+            {
+                IReadOnlyCollection<LeverNote> leverNotesInRange = lastRightLeverSequence.GetNotesBetween(minTime, maxTime);
+                foreach (LeverNote leverNote in leverNotesInRange)
+                {
+                    selectedNotes.Add(leverNote);
+                }
+            }
+        }
+        // check last wheel sequence before start of marquee to see if any wheel turn nodes are captured by selection
 
         string selectedNoteLog = "";
         foreach(Note note in selectedNotes)

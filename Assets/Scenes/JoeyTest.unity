@@ -668,7 +668,7 @@ GameObject:
   - component: {fileID: 1626012895}
   - component: {fileID: 1626012894}
   m_Layer: 5
-  m_Name: SelectionImage
+  m_Name: Marquee
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -862,6 +862,7 @@ MonoBehaviour:
   scrollUpArea: {fileID: 1627275832}
   scrollDownArea: {fileID: 1511392729}
   scrollSpeed: 0.01
+  marquee: {fileID: 1626012893}
   marqueeImage: {fileID: 1626012894}
   Track: {fileID: 1975742163}
 --- !u!222 &1882665505

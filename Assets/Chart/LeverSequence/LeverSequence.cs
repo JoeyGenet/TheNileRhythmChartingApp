@@ -42,4 +42,8 @@ public class LeverSequence : Note<Chart, Note>, INoteContainer<LeverNote>
 
 	public IReadOnlyCollection<LeverNote> GetNotesBefore(int time, bool inclusive = true) 
 		=> notes.GetViewBetween(DummyLeverNote.Min, new DummyLeverNote(time, inclusive ? int.MaxValue : int.MinValue));
+
+	public IReadOnlyCollection<LeverNote> GetNotesBetween(int minTime, int maxTime, bool inclusive = true) 
+		=> notes.GetViewBetween(new DummyLeverNote(minTime, inclusive ? int.MinValue : int.MaxValue), new DummyLeverNote(maxTime, inclusive ? int.MaxValue : int.MinValue));
+
 }

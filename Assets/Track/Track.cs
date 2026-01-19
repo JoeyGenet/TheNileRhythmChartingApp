@@ -44,6 +44,7 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
     public bool IsPointerOverTrack { get; private set; } = false;
     public bool IsScrolling { get; set; } = false;
+    public RectTransform LeverTrackArea { get => leverTrackArea; }
 
     RectTransform rect;
 
