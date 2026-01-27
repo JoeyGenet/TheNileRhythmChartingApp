@@ -127,7 +127,7 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         Vector2 uiPos = PlaybackManager.Instance.TrackToUIPosition(trackPosition, trackTime);
         // scale normalized uiPos to mainTrackArea, then convert to whole track coordinate space
         Vector2 localPos = (uiPos * mainTrackArea.rect.size) - (rect.rect.position - mainTrackArea.rect.position);
-        if (!clamp) return uiPos;
+        if (!clamp) return localPos;
         float clampedX = Math.Clamp(localPos.x, 0, rect.rect.width);
         float clampedY = Math.Clamp(localPos.y, 0, rect.rect.height);
         return new Vector2(clampedX, clampedY);
