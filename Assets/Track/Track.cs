@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
@@ -42,10 +43,16 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     [SerializeField] EnvironmentTrackColor environmentTrackColorPrefab;
     [SerializeField] EnvironmentChangeRenderer environmentChangePrefab;
 
+    [Header("Marquee Selection")]
+    [SerializeField] TrackMarqueeSelectionGroup selectionGroup;
+
     public bool IsPointerOverTrack { get; private set; } = false;
     public bool IsScrolling { get; set; } = false;
     public RectTransform LeverTrackArea { get => leverTrackArea; }
     public RectTransform MainTrackArea { get => mainTrackArea; }
+    public TrackMarqueeSelectionGroup SelectionGroup {get => selectionGroup; }
+
+    public Dictionary<Note, GameObject> noteGameObjectMapping = new Dictionary<Note, GameObject>();
 
     RectTransform rect;
 

@@ -81,6 +81,8 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
                 OnRightClick();
                 break;
         }
+        // clear all selected notes if we click on the track without dragging
+        Track.SelectionGroup.SetSelectedNoteRenderersFlag(false);
     }
 
     protected void OnLeftClick() {}
@@ -95,6 +97,8 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
         if (Track.PointerToTrackPosition(eventData.pressPosition, clamp: false) is not var (pos, time)) return;
         dragStartPointerPos = pos;
         dragStartPointerTime = time;
+        // clear all selected notes if we click and dragging outside of current selection
+        Track.SelectionGroup.SetSelectedNoteRenderersFlag(false);
         OnDragStart();
     }
     
@@ -135,7 +139,13 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
     protected void OnEndDrag() 
     {   
         Debug.Log("End drag pos: "+Track.TrackToUIPosition(dragPos, dragTime));
-        CheckForSelectedNotes(dragStartPointerTime, dragTime, dragStartPointerPos, dragPos);
+        // this class only detects selected notes. The selected notes are controlled
+        // by a TrackMarqueeSelectionGroup instance.
+        List<Note> selectedNotes = CheckForSelectedNotes(dragStartPointerTime, dragTime, dragStartPointerPos, dragPos);
+        if (selectedNotes.Count > 0)
+        {
+            Track.SelectionGroup.SetSelectedNoteRenderersFlag(true, selectedNotes);
+        }
         marqueeImage.enabled = false;
     }
 
@@ -168,7 +178,8 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
         }
     }
 
-    void CheckForSelectedNotes(int startTime, int endTime, int startPos, int endPos)
+    // would it be better to search for the note renderers directly?
+    private List<Note> CheckForSelectedNotes(int startTime, int endTime, int startPos, int endPos)
     {
         int minTime = Math.Min(startTime, endTime);
         int maxTime = Math.Max(startTime, endTime);
@@ -176,6 +187,7 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
         int maxPos = Math.Max(startPos, endPos);
         // get the min and max bounds of marquee and lever track
         // so we can determine if selection includes them
+        // TODO: find cleaner way to do this
         Vector3[] marqueeCorners = new Vector3[4];
         marquee.GetWorldCorners(marqueeCorners);
         Vector3 marqueeGlobalMin = marqueeCorners[0];
@@ -305,12 +317,17 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
         }
 
         // log selected notes
-        string selectedNoteLog = "\n";
+        string selectedNoteLog = "";
         foreach(Note note in selectedNotes)
         {
-            selectedNoteLog += "ID: " + note.Id + " | note type: " + note.GetType() + " | " + note.ToString() + "\n";
+            selectedNoteLog += "\nID: " + note.Id + " | note type: " + note.GetType() + " | " + note.ToString();
+            if (Track.noteGameObjectMapping.TryGetValue(note, out GameObject gameObject))
+            {
+                selectedNoteLog += " | " + gameObject.name;
+            }
         }
         Debug.Log(selectedNoteLog);
-        // if release drag, click on any note to begin drag
+        
+        return selectedNotes;
     }
 }

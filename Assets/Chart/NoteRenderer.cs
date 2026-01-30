@@ -26,6 +26,7 @@ where C : IEditableNoteContainer<N>
 {
     public Track Track { get; private set; }
     public NoteType Note { get; private set; }
+    public bool isInMarqueeSelection;
 
     protected RectTransform rect;
 
@@ -43,6 +44,9 @@ where C : IEditableNoteContainer<N>
     {
         Track = track;
         Note = note;
+
+        // set up mapping between notes and their renderer game objects
+        if (Note != null) track.noteGameObjectMapping.Add(note, gameObject);
 
         if (Note != null) note.Container.OnNoteRemoved += DestroyOnNoteRemoved;
     }
@@ -120,6 +124,12 @@ where C : IEditableNoteContainer<N>
         if (Track.PointerToTrackPosition(eventData.pressPosition, clamp: false) is not var (pos, time)) return;
         dragStartPointerPos = pos;
         dragStartPointerTime = time;
+        // if this note is dragged while in multiselection, drag all other notes
+        if (isInMarqueeSelection && UIManager.SelectedElement == Note)
+        {
+            Debug.Log("passing begin drag to all selected notes!");
+            Track.SelectionGroup.PassEventDataToAllSelectedNotes(eventData, ExecuteEvents.beginDragHandler);
+        }
         OnDragStart();
     }
 
@@ -132,11 +142,23 @@ where C : IEditableNoteContainer<N>
         this.dragTime = dragTime;
         dragPosDiff = dragPos - dragStartPointerPos;
         dragTimeDiff = dragTime - dragStartPointerTime;
+        // if this note is dragged while in multiselection, drag all other notes
+        if (isInMarqueeSelection && UIManager.SelectedElement == Note)
+        {
+            Debug.Log("passing drag to all selected notes!");
+            Track.SelectionGroup.PassEventDataToAllSelectedNotes(eventData, ExecuteEvents.dragHandler);
+        }
         OnDrag();
     }
 
     public virtual void OnEndDrag(PointerEventData eventData)
     {
+        // if this note is dropped while in multiselection, drag all other notes
+        if (isInMarqueeSelection && UIManager.SelectedElement == Note)
+        {
+            Debug.Log("passing end drag to all selected notes!");
+            Track.SelectionGroup.PassEventDataToAllSelectedNotes(eventData, ExecuteEvents.endDragHandler);
+        }
         OnEndDrag();
     }
 
