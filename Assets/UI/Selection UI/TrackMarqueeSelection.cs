@@ -254,7 +254,9 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
                     // the sequence start is not included in list of turns, so consider it separately
                     if (wheelSequence.Pos >= minPos && wheelSequence.Pos <= maxPos)
                     {
-                        selectedNotes.Add(wheelSequence);
+                        // add the placeholder starting note as a proxy for the start of the sequence
+                        // this note is mapped to the first vertex renderer in the wheel sequence
+                        selectedNotes.Add(wheelSequence.startingNote);
                     }
                     // get all sequence notes that fall within selection range
                     IReadOnlyCollection<WheelTurn> wheelTurnsInRange = wheelSequence.GetNotesBetween(minTime, maxTime);

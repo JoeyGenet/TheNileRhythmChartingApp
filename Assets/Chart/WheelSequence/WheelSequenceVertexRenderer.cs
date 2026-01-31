@@ -13,6 +13,7 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
     int dragStartDeltaAngle;
     int dragStartSeqPos;
     int dragStartSeqTime;
+    bool isStartingVertex;
     Dictionary<EditableWheelTurn, int> dragStartEndTimes;
     Dictionary<EditableWheelTurn, int> oldDeltaAngles;
 
@@ -20,6 +21,7 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
     {
         base.Init(sequenceRenderer.Track, turn);
         WheelSequence = sequenceRenderer.Note;
+        isStartingVertex = Note == Note.Container.startingNote;
     }
 
     protected override void Update()
@@ -29,7 +31,7 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
 
         int pos;
         int time;
-        if (Note == null)
+        if (isStartingVertex)
         {
             pos = WheelTurn.AngleToPos(WheelSequence.Notes.First.StartAngle);
             time = WheelSequence.StartTime;
@@ -56,7 +58,7 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
             return;
         }
 
-        if (Note == null) // If right clicked start vertex, remove the 1st turn and move start to the end of the first turn
+        if (isStartingVertex) // If right clicked start vertex, remove the 1st turn and move start to the end of the first turn
         {
             var secondTurn = WheelSequence.Notes.ElementAt(1);
             WheelSequence.Pos = WheelTurn.AngleToPos(WheelTurn.WrapAngle(secondTurn.StartAngle));
@@ -73,8 +75,8 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
     protected override void OnDragStart()
     {
         UIManager.SelectedElement = WheelSequence;
-        dragStartStartAngle = Note == null ? WheelSequence.Notes.First.StartAngle : Note.StartAngle;
-        dragStartDeltaAngle = Note == null ? WheelSequence.Notes.First.DeltaAngle : Note.DeltaAngle;
+        dragStartStartAngle = isStartingVertex ? WheelSequence.Notes.First.StartAngle : Note.StartAngle;
+        dragStartDeltaAngle = isStartingVertex ? WheelSequence.Notes.First.DeltaAngle : Note.DeltaAngle;
         dragStartSeqPos = WheelSequence.Pos;
         dragStartSeqTime = WheelSequence.StartTime;
         dragStartEndTimes = WheelSequence.Notes.ToDictionary(n => n, n => n.EndTime);
@@ -84,7 +86,8 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
     protected override void OnDrag()
     {
         bool changeTime = !Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.RightControl);
-        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+        // do not allow for whole sequence dragging if this note is in marquee selection
+        if ((Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) && !isInMarqueeSelection)
         {
             if (Note != null)
             {
@@ -97,7 +100,7 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
                 WheelSequence.Notes.First.DeltaAngle = dragStartDeltaAngle;
             }
 
-            int myStartTime = Note == null ? dragStartSeqTime : dragStartEndTimes[Note];
+            int myStartTime = isStartingVertex ? dragStartSeqTime : dragStartEndTimes[Note];
             int snappedTimeDiff = UIManager.SnapTime(myStartTime + dragTimeDiff) - myStartTime;
 
             // I don't really know why, but the delta angles get messed up here
@@ -122,15 +125,21 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
         }
         else
         {
-            WheelSequence.StartTime = dragStartSeqTime;
-            foreach (var note in dragStartEndTimes.Keys)
+            // if we stop holding shift, reset note positions to their pos when drag started
+            // ... unless this note is in a marquee selection
+            if (!isInMarqueeSelection)
             {
-                note.EndTime = dragStartEndTimes[note];
+                WheelSequence.StartTime = dragStartSeqTime;
+
+                foreach (var note in dragStartEndTimes.Keys)
+                {
+                    note.EndTime = dragStartEndTimes[note];
+                }
             }
 
             if (changeTime)
             {
-                if (Note == null)
+                if (isStartingVertex)
                 {
                     WheelSequence.StartTime = Math.Clamp(UIManager.SnapTime(dragStartSeqTime + dragTimeDiff), 0, WheelSequence.Notes.First.EndTime-1);
                 }
@@ -140,12 +149,15 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
                 }
             }
             
-            if (Note == null)
+            if (isStartingVertex)
             {
                 WheelSequence.Pos = (int) Mathf.Repeat(dragStartSeqPos + dragPosDiff, 100);
-                var firstTurn = WheelSequence.Notes.First;
-                int startAngleDiff = WheelTurn.PosToAngle(dragStartSeqPos + dragPosDiff) - dragStartStartAngle;
-                firstTurn.DeltaAngle = dragStartDeltaAngle - startAngleDiff;
+                if (!isInMarqueeSelection)
+                {
+                    var firstTurn = WheelSequence.Notes.First;
+                    int startAngleDiff = WheelTurn.PosToAngle(dragStartSeqPos + dragPosDiff) - dragStartStartAngle;
+                    firstTurn.DeltaAngle = dragStartDeltaAngle - startAngleDiff;
+                }
             }
             else
             {

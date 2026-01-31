@@ -18,7 +18,7 @@ public class WheelSequenceRenderer : NoteRenderer<EditableWheelSequence>, IPoint
     {
         base.Init(track, note);
 
-        AddVertex(null);
+        AddVertex(note.startingNote);
         foreach (EditableWheelTurn turn in Note.Notes)
         {
             AddVertex(turn);

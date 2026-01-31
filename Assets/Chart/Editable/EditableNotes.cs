@@ -84,6 +84,10 @@ public class EditableWheelSequence : WheelSequence, IEditableNote<EditableChart,
 		set => this.RegisterChange(ref pos, value, onChanged: () => notes.Min.RecomputeStartAngle());
 	}
 
+	// startingNote acts as a proxy for the wheel sequence start in marquee selection
+	// in other words, when the wheel sequence is selected, this note is what is actually added to the selection
+	// that is associated with the first vertex renderer in the sequence
+	public EditableWheelTurn startingNote;
     public new IReadOnlySortedSet<EditableWheelTurn> Notes => (ReadOnlySortedSet<EditableWheelTurn, WheelTurn>) notes;
 
     // public new EditableWheelTurn FirstNote => notes.Min as EditableWheelTurn;
@@ -92,6 +96,7 @@ public class EditableWheelSequence : WheelSequence, IEditableNote<EditableChart,
 	public EditableWheelSequence(EditableChart chart, int time, int pos, List<(int deltaAngle, int endTime)> turns)
 		: base(chart, time, pos, new())
 	{
+		startingNote = new EditableWheelTurn(this, StartTime, 0);
 		InitializeNotes(turns.Select(turn => new EditableWheelTurn(this, turn.endTime, turn.deltaAngle)));
 	}
 	public EditableWheelSequence(EditableChart chart, WheelSequence seq)
