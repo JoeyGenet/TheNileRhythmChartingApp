@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class LeverSequenceRenderer : NoteRenderer<EditableLeverSequence>, IPointerClickHandler
+public class LeverSequenceRenderer : NoteRenderer<EditableLeverSequence>, IPointerDownHandler
 {
     [SerializeField] RectTransform line;
     [SerializeField] LeverNoteRenderer leverNotePrefab;

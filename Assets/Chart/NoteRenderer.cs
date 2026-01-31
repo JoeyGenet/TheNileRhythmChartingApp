@@ -19,7 +19,7 @@ where C : IEditableNoteContainer<NoteType>
 {}
 
 [RequireComponent(typeof(RectTransform))]
-public abstract class NoteRenderer<NoteType, C, N> : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
+public abstract class NoteRenderer<NoteType, C, N> : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
 where NoteType : N, IEditableNote<C, N>
 where N : Note
 where C : IEditableNoteContainer<N>
@@ -99,7 +99,7 @@ where C : IEditableNoteContainer<N>
         }
     }
 
-    public void OnPointerClick(PointerEventData eventData)
+    public void OnPointerDown(PointerEventData eventData)
     {
         pointerEventData = eventData;
         switch (eventData.button)

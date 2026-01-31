@@ -6,7 +6,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(AudioSource))]
-public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerClickHandler, IBeginDragHandler, IDragHandler
+public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerDownHandler, IBeginDragHandler, IDragHandler
 {
     // public WheelFlick Note;
 
