@@ -230,6 +230,7 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
                     if ((leverSequence.Dir == LeftRight.Left && leftTrackSelected) ||
                         (leverSequence.Dir == LeftRight.Right && rightTrackSelected))
                     {
+                        selectedNotes.Add(leverSequence);
                         // get all sequence notes that fall within selection range
                         IReadOnlyCollection<LeverNote> leverNotesInRange = leverSequence.GetNotesBetween(minTime, maxTime);
                         foreach (EditableLeverNote leverNote in leverNotesInRange)
