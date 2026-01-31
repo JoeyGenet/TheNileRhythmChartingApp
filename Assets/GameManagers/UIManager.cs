@@ -37,6 +37,13 @@ public class UIManager : MonoBehaviour
     [SerializeField] Color previewEnvironmentColor;
     Color backgroundColor;
 
+    object clickedElement;
+    public static object ClickedElement
+    {
+        get => Instance.clickedElement;
+        set { Instance.clickedElement = value ;}
+    }
+
     object selectedElement;
     public static object SelectedElement
     {

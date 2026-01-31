@@ -45,7 +45,12 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
             : leftUIPos;
     }
 
-    protected override void OnLeftClick() => UIManager.SelectedElement = Note;
+    protected override void OnLeftClick() 
+    {
+        UIManager.ClickedElement = Note;
+        UIManager.SelectedElement = Note;
+    } 
+    
     protected override void OnRightClick()
     {
         if (Note.RightPos is not int rightPos) // Single note, so delete entire thing

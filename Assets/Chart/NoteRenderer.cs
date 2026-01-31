@@ -125,7 +125,7 @@ where C : IEditableNoteContainer<N>
         dragStartPointerPos = pos;
         dragStartPointerTime = time;
         // if this note is dragged while in multiselection, drag all other notes
-        if (isInMarqueeSelection && UIManager.SelectedElement == Note)
+        if (isInMarqueeSelection && UIManager.ClickedElement == Note)
         {
             Debug.Log("passing begin drag to all selected notes!");
             Track.SelectionGroup.PassEventDataToAllSelectedNotes(eventData, ExecuteEvents.beginDragHandler);
@@ -143,7 +143,7 @@ where C : IEditableNoteContainer<N>
         dragPosDiff = dragPos - dragStartPointerPos;
         dragTimeDiff = dragTime - dragStartPointerTime;
         // if this note is dragged while in multiselection, drag all other notes
-        if (isInMarqueeSelection && UIManager.SelectedElement == Note)
+        if (isInMarqueeSelection && UIManager.ClickedElement == Note)
         {
             Debug.Log("passing drag to all selected notes!");
             Track.SelectionGroup.PassEventDataToAllSelectedNotes(eventData, ExecuteEvents.dragHandler);
@@ -154,7 +154,7 @@ where C : IEditableNoteContainer<N>
     public virtual void OnEndDrag(PointerEventData eventData)
     {
         // if this note is dropped while in multiselection, drag all other notes
-        if (isInMarqueeSelection && UIManager.SelectedElement == Note)
+        if (isInMarqueeSelection && UIManager.ClickedElement == Note)
         {
             Debug.Log("passing end drag to all selected notes!");
             Track.SelectionGroup.PassEventDataToAllSelectedNotes(eventData, ExecuteEvents.endDragHandler);

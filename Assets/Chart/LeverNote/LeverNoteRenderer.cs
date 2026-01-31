@@ -75,7 +75,12 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
         arrow.transform.rotation = Quaternion.Euler(0, 0, angle);
     }
 
-    protected override void OnLeftClick() => UIManager.SelectedElement = Note.Container;
+    protected override void OnLeftClick() 
+    {
+        UIManager.ClickedElement = Note;
+        UIManager.SelectedElement = Note.Container;
+    }
+
     protected override void OnRightClick()
     {
         if (Note.Container.Notes.Count <= 1) 
@@ -102,7 +107,8 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
     protected override void OnDrag()
     {
         bool changeTime = !Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.RightControl);
-        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+        // do not allow for whole sequence dragging if this note is in marquee selection
+        if ((Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) && !isInMarqueeSelection)
         {
             int snappedTimeDiff = UIManager.SnapTime(dragStartTimes[Note] + dragTimeDiff) - dragStartTimes[Note];
             foreach (var note in dragStartTimes.Keys)
@@ -118,9 +124,14 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
         }
         else
         {
-            foreach (var note in dragStartTimes.Keys)
+            // if we stop holding shift, reset note positions to their pos when drag started
+            // ... unless this note is in a marquee selection
+            if (!isInMarqueeSelection)
             {
-                note.StartTime = dragStartTimes[note];
+                foreach (var note in dragStartTimes.Keys)
+                {
+                    note.StartTime = dragStartTimes[note];
+                }
             }
 
             if (changeTime)

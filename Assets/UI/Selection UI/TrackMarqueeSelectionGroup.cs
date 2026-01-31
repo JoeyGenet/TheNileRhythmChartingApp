@@ -75,7 +75,7 @@ public class TrackMarqueeSelectionGroup : MonoBehaviour
         foreach(Note note in notes)
         {
             // get the object associated with each note
-            if (Track.noteGameObjectMapping.TryGetValue(note, out GameObject gameObject))
+            if (Track.noteGameObjectMapping.TryGetValue(note, out GameObject gameObject) && gameObject!=null)
             {
                 // flag all selected notes to change their click/drag/drop behavior
                 switch (note)
@@ -110,7 +110,7 @@ public class TrackMarqueeSelectionGroup : MonoBehaviour
         {
             // pass the event data to all notes except the selected one
             // the selected note should receive the first event calls that are then passed to all others
-            if (UIManager.SelectedElement != note && Track.noteGameObjectMapping.TryGetValue(note, out GameObject gameObject))
+            if (UIManager.ClickedElement != note && Track.noteGameObjectMapping.TryGetValue(note, out GameObject gameObject) && gameObject!=null)
             {
                 Execute(gameObject, eventData, functor);
             }

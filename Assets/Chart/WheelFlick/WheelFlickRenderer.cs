@@ -52,7 +52,11 @@ public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerDown
         };
     }
 
-    protected override void OnLeftClick() => UIManager.SelectedElement = Note;
+    protected override void OnLeftClick() 
+    {
+        UIManager.ClickedElement = Note;
+        UIManager.SelectedElement = Note;
+    } 
     protected override void OnRightClick() => Note.RemoveSelf();
 
     protected override void OnDragStart()

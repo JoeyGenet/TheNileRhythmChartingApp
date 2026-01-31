@@ -322,7 +322,7 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
         foreach(Note note in selectedNotes)
         {
             selectedNoteLog += "\nID: " + note.Id + " | note type: " + note.GetType() + " | " + note.ToString();
-            if (Track.noteGameObjectMapping.TryGetValue(note, out GameObject gameObject))
+            if (Track.noteGameObjectMapping.TryGetValue(note, out GameObject gameObject) && gameObject!=null)
             {
                 selectedNoteLog += " | " + gameObject.name;
             }

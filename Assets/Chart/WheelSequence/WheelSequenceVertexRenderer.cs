@@ -42,7 +42,11 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
         rect.anchorMin = rect.anchorMax = PlaybackManager.Instance.TrackToUIPosition(pos, time);
     }
 
-    protected override void OnLeftClick() => UIManager.SelectedElement = WheelSequence;
+    protected override void OnLeftClick() 
+    {
+        UIManager.ClickedElement = Note;
+        UIManager.SelectedElement = WheelSequence;
+    } 
 
     protected override void OnRightClick()
     {
