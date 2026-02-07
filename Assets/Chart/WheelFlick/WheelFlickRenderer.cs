@@ -70,22 +70,22 @@ public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerDown
     protected override void OnDrag()
     {
         float dragDirChangePosXDiff = pointerEventData.position.x - dragDirChangePosX;
-        bool controlClicked = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+        bool changeTime = !Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.RightControl);
         
-        if ((!isInMarqueeSelection || (isInMarqueeSelection && controlClicked)) &&
+        if ((!isInMarqueeSelection || (isInMarqueeSelection && !changeTime)) &&
             (dragDirChangePosXDiff < -50 || (dragDirChangePosXDiff < -5 && Note.Dir == LeftRight.Left)))
         {
             Note.Dir = LeftRight.Left;
             dragDirChangePosX = pointerEventData.position.x;
         }
-        else if ((!isInMarqueeSelection || (isInMarqueeSelection && controlClicked)) &&
+        else if ((!isInMarqueeSelection || (isInMarqueeSelection && !changeTime)) &&
                  (dragDirChangePosXDiff > 50 || (dragDirChangePosXDiff > 5 && Note.Dir == LeftRight.Right)))
         {
             Note.Dir = LeftRight.Right;
             dragDirChangePosX = pointerEventData.position.x;
         }
         
-        if (!Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.RightControl))
+        if (changeTime)
         {
             Note.StartTime = PlaybackManager.ClampTime(UIManager.SnapTime(dragStartTime + dragTimeDiff));
         }
