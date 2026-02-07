@@ -26,6 +26,7 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
 
     AudioSource audioSource;
 
+    int dragStartTime;
     Dictionary<EditableLeverNote, int> dragStartTimes;
     LeftRight dragStartDir;
     LeverPos dragStartLeverPos;
@@ -97,6 +98,7 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
     protected override void OnDragStart()
     {   
         UIManager.SelectedElement = Note.Container;
+        dragStartTime = Note.StartTime;
         dragStartTimes = Note.Container.Notes.ToDictionary(n => n, n => n.StartTime);
         dragStartLeverPos = Note.Pos;
         dragStartDir = Note.Container.Dir;
@@ -143,6 +145,7 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
             }
             else
             {
+                Note.StartTime = dragStartTime;
                 // while holding ctrl, change the lever position
                 Vector2 changePosDiff = pointerEventData.position - dragLeverPosChangePos;
                 if (Mathf.Abs(changePosDiff.x) > Mathf.Abs(changePosDiff.y))
