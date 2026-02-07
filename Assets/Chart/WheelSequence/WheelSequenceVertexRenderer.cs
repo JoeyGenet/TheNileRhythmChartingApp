@@ -137,32 +137,42 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
                 }
             }
 
-            if (changeTime)
+            // if in marquee selection, other notes may have moved in the same frame,
+            // which changes the start/delta angle and sequence position, so reset these values
+            // and use the delta drag position of this frame
+            int thisDragPosDiff = dragPosDiff;
+            if (isInMarqueeSelection)
             {
-                if (isStartingVertex)
-                {
-                    WheelSequence.StartTime = Math.Clamp(UIManager.SnapTime(dragStartSeqTime + dragTimeDiff), 0, WheelSequence.Notes.First.EndTime-1);
-                }
-                else
-                {
-                    Note.EndTime = Math.Max(PlaybackManager.ClampTime(UIManager.SnapTime(dragStartEndTimes[Note] + dragTimeDiff)), WheelSequence.StartTime+1);
-                }
+                dragStartStartAngle = isStartingVertex ? WheelSequence.Notes.First.StartAngle : Note.StartAngle;
+                dragStartDeltaAngle = isStartingVertex ? WheelSequence.Notes.First.DeltaAngle : Note.DeltaAngle;
+                dragStartSeqPos = WheelSequence.Pos;
+                thisDragPosDiff = dragPosDelta;
             }
-            
+
+            // modify time of notes if changeTime is true
             if (isStartingVertex)
             {
-                WheelSequence.Pos = (int) Mathf.Repeat(dragStartSeqPos + dragPosDiff, 100);
-                if (!isInMarqueeSelection)
-                {
-                    var firstTurn = WheelSequence.Notes.First;
-                    int startAngleDiff = WheelTurn.PosToAngle(dragStartSeqPos + dragPosDiff) - dragStartStartAngle;
-                    firstTurn.DeltaAngle = dragStartDeltaAngle - startAngleDiff;
-                }
+                WheelSequence.StartTime = changeTime ? Math.Clamp(UIManager.SnapTime(dragStartSeqTime + dragTimeDiff), 0, WheelSequence.Notes.First.EndTime-1)
+                                                     : dragStartSeqTime;
             }
             else
             {
+                Note.EndTime = changeTime ? Math.Max(PlaybackManager.ClampTime(UIManager.SnapTime(dragStartEndTimes[Note] + dragTimeDiff)), WheelSequence.StartTime+1)
+                                          : dragStartEndTimes[Note];
+            }
+
+            // modify position of notes
+            if (isStartingVertex)
+            {
+                WheelSequence.Pos = (int) Mathf.Repeat(dragStartSeqPos + thisDragPosDiff, 100);
+                var firstTurn = WheelSequence.Notes.First;
+                int startAngleDiff = WheelTurn.PosToAngle(dragStartSeqPos + thisDragPosDiff) - dragStartStartAngle;
+                firstTurn.DeltaAngle = dragStartDeltaAngle - startAngleDiff;
+            }
+            else
+            {   
                 int startAngleDiff = Note.StartAngle - dragStartStartAngle;
-                int newDeltaAngle = dragStartDeltaAngle - startAngleDiff + WheelTurn.PosToAngle(dragPosDiff);
+                int newDeltaAngle = WheelTurn.PosToAngle(WheelTurn.AngleToPos(dragStartDeltaAngle) + thisDragPosDiff) - startAngleDiff;
                 int deltaAngleDiff = newDeltaAngle - Note.DeltaAngle;
                 Note.DeltaAngle += deltaAngleDiff;
                 if (Note.NextTurn != null) Note.NextTurn.DeltaAngle -= deltaAngleDiff;

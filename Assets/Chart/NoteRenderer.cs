@@ -39,6 +39,10 @@ where C : IEditableNoteContainer<N>
     protected int dragTime { get; private set; }
     protected int dragPosDiff { get; private set; }
     protected int dragTimeDiff { get; private set; }
+    protected int dragPosDelta { get; private set; }
+    protected int dragTimeDelta { get; private set; }
+    private int lastDragPos;
+    private int lastDragTime;
 
     public virtual void Init(Track track, NoteType note)
     {
@@ -124,6 +128,8 @@ where C : IEditableNoteContainer<N>
         if (Track.PointerToTrackPosition(eventData.pressPosition, clamp: false) is not var (pos, time)) return;
         dragStartPointerPos = pos;
         dragStartPointerTime = time;
+        lastDragPos = pos;
+        lastDragTime = time;
         // if this note is dragged while in multiselection, drag all other notes
         if (isInMarqueeSelection && UIManager.ClickedElement == Note)
         {
@@ -142,6 +148,10 @@ where C : IEditableNoteContainer<N>
         this.dragTime = dragTime;
         dragPosDiff = dragPos - dragStartPointerPos;
         dragTimeDiff = dragTime - dragStartPointerTime;
+        dragPosDelta = dragPos - lastDragPos;
+        dragTimeDelta = dragTime - lastDragTime;
+        lastDragPos = dragPos;
+        lastDragTime = dragTime;
         // if this note is dragged while in multiselection, drag all other notes
         if (isInMarqueeSelection && UIManager.ClickedElement == Note)
         {
