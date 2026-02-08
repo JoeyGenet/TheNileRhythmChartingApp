@@ -108,9 +108,10 @@ public class TrackMarqueeSelectionGroup : MonoBehaviour
     {
         foreach(Note note in notes)
         {
-            // pass the event data to all notes except the selected one
-            // the selected note should receive the first event calls that are then passed to all others
-            if (UIManager.ClickedElement != note && Track.noteGameObjectMapping.TryGetValue(note, out GameObject gameObject) && gameObject!=null)
+            // pass the event data to all notes, including the selected one
+            // the selected note does not execute the event initially, instead waiting until now
+            // so that it can execute sequentially with related notes (i.e. wheel sequences)
+            if (Track.noteGameObjectMapping.TryGetValue(note, out GameObject gameObject) && gameObject!=null)
             {
                 Execute(gameObject, eventData, functor);
             }

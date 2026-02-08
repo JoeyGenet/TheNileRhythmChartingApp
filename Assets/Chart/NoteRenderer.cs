@@ -44,6 +44,8 @@ where C : IEditableNoteContainer<N>
     private int lastDragPos;
     private int lastDragTime;
 
+    private bool isReadyToShareEventData;
+
     public virtual void Init(Track track, NoteType note)
     {
         Track = track;
@@ -53,6 +55,9 @@ where C : IEditableNoteContainer<N>
         if (Note != null) track.noteGameObjectMapping.Add(note, gameObject);
 
         if (Note != null) note.Container.OnNoteRemoved += DestroyOnNoteRemoved;
+
+        // prepare notes to share event data with other selected notes
+        isReadyToShareEventData = true;
     }
 
     protected virtual void Awake()
@@ -123,53 +128,70 @@ where C : IEditableNoteContainer<N>
 
     public virtual void OnBeginDrag(PointerEventData eventData)
     {
-        if (eventData.button != PointerEventData.InputButton.Left) return;
-        pointerEventData = eventData;
-        if (Track.PointerToTrackPosition(eventData.pressPosition, clamp: false) is not var (pos, time)) return;
-        dragStartPointerPos = pos;
-        dragStartPointerTime = time;
-        lastDragPos = pos;
-        lastDragTime = time;
         // if this note is dragged while in multiselection, drag all other notes
-        if (isInMarqueeSelection && UIManager.ClickedElement == Note)
+        if (isInMarqueeSelection && UIManager.ClickedElement == Note && isReadyToShareEventData)
         {
             Debug.Log("passing begin drag to all selected notes!");
+            isReadyToShareEventData = false;
             Track.SelectionGroup.PassEventDataToAllSelectedNotes(eventData, ExecuteEvents.beginDragHandler);
         }
-        OnDragStart();
+        // note is either not selected or received event data from another selected note
+        else
+        {
+            isReadyToShareEventData = true;
+            if (eventData.button != PointerEventData.InputButton.Left) return;
+            pointerEventData = eventData;
+            if (Track.PointerToTrackPosition(eventData.pressPosition, clamp: false) is not var (pos, time)) return;
+            dragStartPointerPos = pos;
+            dragStartPointerTime = time;
+            lastDragPos = pos;
+            lastDragTime = time;
+            OnDragStart();
+        }
     }
 
     public virtual void OnDrag(PointerEventData eventData)
     {
-        if (eventData.button != PointerEventData.InputButton.Left) return;
-        pointerEventData = eventData;
-        if (Track.PointerToTrackPosition(eventData.position, clamp: false) is not var (dragPos, dragTime)) return;
-        this.dragPos = dragPos;
-        this.dragTime = dragTime;
-        dragPosDiff = dragPos - dragStartPointerPos;
-        dragTimeDiff = dragTime - dragStartPointerTime;
-        dragPosDelta = dragPos - lastDragPos;
-        dragTimeDelta = dragTime - lastDragTime;
-        lastDragPos = dragPos;
-        lastDragTime = dragTime;
         // if this note is dragged while in multiselection, drag all other notes
-        if (isInMarqueeSelection && UIManager.ClickedElement == Note)
+        if (isInMarqueeSelection && UIManager.ClickedElement == Note && isReadyToShareEventData)
         {
             Debug.Log("passing drag to all selected notes!");
+            // sender marks flag as false so that they can receive the event data at the correct time
+            isReadyToShareEventData = false;
             Track.SelectionGroup.PassEventDataToAllSelectedNotes(eventData, ExecuteEvents.dragHandler);
         }
-        OnDrag();
+        else
+        {
+            isReadyToShareEventData = true;
+            if (eventData.button != PointerEventData.InputButton.Left) return;
+            pointerEventData = eventData;
+            if (Track.PointerToTrackPosition(eventData.position, clamp: false) is not var (dragPos, dragTime)) return;
+            this.dragPos = dragPos;
+            this.dragTime = dragTime;
+            dragPosDiff = dragPos - dragStartPointerPos;
+            dragTimeDiff = dragTime - dragStartPointerTime;
+            dragPosDelta = dragPos - lastDragPos;
+            dragTimeDelta = dragTime - lastDragTime;
+            lastDragPos = dragPos;
+            lastDragTime = dragTime;
+            OnDrag();
+        }
     }
 
     public virtual void OnEndDrag(PointerEventData eventData)
     {
         // if this note is dropped while in multiselection, drag all other notes
-        if (isInMarqueeSelection && UIManager.ClickedElement == Note)
+        if (isInMarqueeSelection && UIManager.ClickedElement == Note && isReadyToShareEventData)
         {
             Debug.Log("passing end drag to all selected notes!");
+            isReadyToShareEventData = false;
             Track.SelectionGroup.PassEventDataToAllSelectedNotes(eventData, ExecuteEvents.endDragHandler);
         }
-        OnEndDrag();
+        else
+        {
+            isReadyToShareEventData = true;
+            OnEndDrag();
+        }
     }
 
     protected virtual void OnDragStart() {}
