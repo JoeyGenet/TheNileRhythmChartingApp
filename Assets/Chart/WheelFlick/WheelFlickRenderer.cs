@@ -72,13 +72,13 @@ public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerDown
         float dragDirChangePosXDiff = pointerEventData.position.x - dragDirChangePosX;
         bool changeTime = !Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.RightControl);
         
-        if ((!isInMarqueeSelection || (isInMarqueeSelection && !changeTime)) &&
+        if ((!isInMarqueeSelection || !changeTime) &&
             (dragDirChangePosXDiff < -50 || (dragDirChangePosXDiff < -5 && Note.Dir == LeftRight.Left)))
         {
             Note.Dir = LeftRight.Left;
             dragDirChangePosX = pointerEventData.position.x;
         }
-        else if ((!isInMarqueeSelection || (isInMarqueeSelection && !changeTime)) &&
+        else if ((!isInMarqueeSelection || !changeTime) &&
                  (dragDirChangePosXDiff > 50 || (dragDirChangePosXDiff > 5 && Note.Dir == LeftRight.Right)))
         {
             Note.Dir = LeftRight.Right;
@@ -88,6 +88,10 @@ public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerDown
         if (changeTime)
         {
             Note.StartTime = PlaybackManager.ClampTime(UIManager.SnapTime(dragStartTime + dragTimeDiff));
+            if (isInMarqueeSelection)
+            {
+                Note.Dir = oldDir;
+            }
         }
         else
         {
