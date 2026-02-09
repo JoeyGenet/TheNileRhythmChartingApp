@@ -12,6 +12,7 @@ public class TrackMarqueeSelectionGroup : MonoBehaviour
     [SerializeField] Track Track;
     public List<Note> notes { get; private set; }
     public Dictionary<GameObject, Transform> rendererTransformMapping { get; private set; }
+    public MultiselectMoveAction multiselectMoveAction;
 
     protected RectTransform rect;
 

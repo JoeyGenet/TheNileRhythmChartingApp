@@ -27,12 +27,12 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
     AudioSource audioSource;
 
     int dragStartTime;
+    bool isLastSelectedVertex;
     Dictionary<EditableLeverNote, int> dragStartTimes;
     LeftRight dragStartDir;
     LeverPos dragStartLeverPos;
     Vector2 dragLeverPosChangePos;
     Dictionary<EditableLeverNote, LeverPos> oldLeverPositions;
-
     protected override void Awake()
     {
         base.Awake();
@@ -104,6 +104,15 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
         dragStartDir = Note.Container.Dir;
         dragLeverPosChangePos = pointerEventData.position;
         oldLeverPositions = Note.Container.Notes.ToDictionary(n => n, n => n.Pos);
+        if (isInMarqueeSelection)
+        {
+            EditableLeverNote currentNote = Note.Container.Notes.Last();
+            while (!Track.SelectionGroup.notes.Contains(currentNote) && currentNote.PreviousNote!=null)
+            {
+                currentNote = currentNote.PreviousNote;
+            }
+            isLastSelectedVertex = Note == currentNote;
+        }
     }
 
     protected override void OnDrag()
@@ -186,6 +195,14 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
         Dictionary<EditableLeverNote, int> newStartTimes = Note.Container.Notes.ToDictionary(n => n, n => n.StartTime);
         Dictionary<EditableLeverNote, LeverPos> newLeverPositions = Note.Container.Notes.ToDictionary(n => n, n => n.Pos);
         EditLeverSequenceAction editLeverSequenceAction = new EditLeverSequenceAction(Note.Container, dirDelta, dragStartTimes, newStartTimes, oldLeverPositions, newLeverPositions);
-        editLeverSequenceAction.CommitAction();
+        
+        if (!isInMarqueeSelection)
+        {
+            editLeverSequenceAction.CommitAction();
+        }
+        else if (isLastSelectedVertex)
+        {
+            Track.SelectionGroup.multiselectMoveAction.AddUndoRedoAction(editLeverSequenceAction);
+        }
     }
 }

@@ -502,6 +502,44 @@ public class RemoveNoteFromLeverSequenceAction : UndoRedoAction
     }
 }
 
+// MARK: Multiselect actions
+public class MultiselectMoveAction : UndoRedoAction
+{
+    public override string Message { get { return "multiselect move"; }}
+    [SerializeField] List<UndoRedoAction> undoRedoActions;
+
+    public override string ToString()
+    {
+        return $"{undoRedoActions.Count} notes moved.\n";
+    }
+
+    public MultiselectMoveAction(List<UndoRedoAction> undoRedoActions)
+    {
+        this.undoRedoActions = undoRedoActions;
+    }
+
+    public void AddUndoRedoAction(UndoRedoAction undoRedoAction)
+    {
+        undoRedoActions.Add(undoRedoAction);
+    }
+
+    public override void Redo()
+    {
+        foreach (UndoRedoAction undoRedoAction in undoRedoActions)
+        {
+            undoRedoAction.Redo();
+        }
+    }
+
+    public override void Undo()
+    {
+        foreach (UndoRedoAction undoRedoAction in undoRedoActions)
+        {
+            undoRedoAction.Undo();
+        }
+    }
+}
+
 // MARK: Environment actions
 
 public class AddEnvironmentChangeAction : UndoRedoAction

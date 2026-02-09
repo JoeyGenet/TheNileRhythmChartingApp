@@ -122,6 +122,14 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
     {
         int startTimeDelta = Note.StartTime - dragStartTime;
         EditButtonNoteAction moveButtonNoteAction = new EditButtonNoteAction(Note, startTimeDelta, dragStartLeftPos, dragStartRightPos, Note.LeftPos, Note.RightPos);
-        moveButtonNoteAction.CommitAction();
+        
+        if (!isInMarqueeSelection)
+        {
+            moveButtonNoteAction.CommitAction();
+        }
+        else
+        {
+            Track.SelectionGroup.multiselectMoveAction.AddUndoRedoAction(moveButtonNoteAction);
+        }
     }
 }

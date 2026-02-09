@@ -185,7 +185,9 @@ where C : IEditableNoteContainer<N>
         {
             Debug.Log("passing end drag to all selected notes!");
             isReadyToShareEventData = false;
+            Track.SelectionGroup.multiselectMoveAction = new MultiselectMoveAction(new List<UndoRedoAction>());
             Track.SelectionGroup.PassEventDataToAllSelectedNotes(eventData, ExecuteEvents.endDragHandler);
+            Track.SelectionGroup.multiselectMoveAction.CommitAction();
         }
         else
         {

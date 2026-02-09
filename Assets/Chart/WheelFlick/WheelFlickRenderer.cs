@@ -100,6 +100,14 @@ public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerDown
         int startTimeDelta = Note.StartTime - dragStartTime;
         int dirDelta = Note.Dir - oldDir;
         EditWheelFlickAction editWheelFlickAction = new EditWheelFlickAction(Note, startTimeDelta, dirDelta);
-        editWheelFlickAction.CommitAction();
+        
+        if (!isInMarqueeSelection)
+        {
+            editWheelFlickAction.CommitAction();
+        }
+        else
+        {
+            Track.SelectionGroup.multiselectMoveAction.AddUndoRedoAction(editWheelFlickAction);
+        }
     }
 }

@@ -14,6 +14,7 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
     int dragStartSeqPos;
     int dragStartSeqTime;
     bool isStartingVertex;
+    bool isLastSelectedVertex;
     Dictionary<EditableWheelTurn, int> dragStartEndTimes;
     Dictionary<EditableWheelTurn, int> oldDeltaAngles;
 
@@ -81,6 +82,15 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
         dragStartSeqTime = WheelSequence.StartTime;
         dragStartEndTimes = WheelSequence.Notes.ToDictionary(n => n, n => n.EndTime);
         oldDeltaAngles = WheelSequence.Notes.ToDictionary(n => n, n => n.DeltaAngle);
+        if (isInMarqueeSelection)
+        {
+            EditableWheelTurn currentTurn = Note.Container.Notes.Last();
+            while (!Track.SelectionGroup.notes.Contains(currentTurn) && currentTurn.PreviousTurn!=null)
+            {
+                currentTurn = currentTurn.PreviousTurn;
+            }
+            isLastSelectedVertex = Note == currentTurn;
+        }
     }
 
     protected override void OnDrag()
@@ -137,16 +147,19 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
                 }
             }
 
+            int currentDragStartStartAngle = dragStartStartAngle;
+            int currentDragStartDeltaAngle = dragStartDeltaAngle;
+            int currentDragStartSeqPos = dragStartSeqPos;
+            int currentDragPosDiff = dragPosDiff;
             // if in marquee selection, other notes may have moved in the same frame,
             // which changes the start/delta angle and sequence position, so reset these values
             // and use the delta drag position of this frame
-            int thisDragPosDiff = dragPosDiff;
             if (isInMarqueeSelection)
             {
-                dragStartStartAngle = isStartingVertex ? WheelSequence.Notes.First.StartAngle : Note.StartAngle;
-                dragStartDeltaAngle = isStartingVertex ? WheelSequence.Notes.First.DeltaAngle : Note.DeltaAngle;
-                dragStartSeqPos = WheelSequence.Pos;
-                thisDragPosDiff = dragPosDelta;
+                currentDragStartStartAngle = isStartingVertex ? WheelSequence.Notes.First.StartAngle : Note.StartAngle;
+                currentDragStartDeltaAngle = isStartingVertex ? WheelSequence.Notes.First.DeltaAngle : Note.DeltaAngle;
+                currentDragStartSeqPos = WheelSequence.Pos;
+                currentDragPosDiff = dragPosDelta;
             }
 
             // modify time of notes if changeTime is true
@@ -164,15 +177,16 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
             // modify position of notes
             if (isStartingVertex)
             {
-                WheelSequence.Pos = (int) Mathf.Repeat(dragStartSeqPos + thisDragPosDiff, 100);
+                WheelSequence.Pos = (int) Mathf.Repeat(currentDragStartSeqPos + currentDragPosDiff, 100);
                 var firstTurn = WheelSequence.Notes.First;
-                int startAngleDiff = WheelTurn.PosToAngle(dragStartSeqPos + thisDragPosDiff) - dragStartStartAngle;
-                firstTurn.DeltaAngle = dragStartDeltaAngle - startAngleDiff;
+                int startAngleDiff = WheelTurn.PosToAngle(currentDragStartSeqPos + currentDragPosDiff) - currentDragStartStartAngle;
+                firstTurn.DeltaAngle = currentDragStartDeltaAngle - startAngleDiff;
             }
             else
             {   
-                int startAngleDiff = Note.StartAngle - dragStartStartAngle;
-                int newDeltaAngle = WheelTurn.PosToAngle(WheelTurn.AngleToPos(dragStartDeltaAngle) + thisDragPosDiff) - startAngleDiff;
+                int startAngleDiff = Note.StartAngle - currentDragStartStartAngle;
+                int newDeltaAngle = WheelTurn.PosToAngle(WheelTurn.AngleToPos(currentDragStartDeltaAngle) + currentDragPosDiff) - startAngleDiff;
+                // int newDeltaAngle = currentDragStartDeltaAngle + WheelTurn.PosToAngle(thisDragPosDiff) - startAngleDiff; // use the current drag?
                 int deltaAngleDiff = newDeltaAngle - Note.DeltaAngle;
                 Note.DeltaAngle += deltaAngleDiff;
                 if (Note.NextTurn != null) Note.NextTurn.DeltaAngle -= deltaAngleDiff;
@@ -186,8 +200,15 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
         int posDelta = WheelSequence.Pos - dragStartSeqPos;
         Dictionary<EditableWheelTurn, int> newEndTimes = WheelSequence.Notes.ToDictionary(n => n, n => n.EndTime);
         Dictionary<EditableWheelTurn, int> newDeltaAngles = WheelSequence.Notes.ToDictionary(n => n, n => n.DeltaAngle);
-
         EditWheelSequenceAction wheelSequenceAction = new EditWheelSequenceAction(WheelSequence, startTimeDelta, posDelta, dragStartEndTimes, newEndTimes, oldDeltaAngles, newDeltaAngles);
-        wheelSequenceAction.CommitAction();
+        
+        if (!isInMarqueeSelection)
+        {
+            wheelSequenceAction.CommitAction();
+        }
+        else if (isLastSelectedVertex)
+        {
+            Track.SelectionGroup.multiselectMoveAction.AddUndoRedoAction(wheelSequenceAction);
+        }
     }
 }
