@@ -102,6 +102,7 @@ public class EditableWheelSequence : WheelSequence, IEditableNote<EditableChart,
 	public EditableWheelSequence(EditableChart chart, WheelSequence seq)
 		: base(chart, seq.StartTime, seq.Pos, new())
 	{
+		startingNote = new EditableWheelTurn(this, StartTime, 0);
 		InitializeNotes(seq.Notes.Select(turn => new EditableWheelTurn(this, turn.EndTime, turn.DeltaAngle)));
 	}
 

@@ -22,7 +22,7 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
     {
         base.Init(sequenceRenderer.Track, turn);
         WheelSequence = sequenceRenderer.Note;
-        isStartingVertex = Note == Note.Container.startingNote;
+        isStartingVertex = turn == WheelSequence.startingNote;
     }
 
     protected override void Update()
@@ -82,6 +82,7 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
         dragStartSeqTime = WheelSequence.StartTime;
         dragStartEndTimes = WheelSequence.Notes.ToDictionary(n => n, n => n.EndTime);
         oldDeltaAngles = WheelSequence.Notes.ToDictionary(n => n, n => n.DeltaAngle);
+        isStartingVertex = Note == WheelSequence.startingNote;
         if (isInMarqueeSelection)
         {
             EditableWheelTurn currentTurn = Note.Container.Notes.Last();
