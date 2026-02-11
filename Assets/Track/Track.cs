@@ -308,7 +308,7 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
                 }
                 else
                 {
-                    if (placeNote) chart.AddNote(new EditableLeverSequence(chart, side, new() { (time, leverPos) }));
+                    if (placeNote) chart.AddNote(new EditableLeverSequence(chart, time, side, new() { (time, leverPos) }));
                 }
 
                 if (leverPos == LeverPos.Left) showLeftLeverNoteCursor = true;

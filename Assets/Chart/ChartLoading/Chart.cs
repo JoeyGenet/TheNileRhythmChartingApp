@@ -124,12 +124,13 @@ public class Chart : INoteContainer<Note>, IComparable<Chart>
 				parser.AssertArgCount(c => c % 2 == 0, "Lever sequence");
 				
 				LeftRight dir = parseLeftRight(args[1]);
+				int time = int.Parse(args[2]);
 				List<(int time, LeverPos pos)> levers = new();
 				for (int i = 2; i < args.Length; i += 2)
 				{
 					levers.Add((int.Parse(args[i]), parseLeverPos(args[i+1])));
 				}
-				return new LeverSequence(this, dir, levers);
+				return new LeverSequence(this, time, dir, levers);
 			}
 			LeftRight parseLeftRight(string arg)
 			{

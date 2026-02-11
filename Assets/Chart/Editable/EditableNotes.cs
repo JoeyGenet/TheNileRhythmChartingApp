@@ -223,6 +223,12 @@ public class EditableLeverSequence : LeverSequence, IEditableNote<EditableChart,
     public event NoteRemovedEvent<EditableLeverNote> OnNoteRemoved;
     public event NoteMovedEvent<EditableLeverNote> OnNoteMoved;
 
+	public new int StartTime
+	{
+		get => time;
+		set => this.RegisterSortingChange(Container, ref time, value);
+	}
+
     public new LeftRight Dir
 	{
 		get => dir;
@@ -234,13 +240,13 @@ public class EditableLeverSequence : LeverSequence, IEditableNote<EditableChart,
     // public new EditableLeverNote FirstNote => notes.Min as EditableLeverNote;
     // public new EditableLeverNote LastNote => notes.Max as EditableLeverNote;
 
-	public EditableLeverSequence(EditableChart chart, LeftRight dir, List<(int time, LeverPos pos)> levers) 
-		: base(chart, dir, new())
+	public EditableLeverSequence(EditableChart chart, int time, LeftRight dir, List<(int time, LeverPos pos)> levers) 
+		: base(chart, time, dir, new())
 	{
 		InitializeNotes(levers.Select(lever => new EditableLeverNote(this, lever.time, lever.pos)));
 	}
 	public EditableLeverSequence(EditableChart chart, LeverSequence seq)
-		: base(chart, seq.Dir, new())
+		: base(chart, seq.StartTime, seq.Dir, new())
 	{
 		InitializeNotes(seq.Notes.Select(lever => new EditableLeverNote(this, lever.StartTime, lever.Pos)));
 	}
@@ -271,7 +277,12 @@ public class EditableLeverSequence : LeverSequence, IEditableNote<EditableChart,
 				addNoteToLeverSequenceAction.CommitAction();
 			}
 
+			// add note, and if it is the new first note, update the sequence start time
 			Assert.IsTrue(notes.Add(note));
+			if (notes.Min == note)
+			{
+				StartTime = note.StartTime;
+			}
 			return notify;
 		},
 		onChanged: () => OnNoteAdded?.Invoke(note)
@@ -286,6 +297,12 @@ public class EditableLeverSequence : LeverSequence, IEditableNote<EditableChart,
 			if (note.PreviousNote != null) note.PreviousNote.NextNote = note.NextNote;
 			if (note.NextNote != null) note.NextNote.PreviousNote = note.PreviousNote;
 
+			// before removing the note and removing its connections,
+			// if it is the current first note, set the sequence start time to that of the next note
+			if (notes.Min == note && note.NextNote != null)
+			{
+				StartTime = note.NextNote.StartTime;
+			}
 			note.PreviousNote = note.NextNote = null;
 
 			// track undo/redoable note remove action
