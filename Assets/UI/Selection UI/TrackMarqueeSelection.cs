@@ -323,10 +323,10 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
         string selectedNoteLog = "";
         foreach(Note note in selectedNotes)
         {
-            selectedNoteLog += "\nID: " + note.Id + " | note type: " + note.GetType() + " | " + note.ToString();
+            selectedNoteLog += "\nID: " + note.Id + " | start time: " + note.StartTime+ " | " + note.ToString();
             if (Track.noteGameObjectMapping.TryGetValue(note, out GameObject gameObject) && gameObject!=null)
             {
-                selectedNoteLog += " | " + gameObject.name;
+                selectedNoteLog += " | " + gameObject.name + " | " + gameObject.GetInstanceID();
             }
         }
         Debug.Log(selectedNoteLog);
