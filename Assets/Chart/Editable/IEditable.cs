@@ -29,6 +29,7 @@ where NoteType : Note
 	public event NoteRemovedEvent<NoteType> OnNoteRemoved;
 	public event NoteMovedEvent<NoteType> OnNoteMoved;
 
+    // if notify is true, then return whether or not the add/removal was successful, otherwise return false
 	bool AddNote(NoteType note, bool notify = true, bool updateEditHistory = true);
 	bool RemoveNote(NoteType note, bool notify = true, bool updateEditHistory = true);
     void NotifyMoved(NoteType note);
@@ -53,6 +54,7 @@ public static class IEditableExtensions
     where E : IEditable, N
     {
         if (newValue.Equals(value)) return false;
+        // if notify is true, then return whether or not the add/removal was successful, otherwise return false
         container?.RemoveNote(editable, notify: false, updateEditHistory: false);
         value = newValue;
         container?.AddNote(editable, notify: false, updateEditHistory: false);
