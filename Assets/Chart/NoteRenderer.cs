@@ -72,7 +72,11 @@ where C : IEditableNoteContainer<N>
     {
         ChartManager.OnChartChanged -= DestroyOnChartChanged;
         UIManager.OnElementSelected -= OnNoteSelected;
-        if (Note != null) Note.Container.OnNoteRemoved -= DestroyOnNoteRemoved;
+        if (Note != null) 
+        {
+            Track.noteGameObjectMapping.Remove(Note);
+            Note.Container.OnNoteRemoved -= DestroyOnNoteRemoved;
+        }
     }
 
     // TODO: create UpdateOnPlayback that is called when the user drags the playback/zoom or during playback
