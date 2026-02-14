@@ -141,7 +141,7 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
         Debug.Log("End drag pos: "+Track.TrackToUIPosition(dragPos, dragTime));
         // this class only detects selected notes. The selected notes are controlled
         // by a TrackMarqueeSelectionGroup instance.
-        List<Note> selectedNotes = CheckForSelectedNotes(dragStartPointerTime, dragTime, dragStartPointerPos, dragPos);
+        SortedSet<Note> selectedNotes = CheckForSelectedNotes(dragStartPointerTime, dragTime, dragStartPointerPos, dragPos);
         if (selectedNotes.Count > 0)
         {
             Track.SelectionGroup.SetSelectedNoteRenderersFlag(true, selectedNotes);
@@ -179,7 +179,7 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
     }
 
     // would it be better to search for the note renderers directly?
-    private List<Note> CheckForSelectedNotes(int startTime, int endTime, int startPos, int endPos)
+    private SortedSet<Note> CheckForSelectedNotes(int startTime, int endTime, int startPos, int endPos)
     {
         int minTime = Math.Min(startTime, endTime);
         int maxTime = Math.Max(startTime, endTime);
@@ -209,7 +209,7 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
 
         // highlight all notes that fall under current selection range
         IReadOnlyCollection<Note> notesInRange = ChartManager.SelectedChart.GetNotesBetween(minTime, maxTime);
-        List<Note> selectedNotes = new List<Note>();
+        SortedSet<Note> selectedNotes = new SortedSet<Note>();
         foreach(Note note in notesInRange)
         {
             switch (note)

@@ -10,7 +10,7 @@ public class TrackMarqueeSelectionGroup : MonoBehaviour
     [SerializeField] RectTransform scrollDownArea;
     [SerializeField] float scrollSpeed = 0.1f;
     [SerializeField] Track Track;
-    public List<Note> notes { get; private set; }
+    public SortedSet<Note> notes { get; private set; }
     public Dictionary<GameObject, Transform> rendererTransformMapping { get; private set; }
     public MultiselectMoveAction multiselectMoveAction;
 
@@ -26,7 +26,7 @@ public class TrackMarqueeSelectionGroup : MonoBehaviour
     protected void Awake()
     {
         rect = GetComponent<RectTransform>();
-        notes = new List<Note>();
+        notes = new SortedSet<Note>();
         rendererTransformMapping = new Dictionary<GameObject, Transform>();
     }
 
@@ -67,7 +67,7 @@ public class TrackMarqueeSelectionGroup : MonoBehaviour
         }
     }
 
-    public void SetSelectedNoteRenderersFlag(bool isInMarqueeSelection, List<Note> selectedNotes=null)
+    public void SetSelectedNoteRenderersFlag(bool isInMarqueeSelection, SortedSet<Note> selectedNotes=null)
     {
         if (selectedNotes != null)
         {
@@ -116,6 +116,44 @@ public class TrackMarqueeSelectionGroup : MonoBehaviour
             {
                 Execute(gameObject, eventData, functor);
             }
+        }
+    }
+
+    // cache all selected notes in some sort of clipboard
+    // TODO: add Paste function to Track.cs so you can paste without a present selection
+    // TODO: add a note paste UndoRedoAction that is basically a group event for adding multiple notes
+    // ALSO TODO: group deletion
+    public void CopySelectedNotes()
+    {
+
+    }
+
+    public void PasteNotesFromClipboard()
+    {
+        // TODO: use clipboard instead of selection
+        foreach (Note note in notes)
+        {
+            Note pastedNote = null;
+            switch (note)
+            {
+                case EditableButtonNote:
+                    EditableButtonNote buttonNote = note as EditableButtonNote;
+                    // TODO: use local chart in Track.cs instead of ChartManager.SelectedChart
+                    pastedNote = new EditableButtonNote(ChartManager.SelectedChart, buttonNote);
+                    ChartManager.SelectedChart.AddNote(pastedNote, updateEditHistory:false);
+                    break;
+                case EditableLeverSequence:
+                    break;
+                case EditableWheelFlick:
+                    break;
+                case EditableWheelSequence:
+                    break;
+                default:
+                    break;
+            }
+            // TODO: add the AddNoteAction to a list of add note actions--
+            AddNoteAction addNoteAction = new AddNoteAction(pastedNote, ChartManager.SelectedChart);
+
         }
     }
     
