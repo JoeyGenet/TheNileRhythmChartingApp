@@ -17,11 +17,8 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
     [SerializeField] RectTransform marquee;
     [SerializeField] Image marqueeImage;
     [SerializeField] Track Track;
-    public List<Note> Notes { get; private set; }
 
     protected RectTransform rect;
-
-    int prevTime = int.MaxValue;
 
     protected PointerEventData pointerEventData { get; private set; }
     protected int dragStartPointerPos { get; private set; }
@@ -53,9 +50,6 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
 
     protected void Update()
     {
-        int currTime = PlaybackManager.Instance.MillisecondsInChart;
-        prevTime = currTime;
-
         // scroll the track if you mouse over the scroll areas
         if (marqueeImage.enabled)
         {
