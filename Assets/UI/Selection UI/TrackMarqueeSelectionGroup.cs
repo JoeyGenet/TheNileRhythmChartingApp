@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using static UnityEngine.EventSystems.ExecuteEvents;
@@ -11,8 +12,10 @@ public class TrackMarqueeSelectionGroup : MonoBehaviour
     [SerializeField] float scrollSpeed = 0.1f;
     [SerializeField] Track Track;
     public SortedSet<Note> notes { get; private set; }
+    private SortedSet<Note> noteClipboard;
     public Dictionary<GameObject, Transform> rendererTransformMapping { get; private set; }
     public MultiselectMoveAction multiselectMoveAction;
+    public MultiselectPasteAction multiselectPasteAction;
 
     protected RectTransform rect;
 
@@ -42,6 +45,26 @@ public class TrackMarqueeSelectionGroup : MonoBehaviour
 
         // scroll the track if you mouse over the scroll areas
         // DragScrollTrack();
+
+        // TODO: copy and paste buttons/bindings should be implemented in multiselectiongroup inspector
+        if (Input.GetKeyDown(KeyCode.C))
+        {
+            if (notes.Count > 0)
+            {
+                noteClipboard = new SortedSet<Note>(notes);
+                // TODO: have unified
+                SetSelectedNoteRenderersFlag(false);
+                notes.Clear();
+            }
+        }
+
+        if (Input.GetKeyDown(KeyCode.V))
+        {
+            if (noteClipboard.Count > 0)
+            {
+                PasteNotesFromClipboard();
+            }
+        }
     }
 
 
@@ -130,30 +153,105 @@ public class TrackMarqueeSelectionGroup : MonoBehaviour
 
     public void PasteNotesFromClipboard()
     {
+        if (Track.PointerToTrackPosition(Input.mousePosition, clamp: true) is not var (pos, time)) return;
+        multiselectPasteAction = new MultiselectPasteAction(new List<UndoRedoAction>());
+        EditableChart chart = ChartManager.SelectedChart;
+        int selectionStartTime = noteClipboard.First().StartTime;
+        int pasteStartTime = time; //PlaybackManager.Instance.MillisecondsInChart;
         // TODO: use clipboard instead of selection
-        foreach (Note note in notes)
+        // TODO: use local chart in Track.cs instead of ChartManager.SelectedChart
+        foreach (Note note in noteClipboard)
         {
-            Note pastedNote = null;
             switch (note)
             {
                 case EditableButtonNote:
                     EditableButtonNote buttonNote = note as EditableButtonNote;
-                    // TODO: use local chart in Track.cs instead of ChartManager.SelectedChart
-                    pastedNote = new EditableButtonNote(ChartManager.SelectedChart, buttonNote);
-                    ChartManager.SelectedChart.AddNote(pastedNote, updateEditHistory:false);
+                    int newButtonNoteStartTime = buttonNote.StartTime - selectionStartTime + pasteStartTime;
+                    EditableButtonNote pastedButtonNote = new EditableButtonNote(chart, newButtonNoteStartTime, buttonNote.LeftPos, buttonNote.RightPos);
+                    chart.AddNote(pastedButtonNote, updateEditHistory:false);
+                    AddNoteAction addButtonNoteAction = new AddNoteAction(pastedButtonNote, chart);
+                    multiselectPasteAction.AddUndoRedoAction(addButtonNoteAction);
                     break;
-                case EditableLeverSequence:
+                case EditableLeverNote:
+                    EditableLeverNote leverNote = note as EditableLeverNote;
+                    int newLeverNoteStartTime = leverNote.StartTime - selectionStartTime + pasteStartTime;
+                    multiselectPasteAction.AddUndoRedoAction(AddLeverNote(leverNote, newLeverNoteStartTime, chart));
                     break;
                 case EditableWheelFlick:
+                    EditableWheelFlick wheelFlick = note as EditableWheelFlick;
+                    int newWheelFlickStartTime = wheelFlick.StartTime - selectionStartTime + pasteStartTime;
+                    EditableWheelFlick pastedWheelFlick = new EditableWheelFlick(chart, newWheelFlickStartTime, wheelFlick.Dir);
+                    chart.AddNote(pastedWheelFlick, updateEditHistory:false);
+                    AddNoteAction addWheelFlickAction = new AddNoteAction(pastedWheelFlick, chart);
+                    multiselectPasteAction.AddUndoRedoAction(addWheelFlickAction);
                     break;
-                case EditableWheelSequence:
+                case EditableWheelTurn:
+                    EditableWheelTurn wheelTurn = note as EditableWheelTurn;
+                    int newWheelTurnStartTime = wheelTurn.StartTime - selectionStartTime + pasteStartTime;
+                    multiselectPasteAction.AddUndoRedoAction(AddWheelTurn(wheelTurn.Pos, newWheelTurnStartTime, wheelTurn.EndTime, wheelTurn.StartAngle+wheelTurn.DeltaAngle, chart));
                     break;
                 default:
                     break;
             }
-            // TODO: add the AddNoteAction to a list of add note actions--
-            AddNoteAction addNoteAction = new AddNoteAction(pastedNote, ChartManager.SelectedChart);
+        }
 
+        multiselectPasteAction.CommitAction();
+    }
+
+    UndoRedoAction AddWheelTurn(int pos, int startTime, int endTime, int endAngle, EditableChart chart)
+    {
+        // If placing inside an existing sequence or holding shift, add to the previous sequence. Otherwise create a new sequence
+        var lastWheelSequence = chart.GetNotesBefore(endTime).OfType<EditableWheelSequence>().LastOrDefault();
+        bool addToWheelSequence = lastWheelSequence != null && (lastWheelSequence.EndTime > endTime 
+            || Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift));
+
+        if (addToWheelSequence)
+        {
+            var prevNote = lastWheelSequence.GetNotesBefore(endTime).LastOrDefault() as EditableWheelTurn;
+            int prevEndAngle = prevNote == null ? WheelTurn.PosToAngle(lastWheelSequence.Pos)
+                : WheelTurn.WrapAngle(prevNote.StartAngle + prevNote.DeltaAngle);
+
+            EditableWheelTurn editableWheelTurn = new EditableWheelTurn(lastWheelSequence, endTime, endAngle - prevEndAngle);
+            lastWheelSequence.AddNote(editableWheelTurn, updateEditHistory:false);
+            AddNoteToWheelSequenceAction addNoteToWheelSequenceAction = new AddNoteToWheelSequenceAction(editableWheelTurn, lastWheelSequence);
+            return addNoteToWheelSequenceAction;
+        }
+        else
+        {
+            EditableWheelSequence editableWheelSequence = new EditableWheelSequence(chart, startTime, pos, new() { (0, endTime) });
+            chart.AddNote(editableWheelSequence, updateEditHistory:false);
+            AddNoteAction addNoteAction = new AddNoteAction(editableWheelSequence, chart);
+            return addNoteAction;
+        }
+    }
+
+    UndoRedoAction AddLeverNote(EditableLeverNote originalNote, int newTime, EditableChart chart)
+    {
+        LeftRight side = originalNote.Container.Dir;
+        LeverPos leverPos = originalNote.Pos;
+
+        // If placing inside an existing sequence or holding shift, add to the previous sequence. Otherwise create a new sequence
+        var lastOldLeverSequence = chart.GetNotesBefore(originalNote.StartTime, inclusive:false).OfType<EditableLeverSequence>().LastOrDefault(seq => seq.Dir == side);
+        var lastOldLeverNote = lastOldLeverSequence?.GetNotesBefore(originalNote.StartTime, inclusive:false).OfType<EditableLeverNote>().LastOrDefault(note => note.Container.Dir == side);
+        var lastLeverSequence = chart.GetNotesBefore(newTime, inclusive:false).OfType<EditableLeverSequence>().LastOrDefault(seq => seq.Dir == side);
+        bool addToLeverSequence = lastLeverSequence != null && (lastLeverSequence.EndTime > newTime 
+            || (originalNote.PreviousNote!=null && noteClipboard.Contains(originalNote.PreviousNote))// && originalNote.PreviousNote == lastOldLeverNote)
+            || Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift));
+
+        
+        if (addToLeverSequence)
+        {
+            EditableLeverNote editableLeverNote = new EditableLeverNote(lastLeverSequence, newTime, leverPos);
+            lastLeverSequence.AddNote(editableLeverNote, updateEditHistory:false);
+            AddNoteToLeverSequenceAction addNoteToLeverSequenceAction = new AddNoteToLeverSequenceAction(editableLeverNote, lastLeverSequence);
+            return addNoteToLeverSequenceAction;
+        }
+        else
+        {
+            EditableLeverSequence editableLeverSequence = new EditableLeverSequence(chart, newTime, side, new() { (newTime, leverPos) });
+            chart.AddNote(editableLeverSequence, updateEditHistory:false);
+            AddNoteAction addNoteAction = new AddNoteAction(editableLeverSequence, chart);
+            return addNoteAction;
         }
     }
     

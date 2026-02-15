@@ -84,6 +84,37 @@ public abstract class UndoRedoAction
     public abstract void Undo();
 }
 
+public abstract class GroupUndoRedoAction : UndoRedoAction
+{
+    [SerializeField] public List<UndoRedoAction> undoRedoActions;
+
+    public GroupUndoRedoAction(List<UndoRedoAction> undoRedoActions)
+    {
+        this.undoRedoActions = undoRedoActions;
+    }
+
+    public void AddUndoRedoAction(UndoRedoAction undoRedoAction)
+    {
+        undoRedoActions.Add(undoRedoAction);
+    }
+
+    public override void Redo()
+    {
+        foreach (UndoRedoAction undoRedoAction in undoRedoActions)
+        {
+            undoRedoAction.Redo();
+        }
+    }
+
+    public override void Undo()
+    {
+        foreach (UndoRedoAction undoRedoAction in undoRedoActions)
+        {
+            undoRedoAction.Undo();
+        }
+    }
+}
+
 // MARK: Basic note actions
 // specific classes for different actions you can perform in the editor
 // each defines its own parameters and behavior for undo/redo
@@ -503,41 +534,28 @@ public class RemoveNoteFromLeverSequenceAction : UndoRedoAction
 }
 
 // MARK: Multiselect actions
-public class MultiselectMoveAction : UndoRedoAction
+public class MultiselectMoveAction : GroupUndoRedoAction
 {
     public override string Message { get { return "multiselect move"; }}
-    [SerializeField] List<UndoRedoAction> undoRedoActions;
 
     public override string ToString()
     {
         return $"{undoRedoActions.Count} notes moved.\n";
     }
 
-    public MultiselectMoveAction(List<UndoRedoAction> undoRedoActions)
+    public MultiselectMoveAction(List<UndoRedoAction> undoRedoActions) : base(undoRedoActions) { }
+}
+
+public class MultiselectPasteAction : GroupUndoRedoAction
+{
+    public override string Message { get { return "multiselect paste"; }}
+
+    public override string ToString()
     {
-        this.undoRedoActions = undoRedoActions;
+        return $"{undoRedoActions.Count} notes pasted.\n";
     }
 
-    public void AddUndoRedoAction(UndoRedoAction undoRedoAction)
-    {
-        undoRedoActions.Add(undoRedoAction);
-    }
-
-    public override void Redo()
-    {
-        foreach (UndoRedoAction undoRedoAction in undoRedoActions)
-        {
-            undoRedoAction.Redo();
-        }
-    }
-
-    public override void Undo()
-    {
-        foreach (UndoRedoAction undoRedoAction in undoRedoActions)
-        {
-            undoRedoAction.Undo();
-        }
-    }
+    public MultiselectPasteAction(List<UndoRedoAction> undoRedoActions) : base(undoRedoActions) { }
 }
 
 // MARK: Environment actions

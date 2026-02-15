@@ -52,7 +52,6 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     public RectTransform LeverTrackArea { get => leverTrackArea; }
     public RectTransform MainTrackArea { get => mainTrackArea; }
     public TrackMarqueeSelectionGroup SelectionGroup {get => selectionGroup; }
-    private SortedSet<Note> noteClipboard;
 
     public Dictionary<Note, GameObject> noteGameObjectMapping = new Dictionary<Note, GameObject>();
 
@@ -334,14 +333,6 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
     // MARK: Note Adding Logic
     // special cases for adding sequence notes, since they can be added as new sequences or to existing sequences
-    Vector2 AddWheelSequence(EditableWheelSequence editableWheelSequence, EditableChart chart)
-    {
-        return AddWheelTurn(editableWheelSequence.Pos, editableWheelSequence.StartTime, chart, true, false);
-    }
-    Vector2 AddWheelTurn(EditableWheelTurn editableWheelTurn, EditableChart chart)
-    {
-        return AddWheelTurn(editableWheelTurn.Pos, editableWheelTurn.EndTime, chart, true, false);
-    }
     Vector2 AddWheelTurn(int pos, int time, EditableChart chart, bool placeNote, bool selectNote)
     {
         // If placing inside an existing sequence or holding shift, add to the previous sequence. Otherwise create a new sequence
@@ -374,10 +365,6 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         }
     }
 
-    LeverPos AddLeverNote(EditableLeverNote note, EditableChart chart)
-    {
-        return AddLeverNote(note.Container.Dir, note.StartTime, chart, true, false);
-    }
     LeverPos AddLeverNote(LeftRight side, int time, EditableChart chart, bool placeNote, bool selectNote)
     {
 
