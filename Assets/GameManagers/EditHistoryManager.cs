@@ -108,9 +108,11 @@ public abstract class GroupUndoRedoAction : UndoRedoAction
 
     public override void Undo()
     {
-        foreach (UndoRedoAction undoRedoAction in undoRedoActions)
+        // actions must be done in true reverse order to preserve symmetry
+        // e.g. remove two wheel turn notes in the reverse order they were added to preserve delta angles
+        for (int i=undoRedoActions.Count-1; i>=0; i--)
         {
-            undoRedoAction.Undo();
+            undoRedoActions[i].Undo();
         }
     }
 }

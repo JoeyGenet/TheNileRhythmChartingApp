@@ -157,9 +157,8 @@ public class TrackMarqueeSelectionGroup : MonoBehaviour
         multiselectPasteAction = new MultiselectPasteAction(new List<UndoRedoAction>());
         EditableChart chart = ChartManager.SelectedChart;
         int selectionStartTime = noteClipboard.First().StartTime;
-        int pasteStartTime = time; //PlaybackManager.Instance.MillisecondsInChart;
-        // TODO: use clipboard instead of selection
-        // TODO: use local chart in Track.cs instead of ChartManager.SelectedChart
+        int pasteStartTime = time;
+
         foreach (Note note in noteClipboard)
         {
             switch (note)
@@ -188,7 +187,12 @@ public class TrackMarqueeSelectionGroup : MonoBehaviour
                 case EditableWheelTurn:
                     EditableWheelTurn wheelTurn = note as EditableWheelTurn;
                     int newWheelTurnStartTime = wheelTurn.StartTime - selectionStartTime + pasteStartTime;
-                    multiselectPasteAction.AddUndoRedoAction(AddWheelTurn(wheelTurn.Pos, newWheelTurnStartTime, wheelTurn.EndTime, wheelTurn.StartAngle+wheelTurn.DeltaAngle, chart));
+                    int newWheelTurnEndTime = wheelTurn.EndTime - selectionStartTime + pasteStartTime;
+                    UndoRedoAction addedWheelTurnAction = AddWheelTurn(wheelTurn, newWheelTurnStartTime, newWheelTurnEndTime, wheelTurn.StartAngle, wheelTurn.DeltaAngle, chart);
+                    if (addedWheelTurnAction!=null)
+                    {
+                        multiselectPasteAction.AddUndoRedoAction(addedWheelTurnAction);
+                    }
                     break;
                 default:
                     break;
@@ -198,18 +202,22 @@ public class TrackMarqueeSelectionGroup : MonoBehaviour
         multiselectPasteAction.CommitAction();
     }
 
-    UndoRedoAction AddWheelTurn(int pos, int startTime, int endTime, int endAngle, EditableChart chart)
+    UndoRedoAction AddWheelTurn(EditableWheelTurn originalTurn, int startTime, int endTime, int startAngle, int deltaAngle, EditableChart chart)
     {
+        // the starting vertex has a dummy note only used for selection logic--it does not represent real note data, so skip it
+        if (originalTurn.Container.startingNote == originalTurn) return null;
         // If placing inside an existing sequence or holding shift, add to the previous sequence. Otherwise create a new sequence
         var lastWheelSequence = chart.GetNotesBefore(endTime).OfType<EditableWheelSequence>().LastOrDefault();
         bool addToWheelSequence = lastWheelSequence != null && (lastWheelSequence.EndTime > endTime 
+            || (originalTurn.PreviousTurn!=null && noteClipboard.Contains(originalTurn.PreviousTurn))
             || Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift));
 
         if (addToWheelSequence)
         {
+            int endAngle = startAngle + deltaAngle;
             var prevNote = lastWheelSequence.GetNotesBefore(endTime).LastOrDefault() as EditableWheelTurn;
             int prevEndAngle = prevNote == null ? WheelTurn.PosToAngle(lastWheelSequence.Pos)
-                : WheelTurn.WrapAngle(prevNote.StartAngle + prevNote.DeltaAngle);
+                : prevNote.StartAngle + prevNote.DeltaAngle;
 
             EditableWheelTurn editableWheelTurn = new EditableWheelTurn(lastWheelSequence, endTime, endAngle - prevEndAngle);
             lastWheelSequence.AddNote(editableWheelTurn, updateEditHistory:false);
@@ -218,7 +226,8 @@ public class TrackMarqueeSelectionGroup : MonoBehaviour
         }
         else
         {
-            EditableWheelSequence editableWheelSequence = new EditableWheelSequence(chart, startTime, pos, new() { (0, endTime) });
+            int newSequencePos = WheelTurn.AngleToPos(WheelTurn.WrapAngle(startAngle));
+            EditableWheelSequence editableWheelSequence = new EditableWheelSequence(chart, startTime, newSequencePos, new() { (deltaAngle, endTime) });
             chart.AddNote(editableWheelSequence, updateEditHistory:false);
             AddNoteAction addNoteAction = new AddNoteAction(editableWheelSequence, chart);
             return addNoteAction;
@@ -231,11 +240,9 @@ public class TrackMarqueeSelectionGroup : MonoBehaviour
         LeverPos leverPos = originalNote.Pos;
 
         // If placing inside an existing sequence or holding shift, add to the previous sequence. Otherwise create a new sequence
-        var lastOldLeverSequence = chart.GetNotesBefore(originalNote.StartTime, inclusive:false).OfType<EditableLeverSequence>().LastOrDefault(seq => seq.Dir == side);
-        var lastOldLeverNote = lastOldLeverSequence?.GetNotesBefore(originalNote.StartTime, inclusive:false).OfType<EditableLeverNote>().LastOrDefault(note => note.Container.Dir == side);
         var lastLeverSequence = chart.GetNotesBefore(newTime, inclusive:false).OfType<EditableLeverSequence>().LastOrDefault(seq => seq.Dir == side);
         bool addToLeverSequence = lastLeverSequence != null && (lastLeverSequence.EndTime > newTime 
-            || (originalNote.PreviousNote!=null && noteClipboard.Contains(originalNote.PreviousNote))// && originalNote.PreviousNote == lastOldLeverNote)
+            || (originalNote.PreviousNote!=null && noteClipboard.Contains(originalNote.PreviousNote))
             || Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift));
 
         
