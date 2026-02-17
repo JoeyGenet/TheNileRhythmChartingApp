@@ -51,7 +51,48 @@ public class TrackMarqueeSelectionGroup : MonoBehaviour
         {
             if (notes.Count > 0)
             {
-                noteClipboard = new SortedSet<Note>(notes);
+                // noteClipboard = new SortedSet<Note>(notes);
+                EditableChart chart = ChartManager.SelectedChart;
+                noteClipboard = new SortedSet<Note>();
+                foreach (Note note in notes)
+                {
+                    switch (note)
+                    {
+                        case EditableButtonNote:
+                            EditableButtonNote buttonNote = note as EditableButtonNote;
+                            noteClipboard.Add(new EditableButtonNote(null, buttonNote));
+                            break;
+                        case EditableLeverSequence:
+                            EditableLeverSequence leverSequence = note as EditableLeverSequence;
+                            EditableLeverSequence leverSequenceCopy = new EditableLeverSequence(null, leverSequence);
+                            for (int i=0; i<leverSequence.Notes.Count; i++)
+                            {
+                                if (notes.Contains(leverSequence.Notes.ElementAt(i)))
+                                {
+                                    noteClipboard.Add(leverSequenceCopy.Notes.ElementAt(i));
+                                }
+                            }
+                            break;
+                        case EditableWheelFlick:
+                            EditableWheelFlick wheelFlick = note as EditableWheelFlick;
+                            noteClipboard.Add(new EditableWheelFlick(null, wheelFlick));
+                            break;
+                        case EditableWheelSequence:
+                            EditableWheelSequence wheelSequence = note as EditableWheelSequence;
+                            EditableWheelSequence wheelSequenceCopy = new EditableWheelSequence(null, wheelSequence);
+                            if (notes.Contains(wheelSequence.startingNote) || notes.Contains(wheelSequence.Notes.First)) noteClipboard.Add(wheelSequenceCopy.startingNote);
+                            for (int i=0; i<wheelSequence.Notes.Count; i++)
+                            {
+                                if (notes.Contains(wheelSequence.Notes.ElementAt(i)))
+                                {
+                                    noteClipboard.Add(wheelSequenceCopy.Notes.ElementAt(i));
+                                }
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                }
                 // TODO: have unified
                 SetSelectedNoteRenderersFlag(false);
                 notes.Clear();
@@ -102,6 +143,7 @@ public class TrackMarqueeSelectionGroup : MonoBehaviour
             if (Track.noteGameObjectMapping.TryGetValue(note, out GameObject gameObject) && gameObject!=null)
             {
                 // flag all selected notes to change their click/drag/drop behavior
+                // only the clickable renderers will be added--no WheelSequences or LeverSequences here
                 switch (note)
                 {
                     case EditableButtonNote:

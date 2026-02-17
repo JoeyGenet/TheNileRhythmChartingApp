@@ -227,6 +227,7 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
                         selectedNotes.Add(leverSequence);
                         // get all sequence notes that fall within selection range
                         IReadOnlyCollection<LeverNote> leverNotesInRange = leverSequence.GetNotesBetween(minTime, maxTime);
+                        if (leverNotesInRange.Count > 0) selectedNotes.Add(leverSequence);
                         foreach (EditableLeverNote leverNote in leverNotesInRange)
                         {
                             selectedNotes.Add(leverNote);
@@ -250,10 +251,12 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
                     {
                         // add the placeholder starting note as a proxy for the start of the sequence
                         // this note is mapped to the first vertex renderer in the wheel sequence
+                        // and allows us to multiselect start of sequence separately from the first turn
                         selectedNotes.Add(wheelSequence.startingNote);
                     }
                     // get all sequence notes that fall within selection range
                     IReadOnlyCollection<WheelTurn> wheelTurnsInRange = wheelSequence.GetNotesBetween(minTime, maxTime);
+                    if (wheelTurnsInRange.Count > 0) selectedNotes.Add(wheelSequence);
                     foreach (EditableWheelTurn wheelTurn in wheelTurnsInRange)
                     {
                         if (wheelTurn.Pos >= minPos && wheelTurn.Pos <= maxPos)
@@ -274,6 +277,7 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
             if (lastLeftLeverSequence != null)
             {
                 IReadOnlyCollection<LeverNote> leverNotesInRange = lastLeftLeverSequence.GetNotesBetween(minTime, maxTime);
+                if (leverNotesInRange.Count > 0) selectedNotes.Add(lastLeftLeverSequence);
                 foreach (EditableLeverNote leverNote in leverNotesInRange)
                 {
                     selectedNotes.Add(leverNote);
@@ -286,6 +290,7 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
             if (lastRightLeverSequence != null)
             {
                 IReadOnlyCollection<LeverNote> leverNotesInRange = lastRightLeverSequence.GetNotesBetween(minTime, maxTime);
+                if (leverNotesInRange.Count > 0) selectedNotes.Add(lastRightLeverSequence);
                 foreach (EditableLeverNote leverNote in leverNotesInRange)
                 {
                     selectedNotes.Add(leverNote);
@@ -296,14 +301,9 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
         EditableWheelSequence lastWheelSequence = ChartManager.SelectedChart.GetNotesBefore(minTime).OfType<EditableWheelSequence>().LastOrDefault();
         if (lastWheelSequence != null)
         {
-            // the sequence start is not included in list of turns, so consider it separately
-            if (lastWheelSequence.Pos >= minPos && lastWheelSequence.Pos <= maxPos &&
-                lastWheelSequence.StartTime >= minTime && lastWheelSequence.StartTime <= maxTime)
-            {
-                selectedNotes.Add(lastWheelSequence);
-            }
             // get all sequence notes that fall within selection range
             IReadOnlyCollection<WheelTurn> wheelTurnsInRange = lastWheelSequence.GetNotesBetween(minTime, maxTime);
+            if (wheelTurnsInRange.Count > 0) selectedNotes.Add(lastWheelSequence);
             foreach (EditableWheelTurn wheelTurn in wheelTurnsInRange)
             {
                 if (wheelTurn.Pos >= minPos && wheelTurn.Pos <= maxPos)
