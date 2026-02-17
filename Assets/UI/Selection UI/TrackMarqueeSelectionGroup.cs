@@ -205,15 +205,20 @@ public class TrackMarqueeSelectionGroup : MonoBehaviour
     UndoRedoAction AddWheelTurn(EditableWheelTurn originalTurn, int startTime, int endTime, int startAngle, int deltaAngle, EditableChart chart)
     {
         // the starting vertex has a dummy note only used for selection logic--it does not represent real note data, so skip it
-        if (originalTurn.Container.startingNote == originalTurn) return null;
+        // if (originalTurn.Container.startingNote == originalTurn) return null;
+        bool isStartingVertex = originalTurn.Container.startingNote == originalTurn;
         // If placing inside an existing sequence or holding shift, add to the previous sequence. Otherwise create a new sequence
         var lastWheelSequence = chart.GetNotesBefore(endTime).OfType<EditableWheelSequence>().LastOrDefault();
-        bool addToWheelSequence = lastWheelSequence != null && (lastWheelSequence.EndTime > endTime 
+        bool addToWheelSequence = lastWheelSequence != null && ((lastWheelSequence.EndTime > startTime && lastWheelSequence.StartTime < endTime) 
             || (originalTurn.PreviousTurn!=null && noteClipboard.Contains(originalTurn.PreviousTurn))
             || Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift));
 
         if (addToWheelSequence)
         {
+            if (isStartingVertex)
+            {
+                startAngle = WheelTurn.PosToAngle(originalTurn.Container.Pos);
+            }
             int endAngle = startAngle + deltaAngle;
             var prevNote = lastWheelSequence.GetNotesBefore(endTime).LastOrDefault() as EditableWheelTurn;
             int prevEndAngle = prevNote == null ? WheelTurn.PosToAngle(lastWheelSequence.Pos)
@@ -224,13 +229,17 @@ public class TrackMarqueeSelectionGroup : MonoBehaviour
             AddNoteToWheelSequenceAction addNoteToWheelSequenceAction = new AddNoteToWheelSequenceAction(editableWheelTurn, lastWheelSequence);
             return addNoteToWheelSequenceAction;
         }
-        else
+        else if (!isStartingVertex)
         {
             int newSequencePos = WheelTurn.AngleToPos(WheelTurn.WrapAngle(startAngle));
             EditableWheelSequence editableWheelSequence = new EditableWheelSequence(chart, startTime, newSequencePos, new() { (deltaAngle, endTime) });
             chart.AddNote(editableWheelSequence, updateEditHistory:false);
             AddNoteAction addNoteAction = new AddNoteAction(editableWheelSequence, chart);
             return addNoteAction;
+        }
+        else
+        {
+            return null;
         }
     }
 
