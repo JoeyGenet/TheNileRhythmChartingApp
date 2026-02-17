@@ -51,48 +51,7 @@ public class TrackMarqueeSelectionGroup : MonoBehaviour
         {
             if (notes.Count > 0)
             {
-                // noteClipboard = new SortedSet<Note>(notes);
-                EditableChart chart = ChartManager.SelectedChart;
-                noteClipboard = new SortedSet<Note>();
-                foreach (Note note in notes)
-                {
-                    switch (note)
-                    {
-                        case EditableButtonNote:
-                            EditableButtonNote buttonNote = note as EditableButtonNote;
-                            noteClipboard.Add(new EditableButtonNote(null, buttonNote));
-                            break;
-                        case EditableLeverSequence:
-                            EditableLeverSequence leverSequence = note as EditableLeverSequence;
-                            EditableLeverSequence leverSequenceCopy = new EditableLeverSequence(null, leverSequence);
-                            for (int i=0; i<leverSequence.Notes.Count; i++)
-                            {
-                                if (notes.Contains(leverSequence.Notes.ElementAt(i)))
-                                {
-                                    noteClipboard.Add(leverSequenceCopy.Notes.ElementAt(i));
-                                }
-                            }
-                            break;
-                        case EditableWheelFlick:
-                            EditableWheelFlick wheelFlick = note as EditableWheelFlick;
-                            noteClipboard.Add(new EditableWheelFlick(null, wheelFlick));
-                            break;
-                        case EditableWheelSequence:
-                            EditableWheelSequence wheelSequence = note as EditableWheelSequence;
-                            EditableWheelSequence wheelSequenceCopy = new EditableWheelSequence(null, wheelSequence);
-                            if (notes.Contains(wheelSequence.startingNote) || notes.Contains(wheelSequence.Notes.First)) noteClipboard.Add(wheelSequenceCopy.startingNote);
-                            for (int i=0; i<wheelSequence.Notes.Count; i++)
-                            {
-                                if (notes.Contains(wheelSequence.Notes.ElementAt(i)))
-                                {
-                                    noteClipboard.Add(wheelSequenceCopy.Notes.ElementAt(i));
-                                }
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                }
+                CopySelectedNotesToClipboard();
                 // TODO: have unified
                 SetSelectedNoteRenderersFlag(false);
                 notes.Clear();
@@ -184,13 +143,51 @@ public class TrackMarqueeSelectionGroup : MonoBehaviour
         }
     }
 
-    // cache all selected notes in some sort of clipboard
-    // TODO: add Paste function to Track.cs so you can paste without a present selection
-    // TODO: add a note paste UndoRedoAction that is basically a group event for adding multiple notes
     // ALSO TODO: group deletion
-    public void CopySelectedNotes()
+    // Create copies of all selected notes and put them in the clipboard
+    // the clipboard notes will stay the same even if the originals are altered or deleted
+    public void CopySelectedNotesToClipboard()
     {
-
+        noteClipboard = new SortedSet<Note>();
+        foreach (Note note in notes)
+        {
+            switch (note)
+            {
+                case EditableButtonNote:
+                    EditableButtonNote buttonNote = note as EditableButtonNote;
+                    noteClipboard.Add(new EditableButtonNote(null, buttonNote));
+                    break;
+                case EditableLeverSequence:
+                    EditableLeverSequence leverSequence = note as EditableLeverSequence;
+                    EditableLeverSequence leverSequenceCopy = new EditableLeverSequence(null, leverSequence);
+                    for (int i=0; i<leverSequence.Notes.Count; i++)
+                    {
+                        if (notes.Contains(leverSequence.Notes.ElementAt(i)))
+                        {
+                            noteClipboard.Add(leverSequenceCopy.Notes.ElementAt(i));
+                        }
+                    }
+                    break;
+                case EditableWheelFlick:
+                    EditableWheelFlick wheelFlick = note as EditableWheelFlick;
+                    noteClipboard.Add(new EditableWheelFlick(null, wheelFlick));
+                    break;
+                case EditableWheelSequence:
+                    EditableWheelSequence wheelSequence = note as EditableWheelSequence;
+                    EditableWheelSequence wheelSequenceCopy = new EditableWheelSequence(null, wheelSequence);
+                    if (notes.Contains(wheelSequence.startingNote) || notes.Contains(wheelSequence.Notes.First)) noteClipboard.Add(wheelSequenceCopy.startingNote);
+                    for (int i=0; i<wheelSequence.Notes.Count; i++)
+                    {
+                        if (notes.Contains(wheelSequence.Notes.ElementAt(i)))
+                        {
+                            noteClipboard.Add(wheelSequenceCopy.Notes.ElementAt(i));
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 
     public void PasteNotesFromClipboard()
@@ -216,7 +213,7 @@ public class TrackMarqueeSelectionGroup : MonoBehaviour
                 case EditableLeverNote:
                     EditableLeverNote leverNote = note as EditableLeverNote;
                     int newLeverNoteStartTime = leverNote.StartTime - selectionStartTime + pasteStartTime;
-                    multiselectPasteAction.AddUndoRedoAction(AddLeverNote(leverNote, newLeverNoteStartTime, chart));
+                    multiselectPasteAction.AddUndoRedoAction(PasteLeverNote(leverNote, newLeverNoteStartTime, chart));
                     break;
                 case EditableWheelFlick:
                     EditableWheelFlick wheelFlick = note as EditableWheelFlick;
@@ -230,7 +227,7 @@ public class TrackMarqueeSelectionGroup : MonoBehaviour
                     EditableWheelTurn wheelTurn = note as EditableWheelTurn;
                     int newWheelTurnStartTime = wheelTurn.StartTime - selectionStartTime + pasteStartTime;
                     int newWheelTurnEndTime = wheelTurn.EndTime - selectionStartTime + pasteStartTime;
-                    UndoRedoAction addedWheelTurnAction = AddWheelTurn(wheelTurn, newWheelTurnStartTime, newWheelTurnEndTime, wheelTurn.StartAngle, wheelTurn.DeltaAngle, chart);
+                    UndoRedoAction addedWheelTurnAction = PasteWheelTurn(wheelTurn, newWheelTurnStartTime, newWheelTurnEndTime, wheelTurn.StartAngle, wheelTurn.DeltaAngle, chart);
                     if (addedWheelTurnAction!=null)
                     {
                         multiselectPasteAction.AddUndoRedoAction(addedWheelTurnAction);
@@ -244,7 +241,7 @@ public class TrackMarqueeSelectionGroup : MonoBehaviour
         multiselectPasteAction.CommitAction();
     }
 
-    UndoRedoAction AddWheelTurn(EditableWheelTurn originalTurn, int startTime, int endTime, int startAngle, int deltaAngle, EditableChart chart)
+    UndoRedoAction PasteWheelTurn(EditableWheelTurn originalTurn, int startTime, int endTime, int startAngle, int deltaAngle, EditableChart chart)
     {
         // the starting vertex has a dummy note only used for selection logic--it does not represent real note data, so skip it
         // if (originalTurn.Container.startingNote == originalTurn) return null;
@@ -285,7 +282,7 @@ public class TrackMarqueeSelectionGroup : MonoBehaviour
         }
     }
 
-    UndoRedoAction AddLeverNote(EditableLeverNote originalNote, int newTime, EditableChart chart)
+    UndoRedoAction PasteLeverNote(EditableLeverNote originalNote, int newTime, EditableChart chart)
     {
         LeftRight side = originalNote.Container.Dir;
         LeverPos leverPos = originalNote.Pos;
