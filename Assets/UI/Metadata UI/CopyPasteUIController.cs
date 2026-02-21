@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class CopyPasteUIController : MonoBehaviour
@@ -10,21 +12,51 @@ public class CopyPasteUIController : MonoBehaviour
 
     void Awake()
     {
-        // link copy button event to EditHistoryManager.Undo
-        copyEvent.Event.AddListener(EditHistoryManager.Undo);
+        // link copy button event to Copy, which calls CopyPasteManager.CopySelectedNotesToClipboard
+        copyEvent.Event.AddListener(Copy);
         // link shortcuts
         foreach (MultikeyShortcutEventRelay shortcut in copyShortcuts)
         {
-            shortcut.Event.AddListener(EditHistoryManager.Undo);
+            shortcut.Event.AddListener(Copy);
         }
 
-        // link redo button event to EditHistoryManager.Redo
-        pasteEvent.Event.AddListener(EditHistoryManager.Redo);
+        // link redo button event to Paste, which calls CopyPasteManager.PasteNotesFromClipboard
+        pasteEvent.Event.AddListener(Paste);
         // link shortcuts
         foreach (MultikeyShortcutEventRelay shortcut in pasteShortcuts)
         {
-            shortcut.Event.AddListener(EditHistoryManager.Redo);
+            shortcut.Event.AddListener(Paste);
         }
+    }
+
+    public void Copy()
+    {
+        if (UIManager.SelectionGroup.notes.Count > 0)
+        {
+            CopyPasteManager.CopySelectedNotesToClipboard(UIManager.SelectionGroup.notes);
+            UIManager.SelectionGroup.SetSelectedNoteRenderersFlag(false);
+            UIManager.SelectionGroup.notes.Clear();
+        }
+        else if (UIManager.SelectedElement != null && UIManager.SelectedElement is Note note)
+        {
+            SortedSet<Note> copiedNote = new SortedSet<Note>{note};
+            if (note is WheelSequence wheelSequence)
+            {
+                copiedNote.AddRange(wheelSequence.Notes);
+            }
+            if (note is LeverSequence leverSequence)
+            {
+                copiedNote.AddRange(leverSequence.Notes);
+            }
+            CopyPasteManager.CopySelectedNotesToClipboard(copiedNote);
+        }
+    }
+
+    public void Paste()
+    {
+        // todo: dn use time from cursor if the cursor is not over track area
+        if (UIManager.Track.PointerToTrackPosition(Input.mousePosition, clamp: true) is not var (pos, time)) return;
+        CopyPasteManager.PasteNotesFromClipboard(time);
     }
 
 }

@@ -20,38 +20,18 @@ public class CopyPasteManager : MonoBehaviour
         }
     }
 
-    protected void Update()
-    {
-        // TODO: copy and paste buttons/bindings should be implemented in CopyPasteUIController.cs
-        if (Input.GetKeyDown(KeyCode.C))
-        {
-            if (UIManager.SelectionGroup.notes.Count > 0)
-            {
-                CopySelectedNotesToClipboard(UIManager.SelectionGroup.notes);
-                UIManager.SelectionGroup.SetSelectedNoteRenderersFlag(false);
-                UIManager.SelectionGroup.notes.Clear();
-            }
-        }
-
-        if (Input.GetKeyDown(KeyCode.V))
-        {
-            if (UIManager.Track.PointerToTrackPosition(Input.mousePosition, clamp: true) is not var (pos, time)) return;
-            PasteNotesFromClipboard(time);
-        }
-    }
-
     // Create deep copies of all selected notes and put them in the clipboard
     // the clipboard notes will stay the same even if the originals are altered or deleted
-    public void CopySelectedNotesToClipboard(SortedSet<Note> notes)
+    public static void CopySelectedNotesToClipboard(SortedSet<Note> notes)
     {
-        noteClipboard = new SortedSet<Note>();
+        Instance.noteClipboard = new SortedSet<Note>();
         foreach (Note note in notes)
         {
             switch (note)
             {
                 case EditableButtonNote:
                     EditableButtonNote buttonNote = note as EditableButtonNote;
-                    noteClipboard.Add(new EditableButtonNote(null, buttonNote));
+                    Instance.noteClipboard.Add(new EditableButtonNote(null, buttonNote));
                     break;
                 case EditableLeverSequence:
                     EditableLeverSequence leverSequence = note as EditableLeverSequence;
@@ -60,23 +40,23 @@ public class CopyPasteManager : MonoBehaviour
                     {
                         if (notes.Contains(leverSequence.Notes.ElementAt(i)))
                         {
-                            noteClipboard.Add(leverSequenceCopy.Notes.ElementAt(i));
+                            Instance.noteClipboard.Add(leverSequenceCopy.Notes.ElementAt(i));
                         }
                     }
                     break;
                 case EditableWheelFlick:
                     EditableWheelFlick wheelFlick = note as EditableWheelFlick;
-                    noteClipboard.Add(new EditableWheelFlick(null, wheelFlick));
+                    Instance.noteClipboard.Add(new EditableWheelFlick(null, wheelFlick));
                     break;
                 case EditableWheelSequence:
                     EditableWheelSequence wheelSequence = note as EditableWheelSequence;
                     EditableWheelSequence wheelSequenceCopy = new EditableWheelSequence(null, wheelSequence);
-                    if (notes.Contains(wheelSequence.startingNote) || notes.Contains(wheelSequence.Notes.First)) noteClipboard.Add(wheelSequenceCopy.startingNote);
+                    if (notes.Contains(wheelSequence.startingNote) || notes.Contains(wheelSequence.Notes.First)) Instance.noteClipboard.Add(wheelSequenceCopy.startingNote);
                     for (int i=0; i<wheelSequence.Notes.Count; i++)
                     {
                         if (notes.Contains(wheelSequence.Notes.ElementAt(i)))
                         {
-                            noteClipboard.Add(wheelSequenceCopy.Notes.ElementAt(i));
+                            Instance.noteClipboard.Add(wheelSequenceCopy.Notes.ElementAt(i));
                         }
                     }
                     break;
@@ -86,16 +66,16 @@ public class CopyPasteManager : MonoBehaviour
         }
     }
 
-    public void PasteNotesFromClipboard(int time)
+    public static void PasteNotesFromClipboard(int time)
     {
-        if (noteClipboard.Count > 0)
+        if (Instance.noteClipboard.Count > 0)
         {
             MultiselectPasteAction multiselectPasteAction = new MultiselectPasteAction(new List<UndoRedoAction>());
             EditableChart chart = ChartManager.SelectedChart;
-            int selectionStartTime = noteClipboard.First().StartTime;
+            int selectionStartTime = Instance.noteClipboard.First().StartTime;
             int pasteStartTime = time;
 
-            foreach (Note note in noteClipboard)
+            foreach (Note note in Instance.noteClipboard)
             {
                 switch (note)
                 {
@@ -139,7 +119,7 @@ public class CopyPasteManager : MonoBehaviour
         }
     }
 
-    UndoRedoAction PasteWheelTurn(EditableWheelTurn originalTurn, int startTime, int endTime, int startAngle, int deltaAngle, EditableChart chart)
+    private static UndoRedoAction PasteWheelTurn(EditableWheelTurn originalTurn, int startTime, int endTime, int startAngle, int deltaAngle, EditableChart chart)
     {
         // the starting vertex has a dummy note only used for selection logic--it does not represent real note data, so skip it
         // if (originalTurn.Container.startingNote == originalTurn) return null;
@@ -147,7 +127,7 @@ public class CopyPasteManager : MonoBehaviour
         // If placing inside an existing sequence or holding shift, add to the previous sequence. Otherwise create a new sequence
         var lastWheelSequence = chart.GetNotesBefore(endTime).OfType<EditableWheelSequence>().LastOrDefault();
         bool addToWheelSequence = lastWheelSequence != null && ((lastWheelSequence.EndTime > startTime && lastWheelSequence.StartTime < endTime) 
-            || (originalTurn.PreviousTurn!=null && noteClipboard.Contains(originalTurn.PreviousTurn))
+            || (originalTurn.PreviousTurn!=null && Instance.noteClipboard.Contains(originalTurn.PreviousTurn))
             || Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift));
 
         if (addToWheelSequence)
@@ -180,7 +160,7 @@ public class CopyPasteManager : MonoBehaviour
         }
     }
 
-    UndoRedoAction PasteLeverNote(EditableLeverNote originalNote, int newTime, EditableChart chart)
+    private static UndoRedoAction PasteLeverNote(EditableLeverNote originalNote, int newTime, EditableChart chart)
     {
         LeftRight side = originalNote.Container.Dir;
         LeverPos leverPos = originalNote.Pos;
@@ -188,7 +168,7 @@ public class CopyPasteManager : MonoBehaviour
         // If placing inside an existing sequence or holding shift, add to the previous sequence. Otherwise create a new sequence
         var lastLeverSequence = chart.GetNotesBefore(newTime, inclusive:false).OfType<EditableLeverSequence>().LastOrDefault(seq => seq.Dir == side);
         bool addToLeverSequence = lastLeverSequence != null && (lastLeverSequence.EndTime > newTime 
-            || (originalNote.PreviousNote!=null && noteClipboard.Contains(originalNote.PreviousNote))
+            || (originalNote.PreviousNote!=null && Instance.noteClipboard.Contains(originalNote.PreviousNote))
             || Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift));
 
         
