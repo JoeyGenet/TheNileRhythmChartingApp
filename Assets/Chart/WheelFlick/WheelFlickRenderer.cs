@@ -111,7 +111,7 @@ public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerDown
         }
         else
         {
-            Track.SelectionGroup.multiselectMoveAction.AddUndoRedoAction(editWheelFlickAction);
+            UIManager.SelectionGroup.AddToMultiselectMoveAction(editWheelFlickAction);
         }
     }
 }

@@ -137,7 +137,7 @@ where C : IEditableNoteContainer<N>
         {
             Debug.Log("passing begin drag to all selected notes!");
             isReadyToShareEventData = false;
-            Track.SelectionGroup.PassEventDataToAllSelectedNotes(eventData, ExecuteEvents.beginDragHandler);
+            UIManager.SelectionGroup.PassEventDataToAllSelectedNotes(eventData, ExecuteEvents.beginDragHandler);
         }
         // note is either not selected or received event data from another selected note
         else
@@ -162,7 +162,7 @@ where C : IEditableNoteContainer<N>
             Debug.Log("passing drag to all selected notes!");
             // sender marks flag as false so that they can receive the event data at the correct time
             isReadyToShareEventData = false;
-            Track.SelectionGroup.PassEventDataToAllSelectedNotes(eventData, ExecuteEvents.dragHandler);
+            UIManager.SelectionGroup.PassEventDataToAllSelectedNotes(eventData, ExecuteEvents.dragHandler);
         }
         else
         {
@@ -184,14 +184,12 @@ where C : IEditableNoteContainer<N>
 
     public virtual void OnEndDrag(PointerEventData eventData)
     {
-        // if this note is dropped while in multiselection, drag all other notes
+        // if this note is dropped while in multiselection, drop all other notes
         if (isInMarqueeSelection && UIManager.ClickedElement == Note && isReadyToShareEventData)
         {
             Debug.Log("passing end drag to all selected notes!");
             isReadyToShareEventData = false;
-            Track.SelectionGroup.multiselectMoveAction = new MultiselectMoveAction(new List<UndoRedoAction>());
-            Track.SelectionGroup.PassEventDataToAllSelectedNotes(eventData, ExecuteEvents.endDragHandler);
-            Track.SelectionGroup.multiselectMoveAction.CommitAction();
+            UIManager.SelectionGroup.CommitMultiselectMoveAction(eventData);
         }
         else
         {

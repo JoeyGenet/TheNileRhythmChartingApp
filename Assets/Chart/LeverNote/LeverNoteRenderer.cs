@@ -107,7 +107,7 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
         if (isInMarqueeSelection)
         {
             EditableLeverNote currentNote = Note.Container.Notes.Last();
-            while (!Track.SelectionGroup.notes.Contains(currentNote) && currentNote.PreviousNote!=null)
+            while (!UIManager.SelectionGroup.notes.Contains(currentNote) && currentNote.PreviousNote!=null)
             {
                 currentNote = currentNote.PreviousNote;
             }
@@ -202,7 +202,7 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
         }
         else if (isLastSelectedVertex)
         {
-            Track.SelectionGroup.multiselectMoveAction.AddUndoRedoAction(editLeverSequenceAction);
+            UIManager.SelectionGroup.AddToMultiselectMoveAction(editLeverSequenceAction);
         }
     }
 }

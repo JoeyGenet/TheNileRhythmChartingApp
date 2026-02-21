@@ -2,7 +2,7 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
-using System.ComponentModel;
+using System.Collections.Generic;
 
 // Tells what the cursor does in the UI
 public enum UICursorMode
@@ -37,6 +37,14 @@ public class UIManager : MonoBehaviour
     [SerializeField] Color previewEnvironmentColor;
     Color backgroundColor;
 
+    [Header("Track UI")]
+    [SerializeField] Track track;
+    public static Track Track
+    {
+        get => Instance.track;
+        set { Instance.track = value; }
+    }
+
     object clickedElement;
     public static object ClickedElement
     {
@@ -57,6 +65,13 @@ public class UIManager : MonoBehaviour
                 OnElementSelected?.Invoke(prevElement, value);
             }
         }
+    }
+
+    TrackMarqueeSelectionGroup selectionGroup;
+    public static TrackMarqueeSelectionGroup SelectionGroup
+    {
+        get => Instance.selectionGroup;
+        set { Instance.selectionGroup = value; }
     }
 
     UICursorMode cursorMode;
@@ -120,6 +135,7 @@ public class UIManager : MonoBehaviour
 
         backgroundColor = backgroundImage.color;
         PreviewEnvironment = previewEnvironment;
+        selectionGroup = new TrackMarqueeSelectionGroup(track);
 
         // TODO: in the future may want to move this into NoteInspector, 
         // and add a button like with NoteContainerInspector.ChildInspector

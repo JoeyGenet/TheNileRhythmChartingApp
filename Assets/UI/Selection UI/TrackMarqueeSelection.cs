@@ -76,7 +76,7 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
                 break;
         }
         // clear all selected notes if we click on the track without dragging
-        Track.SelectionGroup.SetSelectedNoteRenderersFlag(false);
+        UIManager.SelectionGroup.SetSelectedNoteRenderersFlag(false);
     }
 
     protected void OnLeftClick() {}
@@ -92,7 +92,7 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
         dragStartPointerPos = pos;
         dragStartPointerTime = time;
         // clear all selected notes if we click and dragging outside of current selection
-        Track.SelectionGroup.SetSelectedNoteRenderersFlag(false);
+        UIManager.SelectionGroup.SetSelectedNoteRenderersFlag(false);
         OnDragStart();
     }
     
@@ -138,7 +138,7 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
         SortedSet<Note> selectedNotes = CheckForSelectedNotes(dragStartPointerTime, dragTime, dragStartPointerPos, dragPos);
         if (selectedNotes.Count > 0)
         {
-            Track.SelectionGroup.SetSelectedNoteRenderersFlag(true, selectedNotes);
+            UIManager.SelectionGroup.SetSelectedNoteRenderersFlag(true, selectedNotes);
         }
         marqueeImage.enabled = false;
     }

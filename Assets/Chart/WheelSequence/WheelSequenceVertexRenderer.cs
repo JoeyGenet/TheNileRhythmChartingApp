@@ -86,7 +86,7 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
         if (isInMarqueeSelection)
         {
             EditableWheelTurn currentTurn = Note.Container.Notes.Last();
-            while (!Track.SelectionGroup.notes.Contains(currentTurn) && currentTurn.PreviousTurn!=null)
+            while (!UIManager.SelectionGroup.notes.Contains(currentTurn) && currentTurn.PreviousTurn!=null)
             {
                 currentTurn = currentTurn.PreviousTurn;
             }
@@ -209,7 +209,7 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
         }
         else if (isLastSelectedVertex)
         {
-            Track.SelectionGroup.multiselectMoveAction.AddUndoRedoAction(wheelSequenceAction);
+            UIManager.SelectionGroup.AddToMultiselectMoveAction(wheelSequenceAction);
         }
     }
 }

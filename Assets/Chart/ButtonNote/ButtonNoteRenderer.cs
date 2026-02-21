@@ -129,7 +129,7 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
         }
         else
         {
-            Track.SelectionGroup.multiselectMoveAction.AddUndoRedoAction(moveButtonNoteAction);
+            UIManager.SelectionGroup.AddToMultiselectMoveAction(moveButtonNoteAction);
         }
     }
 }
