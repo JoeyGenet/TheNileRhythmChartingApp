@@ -54,9 +54,18 @@ public class CopyPasteUIController : MonoBehaviour
 
     public void Paste()
     {
-        // todo: dn use time from cursor if the cursor is not over track area
-        if (UIManager.Track.PointerToTrackPosition(Input.mousePosition, clamp: true) is not var (pos, time)) return;
-        CopyPasteManager.PasteNotesFromClipboard(time);
+        int pasteTime = PlaybackManager.Instance.MillisecondsInChart;
+        // use the timestamp at mouse position if it is within the track's boundaries
+        if (UIManager.Track.PointerToTrackPosition(Input.mousePosition, allowOutOfBounds: false) is var (pos, time))
+        {
+            pasteTime = time;
+        }
+        // snap time to user's settings unless they are holding alt
+        if (!Input.GetKey(KeyCode.LeftAlt) && !Input.GetKey(KeyCode.RightAlt))
+        {
+            pasteTime = UIManager.SnapTime(pasteTime);
+        }
+        CopyPasteManager.PasteNotesFromClipboard(pasteTime);
     }
 
 }
