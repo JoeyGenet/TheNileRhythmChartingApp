@@ -209,6 +209,7 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
             switch (note)
             {
                 case EditableButtonNote:
+                Debug.Log("ButtonNote detected");
                     EditableButtonNote buttonNote = note as EditableButtonNote;
                     // select both button notes in a pair if either is in marquee
                     if ((buttonNote.LeftPos >= minPos && buttonNote.LeftPos <= maxPos) ||
@@ -227,10 +228,15 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
                         selectedNotes.Add(leverSequence);
                         // get all sequence notes that fall within selection range
                         IReadOnlyCollection<LeverNote> leverNotesInRange = leverSequence.GetNotesBetween(minTime, maxTime);
-                        if (leverNotesInRange.Count > 0) selectedNotes.Add(leverSequence);
+                        bool noteAdded = false;
                         foreach (EditableLeverNote leverNote in leverNotesInRange)
                         {
                             selectedNotes.Add(leverNote);
+                            noteAdded = true;
+                        }
+                        if (noteAdded)
+                        {
+                            selectedNotes.Add(leverSequence);
                         }
                     }
                     break;
@@ -256,13 +262,18 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
                     }
                     // get all sequence notes that fall within selection range
                     IReadOnlyCollection<WheelTurn> wheelTurnsInRange = wheelSequence.GetNotesBetween(minTime, maxTime);
-                    if (wheelTurnsInRange.Count > 0) selectedNotes.Add(wheelSequence);
+                    bool turnAdded = false;
                     foreach (EditableWheelTurn wheelTurn in wheelTurnsInRange)
                     {
                         if (wheelTurn.Pos >= minPos && wheelTurn.Pos <= maxPos)
                         {
                             selectedNotes.Add(wheelTurn);
+                            turnAdded = true;
                         }
+                    }
+                    if (turnAdded)
+                    {
+                        selectedNotes.Add(wheelSequence);
                     }
                     break;
                 default:
@@ -277,10 +288,15 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
             if (lastLeftLeverSequence != null)
             {
                 IReadOnlyCollection<LeverNote> leverNotesInRange = lastLeftLeverSequence.GetNotesBetween(minTime, maxTime);
-                if (leverNotesInRange.Count > 0) selectedNotes.Add(lastLeftLeverSequence);
+                bool noteAdded = false;
                 foreach (EditableLeverNote leverNote in leverNotesInRange)
                 {
                     selectedNotes.Add(leverNote);
+                    noteAdded = true;
+                }
+                if (noteAdded)
+                {
+                    selectedNotes.Add(lastLeftLeverSequence);
                 }
             }
         }
@@ -290,10 +306,15 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
             if (lastRightLeverSequence != null)
             {
                 IReadOnlyCollection<LeverNote> leverNotesInRange = lastRightLeverSequence.GetNotesBetween(minTime, maxTime);
-                if (leverNotesInRange.Count > 0) selectedNotes.Add(lastRightLeverSequence);
+                bool noteAdded = false;
                 foreach (EditableLeverNote leverNote in leverNotesInRange)
                 {
                     selectedNotes.Add(leverNote);
+                    noteAdded = true;
+                }
+                if (noteAdded)
+                {
+                    selectedNotes.Add(lastRightLeverSequence);
                 }
             }
         }
@@ -303,13 +324,18 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
         {
             // get all sequence notes that fall within selection range
             IReadOnlyCollection<WheelTurn> wheelTurnsInRange = lastWheelSequence.GetNotesBetween(minTime, maxTime);
-            if (wheelTurnsInRange.Count > 0) selectedNotes.Add(lastWheelSequence);
+            bool turnAdded = false;
             foreach (EditableWheelTurn wheelTurn in wheelTurnsInRange)
             {
                 if (wheelTurn.Pos >= minPos && wheelTurn.Pos <= maxPos)
                 {
                     selectedNotes.Add(wheelTurn);
+                    turnAdded = true;
                 }
+            }
+            if (turnAdded)
+            {
+                selectedNotes.Add(lastWheelSequence);
             }
         }
 
