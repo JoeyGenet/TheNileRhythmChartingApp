@@ -75,5 +75,15 @@ public static class IEditableExtensions
 
     public static bool RemoveSelf<N>(this IEditableNote<IEditableNoteContainer<N>, N> note)
     where N : Note
-        => note.Container.RemoveNote(note as N);
+    {
+        // if deleted note is in multiselection, delete all other multiselected notes
+		if (UIManager.SelectionGroup.notes.Contains(note as N))
+		{
+			return UIManager.SelectionGroup.CommitMultiselectDeleteAction();
+		}
+        else
+        {
+            return note.Container.RemoveNote(note as N);
+        }
+    }
 }
