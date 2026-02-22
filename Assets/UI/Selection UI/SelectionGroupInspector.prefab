@@ -714,6 +714,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ee649b19cd6583245af43615233edf2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  inspectorTitle: {fileID: 1324741550447911501}
   deleteToggle: {fileID: 8521627193595561978}
 --- !u!114 &3841751784283459812
 MonoBehaviour:

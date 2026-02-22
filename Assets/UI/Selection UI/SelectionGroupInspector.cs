@@ -7,6 +7,7 @@ using UnityEngine.UI;
 public class SelectionGroupInspector : NoteInspector<EditableWheelFlick>
 {
     // TODO: Update title of inspector to reflect number of notes selected
+    [SerializeField] TextMeshProUGUI inspectorTitle;
     // [SerializeField] TMP_InputField timeInput;
     // private int editStartTime;
     // [SerializeField] EventRelay mirrorToggle;
@@ -20,6 +21,8 @@ public class SelectionGroupInspector : NoteInspector<EditableWheelFlick>
 
     void Awake()
     {
+        inspectorTitle.text = $"{UIManager.SelectionGroup.notes.Count} Notes Selected";
+
         // TODO: allow users to change time of selected notes via inspector
         // timeInput.onValidateInput += (text, _, c) => c == '-' ? '\0' : c;
         // timeInput.onValueChanged.AddListener(text =>
