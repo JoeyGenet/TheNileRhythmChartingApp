@@ -18,12 +18,20 @@ public class SelectionGroupInspector : NoteInspector<EditableWheelFlick>
     public void Show()
     {
         gameObject.SetActive(UIManager.SelectionGroup.notes.Count > 0);
+        int displayedNoteCount = 0;
+        // only count individual turns or lever notes, not the sequence as a whole
+        foreach (Note note in UIManager.SelectionGroup.notes)
+        {
+            if (note is not EditableWheelSequence && note is not EditableLeverSequence)
+            {
+                displayedNoteCount++;
+            }
+        }
+        inspectorTitle.text = $"{displayedNoteCount} {(displayedNoteCount>1 ? "Notes" : "Note")} Selected";
     }
 
     void Awake()
     {
-        inspectorTitle.text = $"{UIManager.SelectionGroup.notes.Count} Notes Selected";
-
         // TODO: allow users to change time of selected notes via inspector
         // timeInput.onValidateInput += (text, _, c) => c == '-' ? '\0' : c;
         // timeInput.onValueChanged.AddListener(text =>
