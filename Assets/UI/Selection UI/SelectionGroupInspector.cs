@@ -12,6 +12,7 @@ public class SelectionGroupInspector : NoteInspector<EditableWheelFlick>
     // private int editStartTime;
     // [SerializeField] EventRelay mirrorToggle;
     [SerializeField] EventRelay deleteToggle;
+    [SerializeField] EventRelay mirrorToggle;
     private bool isEditInProgress;
 
     public void Show()
@@ -65,6 +66,11 @@ public class SelectionGroupInspector : NoteInspector<EditableWheelFlick>
         deleteToggle.Event.AddListener(() => 
         {
             UIManager.SelectionGroup.CommitMultiselectDeleteAction();
+        });
+
+        mirrorToggle.Event.AddListener(() =>
+        {
+            UIManager.SelectionGroup.MirrorSelectedNotes();
         });
     }
 
