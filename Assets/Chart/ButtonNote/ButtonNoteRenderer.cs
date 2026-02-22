@@ -48,12 +48,20 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
     protected override void OnLeftClick() 
     {
         UIManager.ClickedElement = Note;
-        UIManager.SelectedElement = Note;
+        if (isInMarqueeSelection)
+        {
+            UIManager.SelectedElement = UIManager.SelectionGroup;
+        }
+        else
+        {
+            UIManager.SelectedElement = Note;
+        }
     } 
     
     protected override void OnRightClick()
     {
-        if (Note.RightPos is not int rightPos) // Single note, so delete entire thing
+        if (Note.RightPos is not int rightPos                 // Single note, so delete entire thing
+            || UIManager.SelectionGroup.notes.Contains(Note)) // or if in multiselection, delete entire thing
         {
             Note.RemoveSelf();
             return;
@@ -81,7 +89,14 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
 
     protected override void OnDragStart()
     {   
-        UIManager.SelectedElement = Note;
+        if (isInMarqueeSelection)
+        {
+            UIManager.SelectedElement = UIManager.SelectionGroup;
+        }
+        else
+        {
+            UIManager.SelectedElement = Note;
+        }
         dragStartLeftPos = Note.LeftPos;
         dragStartRightPos = Note.RightPos;
         dragStartTime = Note.StartTime;

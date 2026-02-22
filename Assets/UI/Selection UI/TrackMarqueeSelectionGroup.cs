@@ -81,5 +81,55 @@ public class TrackMarqueeSelectionGroup
         PassEventDataToAllSelectedNotes(eventData, endDragHandler);
         multiselectMoveAction.CommitAction();
     }
-    
+
+    public bool CommitMultiselectDeleteAction()
+    {
+        bool isRemoveSuccessful = true;
+        MultiselectRemoveAction multiselectRemoveAction = new MultiselectRemoveAction(new List<UndoRedoAction>());
+        foreach(Note note in notes)
+        {
+            switch (note)
+                {
+                    case EditableButtonNote buttonNote:
+                        isRemoveSuccessful = isRemoveSuccessful && buttonNote.Container.RemoveNote(buttonNote, updateEditHistory:false);
+                        multiselectRemoveAction.AddUndoRedoAction(new RemoveNoteAction(note, buttonNote.Container));
+                        break;
+                    case EditableLeverNote leverNote:
+                        if (leverNote.Container.Notes.Count <= 1) 
+                        {
+                            isRemoveSuccessful = isRemoveSuccessful && leverNote.Container.Container.RemoveNote(leverNote.Container, updateEditHistory:false);
+                            multiselectRemoveAction.AddUndoRedoAction(new RemoveNoteAction(leverNote.Container, leverNote.Container.Container));
+                        }
+                        else
+                        {
+                            isRemoveSuccessful = isRemoveSuccessful && leverNote.Container.RemoveNote(leverNote, updateEditHistory:false);
+                            multiselectRemoveAction.AddUndoRedoAction(new RemoveNoteFromLeverSequenceAction(leverNote, leverNote.Container));
+                        }
+                        break;
+                    case EditableWheelFlick wheelFlick:
+                        isRemoveSuccessful = isRemoveSuccessful && wheelFlick.Container.RemoveNote(wheelFlick, updateEditHistory:false);
+                        multiselectRemoveAction.AddUndoRedoAction(new RemoveNoteAction(note, wheelFlick.Container));
+                        break;
+                    case EditableWheelTurn wheelTurn:
+                        if (wheelTurn.Container.startingNote != wheelTurn)
+                        {
+                            if (wheelTurn.Container.Notes.Count <= 1) 
+                            {
+                                isRemoveSuccessful = isRemoveSuccessful && wheelTurn.Container.Container.RemoveNote(wheelTurn.Container, updateEditHistory:false);
+                                multiselectRemoveAction.AddUndoRedoAction(new RemoveNoteAction(wheelTurn.Container, wheelTurn.Container.Container));
+                            }
+                            else
+                            {
+                                isRemoveSuccessful = isRemoveSuccessful && wheelTurn.Container.RemoveNote(wheelTurn, updateEditHistory:false);
+                                multiselectRemoveAction.AddUndoRedoAction(new RemoveNoteFromWheelSequenceAction(wheelTurn, wheelTurn.Container));
+                            }
+                        }
+                        break; 
+                    default:
+                        break;
+                }
+        }
+        multiselectRemoveAction.CommitAction();
+        return isRemoveSuccessful;
+    }
 }

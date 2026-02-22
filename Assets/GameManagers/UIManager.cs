@@ -145,6 +145,10 @@ public class UIManager : MonoBehaviour
             {
                 editableNote.RemoveSelf();
             }
+            else if (SelectedElement == SelectionGroup)
+            {
+                SelectionGroup.CommitMultiselectDeleteAction();
+            }
             else if (SelectedElement != null)
             {
                 Debug.LogWarning($"Deleting of note {SelectedElement} not supported");

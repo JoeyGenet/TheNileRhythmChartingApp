@@ -55,13 +55,27 @@ public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerDown
     protected override void OnLeftClick() 
     {
         UIManager.ClickedElement = Note;
-        UIManager.SelectedElement = Note;
+        if (isInMarqueeSelection)
+        {
+            UIManager.SelectedElement = UIManager.SelectionGroup;
+        }
+        else
+        {
+            UIManager.SelectedElement = Note;
+        }
     } 
     protected override void OnRightClick() => Note.RemoveSelf();
 
     protected override void OnDragStart()
     {
-        UIManager.SelectedElement = Note;
+        if (isInMarqueeSelection)
+        {
+            UIManager.SelectedElement = UIManager.SelectionGroup;
+        }
+        else
+        {
+            UIManager.SelectedElement = Note;
+        }
         dragStartTime = Note.StartTime;
         oldDir = Note.Dir;
         dragDirChangePosX = pointerEventData.position.x;

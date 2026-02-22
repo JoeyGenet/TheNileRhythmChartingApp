@@ -560,6 +560,18 @@ public class MultiselectPasteAction : GroupUndoRedoAction
     public MultiselectPasteAction(List<UndoRedoAction> undoRedoActions) : base(undoRedoActions) { }
 }
 
+public class MultiselectRemoveAction : GroupUndoRedoAction
+{
+    public override string Message { get { return "multiselect delete"; }}
+
+    public override string ToString()
+    {
+        return $"{undoRedoActions.Count} notes deleted.\n";
+    }
+
+    public MultiselectRemoveAction(List<UndoRedoAction> undoRedoActions) : base(undoRedoActions) { }
+}
+
 // MARK: Environment actions
 
 public class AddEnvironmentChangeAction : UndoRedoAction

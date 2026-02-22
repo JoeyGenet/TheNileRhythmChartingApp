@@ -15,6 +15,7 @@ public class InspectorsUIController : MonoBehaviour
     [SerializeField] WheelFlickInspector wheelFlickInspector;
     [SerializeField] WheelSequenceInspector wheelSequenceInspector;
     [SerializeField] LeverSequenceInspector leverSequenceInspector;
+    [SerializeField] SelectionGroupInspector selectionGroupInspector;
     [SerializeField] EnvironmentChangeInspector environmentChangeInspector;
     [SerializeField] GameObject noElementSelectedView;
 
@@ -27,6 +28,7 @@ public class InspectorsUIController : MonoBehaviour
         wheelFlickInspector.gameObject.SetActive(false);
         wheelSequenceInspector.gameObject.SetActive(false);
         leverSequenceInspector.gameObject.SetActive(false);
+        selectionGroupInspector.gameObject.SetActive(false);
         environmentChangeInspector.gameObject.SetActive(false);
         noElementSelectedView.SetActive(true);
 
@@ -76,6 +78,12 @@ public class InspectorsUIController : MonoBehaviour
                 case EditableLeverSequence leverSequence:
                     hide(leverSequenceInspector);
                     break;
+                case TrackMarqueeSelectionGroup trackMarqueeSelectionGroup:
+                    // hide(selectionGroupInspector);
+                    selectionGroupInspector.Show(null);
+                    selectionGroupInspector.gameObject.SetActive(false);
+                    noElementSelectedView.SetActive(true);
+                    break;
                 case EditableEnvironmentChangeEvent environmentChange:
                     environmentChangeInspector.Show(null);
                     environmentChangeInspector.gameObject.SetActive(false);
@@ -100,6 +108,13 @@ public class InspectorsUIController : MonoBehaviour
                     break;
                 case EditableLeverSequence leverSequence:
                     show(leverSequenceInspector, leverSequence);
+                    break;
+                case TrackMarqueeSelectionGroup trackMarqueeSelectionGroup:
+                    selectionGroupInspector.Show();
+                    selectionGroupInspector.gameObject.SetActive(true);
+                    noElementSelectedView.SetActive(false);
+                    noteInspectorHeader.SetActive(true);
+                    eventInspectorHeader.SetActive(false);
                     break;
                 case EditableEnvironmentChangeEvent environmentChange:
                     environmentChangeInspector.Show(environmentChange);

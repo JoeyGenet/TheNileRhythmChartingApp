@@ -139,6 +139,7 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
         if (selectedNotes.Count > 0)
         {
             UIManager.SelectionGroup.SetSelectedNoteRenderersFlag(true, selectedNotes);
+            UIManager.SelectedElement = UIManager.SelectionGroup;
         }
         marqueeImage.enabled = false;
     }

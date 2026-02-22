@@ -49,5 +49,15 @@ public class LeverSequenceRenderer : NoteRenderer<EditableLeverSequence>, IPoint
         leverNoteRenderer.Init(Track, leverNote);
     }
 
-    protected override void OnLeftClick() => UIManager.SelectedElement = Note;
+    protected override void OnLeftClick()
+    {
+        if (isInMarqueeSelection)
+        {
+            UIManager.SelectedElement = UIManager.SelectionGroup;
+        }
+        else
+        {
+            UIManager.SelectedElement = Note;
+        }
+    } 
 }
