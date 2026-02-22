@@ -34,8 +34,8 @@ public class CopyPasteUIController : MonoBehaviour
         if (UIManager.SelectionGroup.notes.Count > 0)
         {
             CopyPasteManager.CopySelectedNotesToClipboard(UIManager.SelectionGroup.notes);
-            UIManager.SelectionGroup.SetSelectedNoteRenderersFlag(false);
-            UIManager.SelectionGroup.notes.Clear();
+            UIManager.SelectionGroup.ClearSelection();
+            UIManager.SelectedElement = null;
         }
         else if (UIManager.SelectedElement != null && UIManager.SelectedElement is Note note)
         {

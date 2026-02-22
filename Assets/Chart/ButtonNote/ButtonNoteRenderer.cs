@@ -48,14 +48,7 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
     protected override void OnLeftClick() 
     {
         UIManager.ClickedElement = Note;
-        if (isInMarqueeSelection)
-        {
-            UIManager.SelectedElement = UIManager.SelectionGroup;
-        }
-        else
-        {
-            UIManager.SelectedElement = Note;
-        }
+        SelectNoteOrMultiselection(Note);
     } 
     
     protected override void OnRightClick()
@@ -89,14 +82,7 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
 
     protected override void OnDragStart()
     {   
-        if (isInMarqueeSelection)
-        {
-            UIManager.SelectedElement = UIManager.SelectionGroup;
-        }
-        else
-        {
-            UIManager.SelectedElement = Note;
-        }
+        SelectNoteOrMultiselection(Note);
         dragStartLeftPos = Note.LeftPos;
         dragStartRightPos = Note.RightPos;
         dragStartTime = Note.StartTime;

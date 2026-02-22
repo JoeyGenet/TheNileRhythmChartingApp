@@ -15,6 +15,12 @@ public class TrackMarqueeSelectionGroup
         this.track = track;
     }
 
+    public void ClearSelection()
+    {
+        SetSelectedNoteRenderersFlag(false);
+        UIManager.SelectionGroup.notes.Clear();
+    }
+
     public void SetSelectedNoteRenderersFlag(bool isInMarqueeSelection, SortedSet<Note> selectedNotes=null)
     {
         if (selectedNotes != null)

@@ -158,6 +158,7 @@ public class UIManager : MonoBehaviour
         deselectEvent.AddListener(() =>
         {
             SelectedElement = null;
+            SelectionGroup.ClearSelection();
             CursorMode = UICursorMode.None;
         });
 

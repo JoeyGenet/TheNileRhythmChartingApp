@@ -51,13 +51,6 @@ public class LeverSequenceRenderer : NoteRenderer<EditableLeverSequence>, IPoint
 
     protected override void OnLeftClick()
     {
-        if (isInMarqueeSelection)
-        {
-            UIManager.SelectedElement = UIManager.SelectionGroup;
-        }
-        else
-        {
-            UIManager.SelectedElement = Note;
-        }
+        SelectNoteOrMultiselection(Note);
     } 
 }

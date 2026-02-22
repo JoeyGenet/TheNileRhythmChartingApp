@@ -75,8 +75,9 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
                 OnRightClick();
                 break;
         }
-        // clear all selected notes if we click on the track without dragging
-        UIManager.SelectionGroup.SetSelectedNoteRenderersFlag(false);
+        // clear selection if we click on the track without dragging
+        UIManager.SelectionGroup.ClearSelection();
+        UIManager.SelectedElement = null;
     }
 
     protected void OnLeftClick() {}
@@ -91,8 +92,9 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
         if (Track.PointerToTrackPosition(eventData.pressPosition, clamp: false) is not var (pos, time)) return;
         dragStartPointerPos = pos;
         dragStartPointerTime = time;
-        // clear all selected notes if we click and dragging outside of current selection
-        UIManager.SelectionGroup.SetSelectedNoteRenderersFlag(false);
+        // clear selection if we click and dragging outside of current selection
+        UIManager.SelectionGroup.ClearSelection();
+        UIManager.SelectedElement = null;
         OnDragStart();
     }
     

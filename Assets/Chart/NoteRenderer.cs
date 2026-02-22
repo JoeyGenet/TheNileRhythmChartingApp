@@ -94,6 +94,19 @@ where C : IEditableNoteContainer<N>
         prevTime = currTime;
     }
 
+    protected void SelectNoteOrMultiselection(Note note)
+    {
+        if (isInMarqueeSelection)
+        {
+            UIManager.SelectedElement = UIManager.SelectionGroup;
+        }
+        else
+        {
+            UIManager.SelectedElement = note;
+            UIManager.SelectionGroup.ClearSelection();
+        }
+    }
+
     void OnNoteSelected(object previousNote, object newNote)
     {
         if (Note != null && newNote == Note) transform.SetAsLastSibling();

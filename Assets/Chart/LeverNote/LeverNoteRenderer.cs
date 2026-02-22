@@ -79,14 +79,7 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
     protected override void OnLeftClick() 
     {
         UIManager.ClickedElement = Note;
-        if (isInMarqueeSelection)
-        {
-            UIManager.SelectedElement = UIManager.SelectionGroup;
-        }
-        else
-        {
-            UIManager.SelectedElement = Note.Container;
-        }
+        SelectNoteOrMultiselection(Note.Container);
     }
 
     protected override void OnRightClick()
@@ -104,14 +97,7 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
 
     protected override void OnDragStart()
     {   
-        if (isInMarqueeSelection)
-        {
-            UIManager.SelectedElement = UIManager.SelectionGroup;
-        }
-        else
-        {
-            UIManager.SelectedElement = Note.Container;
-        }
+        SelectNoteOrMultiselection(Note.Container);
         dragStartTime = Note.StartTime;
         dragStartTimes = Note.Container.Notes.ToDictionary(n => n, n => n.StartTime);
         dragStartLeverPos = Note.Pos;

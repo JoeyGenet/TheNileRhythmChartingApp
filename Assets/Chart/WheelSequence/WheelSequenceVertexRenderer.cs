@@ -48,14 +48,7 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
     protected override void OnLeftClick() 
     {
         UIManager.ClickedElement = Note;
-        if (isInMarqueeSelection)
-        {
-            UIManager.SelectedElement = UIManager.SelectionGroup;
-        }
-        else
-        {
-            UIManager.SelectedElement = WheelSequence;
-        }
+        SelectNoteOrMultiselection(WheelSequence);
     } 
 
     protected override void OnRightClick()
@@ -82,14 +75,7 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
 
     protected override void OnDragStart()
     {
-        if (isInMarqueeSelection)
-        {
-            UIManager.SelectedElement = UIManager.SelectionGroup;
-        }
-        else
-        {
-            UIManager.SelectedElement = WheelSequence;
-        }
+        SelectNoteOrMultiselection(WheelSequence);
         dragStartStartAngle = isStartingVertex ? WheelSequence.Notes.First.StartAngle : Note.StartAngle;
         dragStartDeltaAngle = isStartingVertex ? WheelSequence.Notes.First.DeltaAngle : Note.DeltaAngle;
         dragStartSeqPos = WheelSequence.Pos;
