@@ -285,17 +285,17 @@ public class EditWheelSequenceAction : UndoRedoAction
     {
         return "Sequence ID: " + wheelSequence.Id + "\n" +
                "Affects score: " + wheelSequence.AffectsScore + "\n" +
-               "Start time delta: " + startTimeDelta + "\n" +
-               "Position delta: " + PosDelta + "\n" + 
-               "Old end times: " + string.Join(", ", oldEndTimes.Select(x => x.Value)) + "\n" +
-               "New end times: " + string.Join(", ", newEndTimes.Select(x => x.Value)) + "\n" +
-               "Old delta angles: " + string.Join(", ", oldDeltaAngles.Select(x => x.Value)) + "\n" +
-               "New delta angles: " + string.Join(", ", newDeltaAngles.Select(x => x.Value));
+               (startTimeDelta != 0 ? ("Start time delta: " + startTimeDelta + "\n") : "") +
+               (PosDelta != 0 ? ("Position delta: " + PosDelta + "\n" ) : "")+ 
+               (oldEndTimes != null ? ("Old end times: " + string.Join(", ", oldEndTimes.Select(x => x.Value)) + "\n") : "") +
+               (newEndTimes != null ? ("New end times: " + string.Join(", ", newEndTimes.Select(x => x.Value)) + "\n") : "") +
+               (oldDeltaAngles != null ? ("Old delta angles: " + string.Join(", ", oldDeltaAngles.Select(x => x.Value)) + "\n") : "") +
+               (newDeltaAngles != null ? ("New delta angles: " + string.Join(", ", newDeltaAngles.Select(x => x.Value))) : "");
     }
 
-    public EditWheelSequenceAction(EditableWheelSequence wheelSequence, int startTimeDelta, int PosDelta,
-                                   Dictionary<EditableWheelTurn, int> oldEndTimes, Dictionary<EditableWheelTurn, int> newEndTimes,
-                                   Dictionary<EditableWheelTurn, int> oldDeltaAngles, Dictionary<EditableWheelTurn, int> newDeltaAngles)
+    public EditWheelSequenceAction(EditableWheelSequence wheelSequence, int startTimeDelta=0, int PosDelta=0,
+                                   Dictionary<EditableWheelTurn, int> oldEndTimes=null, Dictionary<EditableWheelTurn, int> newEndTimes=null,
+                                   Dictionary<EditableWheelTurn, int> oldDeltaAngles=null, Dictionary<EditableWheelTurn, int> newDeltaAngles=null)
     {
         this.wheelSequence = wheelSequence;
         this.startTimeDelta = startTimeDelta;
@@ -309,15 +309,21 @@ public class EditWheelSequenceAction : UndoRedoAction
     public override void Redo()
     {
         wheelSequence.StartTime += startTimeDelta;
-        foreach (var note in newEndTimes.Keys)
+        if (newEndTimes != null)
         {
-            note.EndTime = newEndTimes[note];
+            foreach (var note in newEndTimes.Keys)
+            {
+                note.EndTime = newEndTimes[note];
+            }
         }
         // changing the delta angle and wheel sequence position calls RecomputeStartAngle()
         // so these must be done after all other changes have been made (for some reason)
-        foreach (var note in newDeltaAngles.Keys)
+        if (newDeltaAngles != null)
         {
-            note.DeltaAngle = newDeltaAngles[note];
+            foreach (var note in newDeltaAngles.Keys)
+            {
+                note.DeltaAngle = newDeltaAngles[note];
+            }
         }
         wheelSequence.Pos += PosDelta;
     }
@@ -325,15 +331,21 @@ public class EditWheelSequenceAction : UndoRedoAction
     public override void Undo()
     {
         wheelSequence.StartTime -= startTimeDelta;
-        foreach (var note in oldEndTimes.Keys)
+        if (oldEndTimes != null)
         {
-            note.EndTime = oldEndTimes[note];
+            foreach (var note in oldEndTimes.Keys)
+            {
+                note.EndTime = oldEndTimes[note];
+            }
         }
         // changing the delta angle and wheel sequence position calls RecomputeStartAngle()
         // so these must be done after all other changes have been made (for some reason)
-        foreach (var note in oldDeltaAngles.Keys)
+        if (oldDeltaAngles != null)
         {
-            note.DeltaAngle = oldDeltaAngles[note];
+            foreach (var note in oldDeltaAngles.Keys)
+            {
+                note.DeltaAngle = oldDeltaAngles[note];
+            }
         }
         wheelSequence.Pos -= PosDelta;
     }
@@ -425,16 +437,16 @@ public class EditLeverSequenceAction : UndoRedoAction
     {
         return "Sequence ID: " + leverSequence.Id + "\n" +
                "Affects score: " + leverSequence.AffectsScore + "\n" +
-               "Direction delta: " + dirDelta + "\n" +
-               "Old start times: " + string.Join(", ", oldStartTimes.Select(x => x.Value)) + "\n" +
-               "New start times: " + string.Join(", ", newStartTimes.Select(x => x.Value)) + "\n" +
-               "Old lever positions: " + string.Join(", ", oldLeverPositions.Select(x => x.Value)) + "\n" + 
-               "New lever positions: " + string.Join(", ", newLeverPositions.Select(x => x.Value)) + "\n";
+               (dirDelta != 0 ? ("Direction delta: " + dirDelta + "\n") : "") +
+               (oldStartTimes != null ? ("Old start times: " + string.Join(", ", oldStartTimes.Select(x => x.Value)) + "\n") : "") +
+               (newStartTimes != null ? ("New start times: " + string.Join(", ", newStartTimes.Select(x => x.Value)) + "\n") : "") +
+               (oldLeverPositions != null ? ("Old lever positions: " + string.Join(", ", oldLeverPositions.Select(x => x.Value)) + "\n") : "") +
+               (newLeverPositions != null ? ("New lever positions: " + string.Join(", ", newLeverPositions.Select(x => x.Value))) : "");
     }
 
-    public EditLeverSequenceAction(EditableLeverSequence leverSequence, int dirDelta,
-                                   Dictionary<EditableLeverNote, int> oldStartTimes, Dictionary<EditableLeverNote, int> newStartTimes,
-                                   Dictionary<EditableLeverNote, LeverPos> oldLeverPositions, Dictionary<EditableLeverNote, LeverPos> newLeverPositions)
+    public EditLeverSequenceAction(EditableLeverSequence leverSequence, int dirDelta=0,
+                                   Dictionary<EditableLeverNote, int> oldStartTimes=null, Dictionary<EditableLeverNote, int> newStartTimes=null,
+                                   Dictionary<EditableLeverNote, LeverPos> oldLeverPositions=null, Dictionary<EditableLeverNote, LeverPos> newLeverPositions=null)
     {
         this.leverSequence = leverSequence;
         this.dirDelta = dirDelta;
@@ -447,20 +459,26 @@ public class EditLeverSequenceAction : UndoRedoAction
     public override void Redo()
     {
         leverSequence.Dir += dirDelta;
-        foreach (EditableLeverNote note in newStartTimes.Keys)
+        if (newStartTimes != null)
         {
-            note.StartTime = newStartTimes[note];
-            note.Pos = newLeverPositions[note];
+            foreach (EditableLeverNote note in newStartTimes.Keys)
+            {
+                note.StartTime = newStartTimes[note];
+                note.Pos = newLeverPositions[note];
+            }
         }
     }
 
     public override void Undo()
     {
         leverSequence.Dir -= dirDelta;
-        foreach (EditableLeverNote note in oldStartTimes.Keys)
+        if (oldStartTimes != null)
         {
-            note.StartTime = oldStartTimes[note];
-            note.Pos = oldLeverPositions[note];
+            foreach (EditableLeverNote note in oldStartTimes.Keys)
+            {
+                note.StartTime = oldStartTimes[note];
+                note.Pos = oldLeverPositions[note];
+            }
         }
     }
 }
@@ -570,6 +588,18 @@ public class MultiselectRemoveAction : GroupUndoRedoAction
     }
 
     public MultiselectRemoveAction(List<UndoRedoAction> undoRedoActions) : base(undoRedoActions) { }
+}
+
+public class MultiselectMirrorAction : GroupUndoRedoAction
+{
+    public override string Message { get { return "multiselect mirrror"; }}
+
+    public override string ToString()
+    {
+        return $"{undoRedoActions.Count} notes mirrored.\n";
+    }
+
+    public MultiselectMirrorAction(List<UndoRedoAction> undoRedoActions) : base(undoRedoActions) { }
 }
 
 // MARK: Environment actions

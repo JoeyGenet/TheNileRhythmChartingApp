@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using static UnityEngine.EventSystems.ExecuteEvents;
@@ -76,34 +77,66 @@ public class TrackMarqueeSelectionGroup
 
     public void MirrorSelectedNotes()
     {
+        MultiselectMirrorAction multiselectMirrorAction = new MultiselectMirrorAction(new List<UndoRedoAction>());
         foreach(Note note in notes)
         {
             switch (note)
             {
                 case EditableButtonNote buttonNote:
+                    int oldLeftPos = buttonNote.LeftPos;
+                    int? oldRightPos = buttonNote.RightPos;
                     buttonNote.LeftPos = 100-buttonNote.LeftPos;
                     buttonNote.RightPos = 100-buttonNote.RightPos;
+                    EditButtonNoteAction editButtonNoteAction = new EditButtonNoteAction(buttonNote, 0, oldLeftPos, oldRightPos, buttonNote.LeftPos, buttonNote.RightPos);
+                    multiselectMirrorAction.AddUndoRedoAction(editButtonNoteAction);
                     break;
                 case EditableLeverSequence leverSequence:
+                    LeftRight oldLeverSequenceDir = leverSequence.Dir;
                     leverSequence.Dir = leverSequence.Dir == LeftRight.Left ? LeftRight.Right : LeftRight.Left;
+                    int leverSequenceDirDelta = leverSequence.Dir-oldLeverSequenceDir;
+                    EditLeverSequenceAction editLeverSequenceAction = new EditLeverSequenceAction(leverSequence, dirDelta:leverSequenceDirDelta); 
+                    multiselectMirrorAction.AddUndoRedoAction(editLeverSequenceAction);
                     break;
                 case EditableWheelFlick wheelFlick:
+                    LeftRight oldFlickDir = wheelFlick.Dir;
                     wheelFlick.Dir = wheelFlick.Dir == LeftRight.Left ? LeftRight.Right : LeftRight.Left;
+                    int wheelFlickDirDelta = wheelFlick.Dir - oldFlickDir;
+                    EditWheelFlickAction editWheelFlickAction = new EditWheelFlickAction(wheelFlick, 0, dirDelta: wheelFlickDirDelta);
+                    multiselectMirrorAction.AddUndoRedoAction(editWheelFlickAction);
                     break;
                 case EditableWheelTurn wheelTurn:
+                    Dictionary<EditableWheelTurn, int> oldDeltaAngles = wheelTurn.Container.Notes.ToDictionary(n => n, n => n.DeltaAngle);
+                    int oldWheelSequencePos = wheelTurn.Container.Pos;
                     if (wheelTurn.Container.startingNote != wheelTurn)
                     {
+                        int oldDeltaAngle = wheelTurn.DeltaAngle;
                         wheelTurn.DeltaAngle *= -1;
+                        EditableWheelTurn nextTurn = wheelTurn.NextTurn;
+                        while (nextTurn != null && UIManager.SelectionGroup.notes.Contains(nextTurn))
+                        {
+                            nextTurn = nextTurn.NextTurn;
+                        }
+                        if (nextTurn != null)
+                        {
+                            nextTurn.DeltaAngle -= wheelTurn.DeltaAngle - oldDeltaAngle;
+                        }
                     }
                     else
                     {
                         wheelTurn.Container.Pos = 100-wheelTurn.Container.Pos;
                     }
+                    int wheelSequencePosDelta = wheelTurn.Container.Pos - oldWheelSequencePos;
+                    Dictionary<EditableWheelTurn, int> newDeltaAngles = wheelTurn.Container.Notes.ToDictionary(n => n, n => n.DeltaAngle);
+                    EditWheelSequenceAction editWheelSequenceAction = new EditWheelSequenceAction(
+                        wheelTurn.Container, startTimeDelta: 0, PosDelta: wheelSequencePosDelta, 
+                        oldDeltaAngles: oldDeltaAngles, newDeltaAngles: newDeltaAngles);
+                    multiselectMirrorAction.AddUndoRedoAction(editWheelSequenceAction);
                     break; 
                 default:
                     break;
             }
         }
+        multiselectMirrorAction.CommitAction();
     }
 
     public void AddToMultiselectMoveAction(UndoRedoAction noteEditAction)
