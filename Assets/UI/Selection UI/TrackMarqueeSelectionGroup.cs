@@ -85,8 +85,8 @@ public class TrackMarqueeSelectionGroup
                 case EditableButtonNote buttonNote:
                     int oldLeftPos = buttonNote.LeftPos;
                     int? oldRightPos = buttonNote.RightPos;
-                    buttonNote.LeftPos = 100-buttonNote.LeftPos;
-                    buttonNote.RightPos = 100-buttonNote.RightPos;
+                    buttonNote.RightPos = oldRightPos is int ? 100-oldLeftPos : null;
+                    buttonNote.LeftPos = oldRightPos is int rightPos ? 100-rightPos : 100-oldLeftPos;
                     EditButtonNoteAction editButtonNoteAction = new EditButtonNoteAction(buttonNote, 0, oldLeftPos, oldRightPos, buttonNote.LeftPos, buttonNote.RightPos);
                     multiselectMirrorAction.AddUndoRedoAction(editButtonNoteAction);
                     break;
