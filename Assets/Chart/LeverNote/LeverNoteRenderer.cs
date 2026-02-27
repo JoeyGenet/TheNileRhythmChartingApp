@@ -11,8 +11,11 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
 {
     [Header("Sprites")]
     [SerializeField] private Image arrow;
+    [SerializeField] private Image outline;
     [SerializeField] private Sprite arrowSprite;
+    [SerializeField] private Sprite arrowOutline;
     [SerializeField] private Sprite neutralSprite;
+    [SerializeField] private Sprite neutralOutline;
     [SerializeField] private Color leftColor;
     [SerializeField] private Color upColor;
     [SerializeField] private Color rightColor;
@@ -23,6 +26,9 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
     [SerializeField] AudioClip leverSideSound;
     [SerializeField] AudioClip leverPushSound;
     [SerializeField] AudioClip leverPullSound;
+
+    [Header("Animation")]
+    [SerializeField] Animator animator;
 
     AudioSource audioSource;
 
@@ -64,16 +70,19 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
 
         // update lever direction
         float angle;
-        (arrow.sprite, angle, arrow.color) = Note.Pos switch
+        (arrow.sprite, outline.sprite, angle, arrow.color) = Note.Pos switch
         {
-            LeverPos.Left => (arrowSprite, 0, leftColor),
-            LeverPos.Up => (arrowSprite, -90, upColor),
-            LeverPos.Right => (arrowSprite, 180, rightColor),
-            LeverPos.Down => (arrowSprite, 90, downColor),
-            LeverPos.Middle => (neutralSprite, 0, middleColor),
+            LeverPos.Left => (arrowSprite, arrowOutline, 0, leftColor),
+            LeverPos.Up => (arrowSprite, arrowOutline, -90, upColor),
+            LeverPos.Right => (arrowSprite, arrowOutline, 180, rightColor),
+            LeverPos.Down => (arrowSprite, arrowOutline, 90, downColor),
+            LeverPos.Middle => (neutralSprite, neutralOutline, 0, middleColor),
             _ => throw new Exception($"Lever direction {Note.Pos} not supported."),
         };
         arrow.transform.rotation = Quaternion.Euler(0, 0, angle);
+        outline.transform.rotation = Quaternion.Euler(0, 0, angle);
+        
+        animator.SetBool("IsMultiSelected", isInMarqueeSelection);
     }
 
     protected override void OnLeftClick() 

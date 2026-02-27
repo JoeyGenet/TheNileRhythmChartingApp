@@ -7,6 +7,7 @@ using UnityEngine.EventSystems;
 
 public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, EditableWheelSequence>, IPointerDownHandler
 {
+    [SerializeField] Animator animator;
     public EditableWheelSequence WheelSequence { get; private set; }
 
     int dragStartStartAngle;
@@ -43,6 +44,8 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
             time = Note.EndTime;
         }
         rect.anchorMin = rect.anchorMax = PlaybackManager.Instance.TrackToUIPosition(pos, time);
+
+        animator.SetBool("IsMultiSelected", isInMarqueeSelection);
     }
 
     protected override void OnLeftClick() 

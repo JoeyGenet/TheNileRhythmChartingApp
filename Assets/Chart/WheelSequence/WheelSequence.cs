@@ -48,9 +48,9 @@ public class WheelSequence : TimedNote<Chart, Note>, INoteContainer<WheelTurn>
 		=> notes.GetViewBetween(new DummyWheelTurn(time, inclusive ? int.MinValue : int.MaxValue), DummyWheelTurn.Max);
 
 	// Get the lines required to render this sequence, taking into account wraps
-	public List<List<(int pos, int time)>> ComputeLines()
+	public List<List<(WheelTurn wheelTurn, int pos, int time)>> ComputeLines()
 	{
-		List<List<(int pos, int time)>> lines = new();
+		List<List<(WheelTurn wheelTurn, int pos, int time)>> lines = new();
 		int lastPos = -1;
 		int lastTime = -1;
 		foreach (WheelTurn note in Notes)
@@ -60,9 +60,9 @@ public class WheelSequence : TimedNote<Chart, Note>, INoteContainer<WheelTurn>
 				// Debug.Log($"{note.Id} {pos1} {time1} {pos2} {time2}");
 				if (pos1 != lastPos || time1 != lastTime)
 				{	// If curr start position is different, start a new line sequence
-					lines.Add(new List<(int pos, int time)> { (pos1, time1) });
+					lines.Add(new List<(WheelTurn wheelTurn, int pos, int time)> { (note.PreviousTurn, pos1, time1) });
 				}
-				lines.Last().Add((pos2, time2));
+				lines.Last().Add((note, pos2, time2));
 				lastPos = pos2;
 				lastTime = time2;
 			}

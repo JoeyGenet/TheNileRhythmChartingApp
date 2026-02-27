@@ -13,6 +13,9 @@ public class WheelSequenceRenderer : NoteRenderer<EditableWheelSequence>, IPoint
 
     [SerializeField] RectTransform verticesParent;
     [SerializeField] WheelSequenceVertexRenderer vertexPrefab;
+    //TODO: make material for selected state
+    [SerializeField] Material lineSelectedMaterial;
+    [SerializeField] Material lineDefaultMaterial;
 
     public override void Init(Track track, EditableWheelSequence note)
     {
@@ -41,10 +44,10 @@ public class WheelSequenceRenderer : NoteRenderer<EditableWheelSequence>, IPoint
         var lineSequences = Note.ComputeLines();
         var linePositions = lineSequences.SelectMany(lineSequence =>
         {
-            List<(int pos1, int time1, int pos2, int time2)> positions = new();
+            List<(WheelTurn note1, int pos1, int time1, WheelTurn note2, int pos2, int time2)> positions = new();
             for (int i = 0; i < lineSequence.Count-1; i++)
             {
-                positions.Add((lineSequence[i].pos, lineSequence[i].time, lineSequence[i+1].pos, lineSequence[i+1].time));
+                positions.Add((lineSequence[i].wheelTurn, lineSequence[i].pos, lineSequence[i].time, lineSequence[i+1].wheelTurn, lineSequence[i+1].pos, lineSequence[i+1].time));
             }
             return positions;
         }).ToList();
@@ -65,9 +68,18 @@ public class WheelSequenceRenderer : NoteRenderer<EditableWheelSequence>, IPoint
         // Update line positions
         for (int i = 0; i < linePositions.Count; i++)
         {
-            var (pos1, time1, pos2, time2) = linePositions[i];
+            var (note1, pos1, time1, note2, pos2, time2) = linePositions[i];
             lines[i].pos1 = PlaybackManager.Instance.TrackToUIPosition(pos1, time1);
             lines[i].pos2 = PlaybackManager.Instance.TrackToUIPosition(pos2, time2);
+            if ((UIManager.SelectionGroup.notes.Contains(note1) && UIManager.SelectionGroup.notes.Contains(note2)) ||
+                (note2==Note.Notes.First && UIManager.SelectionGroup.notes.Contains(Note.startingNote) && UIManager.SelectionGroup.notes.Contains(note2)))
+            {
+                lines[i].Image.material = lineSelectedMaterial;
+            }
+            else
+            {
+                lines[i].Image.material = lineDefaultMaterial;
+            }
         }
     }
 

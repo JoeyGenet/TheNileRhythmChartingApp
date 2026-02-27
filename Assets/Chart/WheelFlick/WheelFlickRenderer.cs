@@ -17,6 +17,7 @@ public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerDown
 
     [SerializeField] AudioClip flickLeftSound;
     [SerializeField] AudioClip flickRightSound;
+    [SerializeField] Animator animator;
     AudioSource audioSource;
 
     int dragStartTime;
@@ -50,6 +51,8 @@ public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerDown
             LeftRight.Right => rightSprite,
             _ => null,
         };
+
+        animator.SetBool("IsMultiSelected", isInMarqueeSelection);
     }
 
     protected override void OnLeftClick() 
