@@ -55,23 +55,24 @@ Shader "Unlit/SelectionOutline"
 
             fixed4 frag (v2f i) : SV_Target
             {
+                
                 // sample the texture
                 fixed4 textureColor = tex2D(_MainTex, i.uv);
 
-                // invert the derivative of the y UV coord to get the ratio of pixels moved per UV
-                float scale = 1/abs(ddy(i.uv.y));
-                // multiply UVs by the UV-to-pixel ratio to get the UV in pixels
-                // this makes the effect appear the same regardless of zoom/size of texture
-                fixed2 scaledUV = i.uv * scale;
-
+                // get screen space UVs for effect independent of size, zoom or rotate
+                // based on https://realtimevfx.com/t/camera-facing-uvs/384/17
+                float2 st = float2(i.vertex.x/_ScreenParams.x, i.vertex.y/_ScreenParams.y);
+                
                 // get a looping gradient stripe pattern
                 // lerp between x and y UV values to get a diagonal stripe based on provided angle
                 // multiply lerped UVs by frequency to create more stripes, add time displacement
-                float stripeGradient = frac(lerp(scaledUV.x, scaledUV.y, _StripeAngle) * _StripeFrequency + _StripeSpeed*_Time.y);
+                float stripeGradient = frac(lerp(st.x, st.y, _StripeAngle) * _StripeFrequency + _StripeSpeed*_Time.y);
                 
                 // stripe color based on whether pixel is above a certain brightness threshold
                 fixed stripeColor = floor(stripeGradient + _StripeWidth);
-                return lerp(_SelectionColor1, _SelectionColor2, stripeColor) * textureColor;
+                fixed4 col = lerp(_SelectionColor1, _SelectionColor2, stripeColor);
+                col.a = textureColor.a;
+                return col;
             }
             ENDCG
         }
