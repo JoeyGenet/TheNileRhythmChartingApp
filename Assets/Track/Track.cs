@@ -127,15 +127,15 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
     }
 
-    // returns local UI position relative to bottom right corner of the whole track area (i.e. (0,0) in the bottom right)
+    // returns local UI position relative to Track's center point
     public Vector2 TrackToUIPosition(int trackPosition, int trackTime, bool allowOutOfBounds = true, bool clamp = true)
     {
         Vector2 uiPos = PlaybackManager.Instance.TrackToUIPosition(trackPosition, trackTime);
         // scale normalized uiPos to mainTrackArea, then convert to whole track coordinate space
-        Vector2 localPos = (uiPos * mainTrackArea.rect.size) - (rect.rect.position - mainTrackArea.rect.position);
+        Vector2 localPos = (uiPos * mainTrackArea.rect.size) + mainTrackArea.rect.min;
         if (!clamp) return localPos;
-        float clampedX = Math.Clamp(localPos.x, 0, rect.rect.width);
-        float clampedY = Math.Clamp(localPos.y, 0, rect.rect.height);
+        float clampedX = Math.Clamp(localPos.x, rect.rect.min.x, rect.rect.max.x);
+        float clampedY = Math.Clamp(localPos.y, rect.rect.min.y, rect.rect.max.y);
         return new Vector2(clampedX, clampedY);
     }
 
