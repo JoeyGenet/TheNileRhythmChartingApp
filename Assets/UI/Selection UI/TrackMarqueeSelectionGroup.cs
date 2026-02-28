@@ -201,6 +201,8 @@ public class TrackMarqueeSelectionGroup
             }
         }
         multiselectRemoveAction.CommitAction();
+        ClearSelection();
+        UIManager.SelectedElement = null;
         return isRemoveSuccessful;
     }
 }

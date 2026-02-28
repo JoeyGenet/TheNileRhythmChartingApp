@@ -984,7 +984,7 @@ MonoBehaviour:
   toggles:
   - {fileID: 5289560266374492243}
   subRelays: []
-  keyBinds: 080000007f000000
+  keyBinds: 
   audioClips: []
   Event:
     m_PersistentCalls:
