@@ -24,6 +24,7 @@ where NoteType : N, IEditableNote<C, N>
 where N : Note
 where C : IEditableNoteContainer<N>
 {
+    [SerializeField] protected Animator animator;
     public Track Track { get; private set; }
     public NoteType Note { get; private set; }
     public bool isInMarqueeSelection;
@@ -92,6 +93,11 @@ where C : IEditableNoteContainer<N>
         if (!Track.IsScrolling && prevTime < Note.StartTime && currTime >= Note.StartTime) OnNoteStarted();
         if (!Track.IsScrolling && prevTime < Note.EndTime && currTime >= Note.EndTime) OnNoteStarted();
         prevTime = currTime;
+
+        if (animator != null)
+        {
+            animator.SetBool("IsMultiSelected", isInMarqueeSelection);
+        }
     }
 
     protected void SelectNoteOrMultiselection(Note note)

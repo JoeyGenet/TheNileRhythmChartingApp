@@ -7,7 +7,6 @@ using UnityEngine.EventSystems;
 
 public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, EditableWheelSequence>, IPointerDownHandler
 {
-    [SerializeField] Animator animator;
     public EditableWheelSequence WheelSequence { get; private set; }
 
     int dragStartStartAngle;

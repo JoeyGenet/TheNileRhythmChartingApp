@@ -27,9 +27,6 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
     [SerializeField] AudioClip leverPushSound;
     [SerializeField] AudioClip leverPullSound;
 
-    [Header("Animation")]
-    [SerializeField] Animator animator;
-
     AudioSource audioSource;
 
     int dragStartTime;
@@ -81,8 +78,6 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
         };
         arrow.transform.rotation = Quaternion.Euler(0, 0, angle);
         outline.transform.rotation = Quaternion.Euler(0, 0, angle);
-        
-        animator.SetBool("IsMultiSelected", isInMarqueeSelection);
     }
 
     protected override void OnLeftClick() 

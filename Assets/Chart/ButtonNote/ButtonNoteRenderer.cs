@@ -11,7 +11,6 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
     [SerializeField] RectTransform leftNote;
     [SerializeField] RectTransform rightNote;
     [SerializeField] Image line;
-    [SerializeField] Animator animator;
     
     AudioSource hitSound;
 
@@ -44,8 +43,6 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
         rect.anchorMax = Note.RightPos is int rightPos
             ? PlaybackManager.Instance.TrackToUIPosition(rightPos, Note.StartTime)
             : leftUIPos;
-
-        animator.SetBool("IsMultiSelected", isInMarqueeSelection);
     }
 
     protected override void OnLeftClick() 
