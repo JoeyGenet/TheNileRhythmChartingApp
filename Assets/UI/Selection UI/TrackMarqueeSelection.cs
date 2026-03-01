@@ -87,20 +87,30 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
     // get start timestamp and horizontal position when starting drag
     public void OnBeginDrag(PointerEventData eventData)
     {
+        // do not start selection if you right click or have note type selected
         if (eventData.button != PointerEventData.InputButton.Left || UIManager.CursorMode != UICursorMode.None) return;
+        
+        // set start drag data
         pointerEventData = eventData;
         if (Track.PointerToTrackPosition(eventData.pressPosition, clamp: false) is not var (pos, time)) return;
         dragStartPointerPos = pos;
         dragStartPointerTime = time;
+
         // clear selection if we click and dragging outside of current selection
         UIManager.SelectionGroup.ClearSelection();
         UIManager.SelectedElement = null;
-        OnDragStart();
+
+        Debug.Log("Start drag pos: "+Track.TrackToUIPosition(dragStartPointerPos, dragStartPointerTime));
+        marqueeImage.enabled = true;
     }
     
     // get current timestamp and horizontal pos when dragging
     public void OnDrag(PointerEventData eventData)
     {
+        // do not continue drag if you right click or have note type selected
+        if (eventData.button != PointerEventData.InputButton.Left || UIManager.CursorMode != UICursorMode.None) return;
+
+        // update drag info
         if (eventData.button != PointerEventData.InputButton.Left) return;
         pointerEventData = eventData;
         if (Track.PointerToTrackPosition(eventData.position, clamp: false) is not var (dragPos, dragTime)) return;
@@ -108,35 +118,18 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
         this.dragTime = dragTime;
         dragPosDiff = dragPos - dragStartPointerPos;
         dragTimeDiff = dragTime - dragStartPointerTime;
-        OnDrag();
+
+        DrawSelectionRectangle();
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        OnEndDrag();
-    }
+        // do not end drag if you right click or have note type selected
+        if (eventData.button != PointerEventData.InputButton.Left || UIManager.CursorMode != UICursorMode.None) return;
 
-    protected void OnDragStart() 
-    {
-        Debug.Log("Start drag pos: "+Track.TrackToUIPosition(dragStartPointerPos, dragStartPointerTime));
-        marqueeImage.enabled = true;
-    }
-
-    protected void OnDrag() 
-    {
-        // draw the selection rectangle
-        Vector2 startUiPos = Track.TrackToUIPosition(dragStartPointerPos, dragStartPointerTime);
-        Vector2 currentUiPos = Track.TrackToUIPosition(dragPos, dragTime);
-        marquee.pivot = new Vector2(currentUiPos.x > startUiPos.x ? 0 : 1, currentUiPos.y > startUiPos.y ? 0 : 1);
-        marquee.localPosition = startUiPos;
-        marquee.sizeDelta = new Vector2(Math.Abs(currentUiPos.x-startUiPos.x), Math.Abs(currentUiPos.y-startUiPos.y));
-    }
-
-    protected void OnEndDrag() 
-    {   
         Debug.Log("End drag pos: "+Track.TrackToUIPosition(dragPos, dragTime));
         // this class only detects selected notes. The selected notes are controlled
-        // by a TrackMarqueeSelectionGroup instance.
+        // by UIManager.SelectionGroup.
         SortedSet<Note> selectedNotes = CheckForSelectedNotes(dragStartPointerTime, dragTime, dragStartPointerPos, dragPos);
         if (selectedNotes.Count > 0)
         {
@@ -144,6 +137,16 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
             UIManager.SelectedElement = UIManager.SelectionGroup;
         }
         marqueeImage.enabled = false;
+    }
+
+    protected void DrawSelectionRectangle() 
+    {
+        // draw the selection rectangle
+        Vector2 startUiPos = Track.TrackToUIPosition(dragStartPointerPos, dragStartPointerTime);
+        Vector2 currentUiPos = Track.TrackToUIPosition(dragPos, dragTime);
+        marquee.pivot = new Vector2(currentUiPos.x > startUiPos.x ? 0 : 1, currentUiPos.y > startUiPos.y ? 0 : 1);
+        marquee.localPosition = startUiPos;
+        marquee.sizeDelta = new Vector2(Math.Abs(currentUiPos.x-startUiPos.x), Math.Abs(currentUiPos.y-startUiPos.y));
     }
 
     public void DragScrollTrack()
@@ -167,7 +170,7 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
             this.dragTime = dragTime;
             dragPosDiff = dragPos - dragStartPointerPos;
             dragTimeDiff = dragTime - dragStartPointerTime;
-            OnDrag();
+            DrawSelectionRectangle();
         }
         else
         {
@@ -184,25 +187,19 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
         int maxPos = Math.Max(startPos, endPos);
         // get the min and max bounds of marquee and lever track
         // so we can determine if selection includes them
-        // TODO: find cleaner way to do this
         Vector3[] marqueeCorners = new Vector3[4];
-        marquee.GetWorldCorners(marqueeCorners);
-        Vector3 marqueeGlobalMin = marqueeCorners[0];
-        Vector3 marqueeGlobalMax = marqueeCorners[2];
         Vector3[] leverTrackAreaCorners = new Vector3[4];
-        Track.LeverTrackArea.GetWorldCorners(leverTrackAreaCorners);
-        Vector3 leverTrackAreaGlobalMin = leverTrackAreaCorners[0];
-        Vector3 leverTrackAreaGlobalMax = leverTrackAreaCorners[2];
         Vector3[] mainTrackAreaCorners = new Vector3[4];
+        marquee.GetWorldCorners(marqueeCorners);
+        Track.LeverTrackArea.GetWorldCorners(leverTrackAreaCorners);
         Track.MainTrackArea.GetWorldCorners(mainTrackAreaCorners);
-        Vector3 mainTrackAreaGlobalMin = mainTrackAreaCorners[0];
-        Vector3 mainTrackAreaGlobalMax = mainTrackAreaCorners[2];
-        bool leftTrackSelected = marqueeGlobalMax.x >= leverTrackAreaGlobalMin.x &&
-                                 marqueeGlobalMin.x <= leverTrackAreaGlobalMin.x;
-        bool rightTrackSelected = marqueeGlobalMax.x >= leverTrackAreaGlobalMax.x &&
-                                  marqueeGlobalMin.x <= leverTrackAreaGlobalMax.x;
-        bool mainTrackSelected = marqueeGlobalMax.x >= mainTrackAreaGlobalMin.x &&
-                                 marqueeGlobalMin.x <= mainTrackAreaGlobalMax.x;
+        // [0] is bottom left (min) corner, [2] is top right (max) corner
+        bool leftTrackSelected = marqueeCorners[2].x >= leverTrackAreaCorners[0].x &&
+                                 marqueeCorners[0].x <= leverTrackAreaCorners[0].x;
+        bool rightTrackSelected = marqueeCorners[2].x >= leverTrackAreaCorners[2].x &&
+                                  marqueeCorners[0].x <= leverTrackAreaCorners[2].x;
+        bool mainTrackSelected = marqueeCorners[2].x >= mainTrackAreaCorners[0].x &&
+                                 marqueeCorners[0].x <= mainTrackAreaCorners[2].x;
 
         // highlight all notes that fall under current selection range
         IReadOnlyCollection<Note> notesInRange = ChartManager.SelectedChart.GetNotesBetween(minTime, maxTime);
