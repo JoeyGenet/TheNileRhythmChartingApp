@@ -261,6 +261,7 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
                         // add the placeholder starting note as a proxy for the start of the sequence
                         // this note is mapped to the first vertex renderer in the wheel sequence
                         // and allows us to multiselect start of sequence separately from the first turn
+                        // and we can use it to find the renderer of the first vertex
                         selectedNotes.Add(wheelSequence.startingNote);
                     }
                     // get all sequence notes that fall within selection range

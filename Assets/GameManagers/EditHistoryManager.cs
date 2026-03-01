@@ -391,6 +391,7 @@ public class RemoveNoteFromWheelSequenceAction : UndoRedoAction
     public override string Message { get { return "remove note from wheel sequence"; } }
     [SerializeField] private EditableWheelSequence editableWheelSequence;
     [SerializeField] private EditableWheelTurn editableWheelTurn;
+    [SerializeField] private bool isStartingVertex;
 
     public override string ToString()
     {
@@ -404,20 +405,35 @@ public class RemoveNoteFromWheelSequenceAction : UndoRedoAction
                "Delta angle: " + editableWheelTurn.DeltaAngle + "\n";
     }
 
-    public RemoveNoteFromWheelSequenceAction(EditableWheelTurn editableWheelTurn, EditableWheelSequence editableWheelSequence)
+    public RemoveNoteFromWheelSequenceAction(EditableWheelTurn editableWheelTurn, EditableWheelSequence editableWheelSequence, bool isStartingVertex=false)
     {
         this.editableWheelSequence = editableWheelSequence;
         this.editableWheelTurn = editableWheelTurn;
+        this.isStartingVertex = isStartingVertex;
     }
 
     public override void Redo()
     {
-        editableWheelSequence.RemoveNote(editableWheelTurn, notify: true, updateEditHistory: false);
+        if (isStartingVertex)
+        {
+            editableWheelSequence.RemoveNoteFromFront(editableWheelTurn, notify: true, updateEditHistory: false);    
+        }
+        else
+        {
+            editableWheelSequence.RemoveNote(editableWheelTurn, notify: true, updateEditHistory: false);
+        }
     }
 
     public override void Undo()
     {
-        editableWheelSequence.AddNote(editableWheelTurn, notify: true, updateEditHistory: false);
+        if (isStartingVertex)
+        {
+            editableWheelSequence.AddNoteToFront(editableWheelTurn, notify: true, updateEditHistory: false);    
+        }
+        else
+        {
+            editableWheelSequence.AddNote(editableWheelTurn, notify: true, updateEditHistory: false);
+        }
     }
 }
 

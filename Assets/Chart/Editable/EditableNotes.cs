@@ -166,6 +166,57 @@ public class EditableWheelSequence : WheelSequence, IEditableNote<EditableChart,
 		onChanged: () => OnNoteRemoved?.Invoke(note)
 	);
 
+	public bool RemoveNoteFromFront(EditableWheelTurn note, bool notify = true, bool updateEditHistory = true) => this.RegisterChange
+	( () =>
+		{
+			// we need to cache the start time of removed note, because otherwise it is lost
+			var secondTurn = Notes.ElementAt(1);
+			note.cachedStartTime = note.StartTime;
+			StartTime = secondTurn.StartTime;
+
+			// Update linked list
+			if (note.NextTurn != null)
+			{
+				note.NextTurn.PreviousTurn = null;
+				note.NextTurn.RecomputeStartAngle();
+			}
+
+			note.PreviousTurn = note.NextTurn = null;
+
+			Assert.IsTrue(notes.Remove(note));
+			Pos = WheelTurn.AngleToPos(WheelTurn.WrapAngle(note.StartAngle + note.DeltaAngle));
+			
+			// track undo/redoable note remove action
+			if (updateEditHistory)
+			{
+				RemoveNoteFromWheelSequenceAction removeNoteFromWheelSequenceAction = new RemoveNoteFromWheelSequenceAction(note, this, isStartingVertex: true);
+				removeNoteFromWheelSequenceAction.CommitAction();
+			}
+
+			return notify;
+		},
+		onChanged: () => OnNoteRemoved?.Invoke(note)
+	);
+
+	// currently only used to undo a removal from the front of the sequence
+	// as such, has no undo/redo tracking
+	public bool AddNoteToFront(EditableWheelTurn note, bool notify = true, bool updateEditHistory = true)=> this.RegisterChange
+	( () =>
+		{
+			// Update linked list
+			EditableWheelTurn nextTurn = Notes.ElementAt(0);
+			note.NextTurn = nextTurn;
+			nextTurn.PreviousTurn = note;
+
+			Pos = WheelTurn.AngleToPos(WheelTurn.WrapAngle(note.StartAngle));
+			StartTime = note.cachedStartTime;
+
+			Assert.IsTrue(notes.Add(note));
+			return notify;
+		},
+		onChanged: () => OnNoteAdded?.Invoke(note)
+	);
+
 	public void NotifyMoved(EditableWheelTurn note) => OnNoteMoved?.Invoke(note);
 
     // public bool UpdateNote(EditableWheelTurn note) => this.RegisterChange(
@@ -206,6 +257,8 @@ public class EditableWheelTurn : WheelTurn, IEditableNote<EditableWheelSequence,
 		get => base.NextTurn as EditableWheelTurn;
 		set => base.NextTurn = value;
 	}
+
+	public int cachedStartTime;
 
 	public EditableWheelTurn(EditableWheelSequence seq, int endTime, int deltaAngle) : base(seq, endTime, deltaAngle) {}
 }

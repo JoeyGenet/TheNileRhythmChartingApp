@@ -61,13 +61,9 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
             return;
         }
 
-        if (isStartingVertex) // If right clicked start vertex, remove the 1st turn and move start to the end of the first turn
+        if (isStartingVertex && !isInMarqueeSelection) // If right clicked start vertex, remove the 1st turn and move start to the end of the first turn
         {
-            var secondTurn = WheelSequence.Notes.ElementAt(1);
-            WheelSequence.Pos = WheelTurn.AngleToPos(WheelTurn.WrapAngle(secondTurn.StartAngle));
-            WheelSequence.StartTime = secondTurn.StartTime;
-            secondTurn.PreviousTurn.DeltaAngle = 0;
-            WheelSequence.RemoveNote(secondTurn.PreviousTurn);
+            WheelSequence.RemoveNoteFromFront(WheelSequence.Notes.ElementAt(0));
         }
         else
         {
