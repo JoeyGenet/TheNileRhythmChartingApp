@@ -184,21 +184,26 @@ public class TrackMarqueeSelectionGroup
                     multiselectRemoveAction.AddUndoRedoAction(new RemoveNoteAction(note, wheelFlick.Container));
                     break;
                 case EditableWheelTurn wheelTurn:
-                    if (wheelTurn.Container.Notes.Count <= 1) 
+                    // if sequence has already been removed, don't provess this
+                    // otherwise, might try to delete starting vertex after sequence with one turn has already been removed
+                    if (wheelTurn.Container.Container.ContainsNote(wheelTurn.Container))
                     {
-                        isRemoveSuccessful = isRemoveSuccessful && wheelTurn.Container.Container.RemoveNote(wheelTurn.Container, updateEditHistory:false);
-                        multiselectRemoveAction.AddUndoRedoAction(new RemoveNoteAction(wheelTurn.Container, wheelTurn.Container.Container));
-                    }
-                    else if (wheelTurn.Container.startingNote == wheelTurn)
-                    {
-                        EditableWheelTurn firstTurn = wheelTurn.Container.Notes.ElementAt(0);
-                        isRemoveSuccessful = isRemoveSuccessful && wheelTurn.Container.RemoveNoteFromFront(firstTurn, updateEditHistory:false);
-                        multiselectRemoveAction.AddUndoRedoAction(new RemoveNoteFromWheelSequenceAction(firstTurn, wheelTurn.Container, isStartingVertex:true));
-                    }
-                    else
-                    {
-                        isRemoveSuccessful = isRemoveSuccessful && wheelTurn.Container.RemoveNote(wheelTurn, updateEditHistory:false);
-                        multiselectRemoveAction.AddUndoRedoAction(new RemoveNoteFromWheelSequenceAction(wheelTurn, wheelTurn.Container));
+                        if (wheelTurn.Container.Notes.Count <= 1) 
+                        {
+                            isRemoveSuccessful = isRemoveSuccessful && wheelTurn.Container.Container.RemoveNote(wheelTurn.Container, updateEditHistory:false);
+                            multiselectRemoveAction.AddUndoRedoAction(new RemoveNoteAction(wheelTurn.Container, wheelTurn.Container.Container));
+                        }
+                        else if (wheelTurn.Container.startingNote == wheelTurn)
+                        {
+                            EditableWheelTurn firstTurn = wheelTurn.Container.Notes.ElementAt(0);
+                            isRemoveSuccessful = isRemoveSuccessful && wheelTurn.Container.RemoveNoteFromFront(firstTurn, updateEditHistory:false);
+                            multiselectRemoveAction.AddUndoRedoAction(new RemoveNoteFromWheelSequenceAction(firstTurn, wheelTurn.Container, isStartingVertex:true));
+                        }
+                        else
+                        {
+                            isRemoveSuccessful = isRemoveSuccessful && wheelTurn.Container.RemoveNote(wheelTurn, updateEditHistory:false);
+                            multiselectRemoveAction.AddUndoRedoAction(new RemoveNoteFromWheelSequenceAction(wheelTurn, wheelTurn.Container));
+                        }
                     }
                     break; 
                 default:
