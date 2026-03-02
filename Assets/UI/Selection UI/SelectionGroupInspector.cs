@@ -18,16 +18,7 @@ public class SelectionGroupInspector : NoteInspector<EditableWheelFlick>
     public void Show()
     {
         gameObject.SetActive(UIManager.SelectionGroup.notes.Count > 0);
-        int displayedNoteCount = 0;
-        // only count individual turns or lever notes, not the sequence as a whole
-        foreach (Note note in UIManager.SelectionGroup.notes)
-        {
-            if (note is not EditableWheelSequence && note is not EditableLeverSequence)
-            {
-                displayedNoteCount++;
-            }
-        }
-        inspectorTitle.text = $"{displayedNoteCount} {(displayedNoteCount>1 ? "Notes" : "Note")} Selected";
+        UpdateNoteCount();
     }
 
     void Awake()
@@ -84,8 +75,24 @@ public class SelectionGroupInspector : NoteInspector<EditableWheelFlick>
 
     void Update()
     {
-        if (Note == null) return;
+        UpdateNoteCount();
+        
+        // if (Note == null) return;
 
         // if (!timeInput.isFocused) timeInput.SetTextWithoutNotify($"{Note.StartTime}");
+    }
+
+    private void UpdateNoteCount()
+    {
+        int displayedNoteCount = 0;
+        // only count individual turns or lever notes, not the sequence as a whole
+        foreach (Note note in UIManager.SelectionGroup.notes)
+        {
+            if (note is not EditableWheelSequence && note is not EditableLeverSequence)
+            {
+                displayedNoteCount++;
+            }
+        }
+        inspectorTitle.text = $"{displayedNoteCount} {(displayedNoteCount>1 ? "Notes" : "Note")} Selected";
     }
 }

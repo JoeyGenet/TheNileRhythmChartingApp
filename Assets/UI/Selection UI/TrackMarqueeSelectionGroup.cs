@@ -19,11 +19,11 @@ public class TrackMarqueeSelectionGroup
 
     public void ClearSelection()
     {
-        SetSelectedNoteRenderersFlag(false);
+        SelectNotes(false);
         UIManager.SelectionGroup.notes.Clear();
     }
 
-    public void SetSelectedNoteRenderersFlag(bool addToSelection, SortedSet<Note> selectedNotes=null, bool modifyExistingSelection=false)
+    public void SelectNotes(bool addToSelection, SortedSet<Note> selectedNotes=null, bool modifyExistingSelection=false)
     {
         // create new selection
         if (selectedNotes != null && !modifyExistingSelection)

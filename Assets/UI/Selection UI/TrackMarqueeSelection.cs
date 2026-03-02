@@ -163,8 +163,10 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IBeginD
         SortedSet<Note> selectedNotes = CheckForSelectedNotes(dragStartPointerTime, dragTime, dragStartPointerPos, dragPos);
         if (selectedNotes.Count > 0)
         {
-            UIManager.SelectionGroup.SetSelectedNoteRenderersFlag(addToSelection, selectedNotes, modifyExistingSelection);
-            UIManager.SelectedElement = UIManager.SelectionGroup;
+            UIManager.SelectionGroup.SelectNotes(addToSelection, selectedNotes, modifyExistingSelection);
+            // UIManager focus the selection group if there are selected notes
+            // otherwise clear the selection if the list is empty
+            UIManager.SelectedElement = UIManager.SelectionGroup.notes.Count == 0 ? null : UIManager.SelectionGroup;
         }
         marqueeImage.enabled = false;
     }
