@@ -9,7 +9,7 @@ using System.Linq;
 
 // TODO: Should this class be a child of NoteRenderer? i.e. make this a type of "note" that is composed of other notes in selection?
 [RequireComponent(typeof(RectTransform))]
-public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     [SerializeField] RectTransform scrollUpArea;
     [SerializeField] RectTransform scrollDownArea;
@@ -17,6 +17,30 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
     [SerializeField] RectTransform marquee;
     [SerializeField] Image marqueeImage;
     [SerializeField] Track Track;
+    // [SerializeField] EventRelay AddToSelectionToggle;
+    // [SerializeField] EventRelay RemoveFromSelectionToggle;
+
+    private bool modifyExistingSelection;
+    private bool ModifyExistingSelection
+    {
+        get 
+        { 
+            return Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift) ||
+                   Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl) ||
+                   Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt);
+        }
+    }
+
+    private bool addToSelection;
+    private bool AddToSelection
+    {
+        get 
+        { 
+            return Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift) ||
+                   Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl) ||
+                   (!Input.GetKey(KeyCode.LeftAlt) && !Input.GetKey(KeyCode.RightAlt));
+        }
+    }
 
     protected RectTransform rect;
 
@@ -63,7 +87,7 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
     }
 
 
-    public void OnPointerClick(PointerEventData eventData)
+    public void OnPointerDown(PointerEventData eventData)
     {
         pointerEventData = eventData;
         switch (eventData.button)
@@ -75,12 +99,22 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
                 OnRightClick();
                 break;
         }
-        // clear selection if we click on the track without dragging
-        UIManager.SelectionGroup.ClearSelection();
-        UIManager.SelectedElement = null;
     }
 
-    protected void OnLeftClick() {}
+    protected void OnLeftClick() 
+    {
+        // clear selection if we click on the track without dragging
+        // don't clear if we are holding a key to modify the current selection
+        modifyExistingSelection = ModifyExistingSelection;
+        addToSelection = AddToSelection;
+
+        if (!modifyExistingSelection)
+        {
+            UIManager.SelectionGroup.ClearSelection();
+            UIManager.SelectedElement = null;
+        }
+    }
+    
     protected void OnRightClick() {}
 
 
@@ -95,10 +129,6 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
         if (Track.PointerToTrackPosition(eventData.pressPosition, clamp: false) is not var (pos, time)) return;
         dragStartPointerPos = pos;
         dragStartPointerTime = time;
-
-        // clear selection if we click and dragging outside of current selection
-        UIManager.SelectionGroup.ClearSelection();
-        UIManager.SelectedElement = null;
 
         Debug.Log("Start drag pos: "+Track.TrackToUIPosition(dragStartPointerPos, dragStartPointerTime));
         marqueeImage.enabled = true;
@@ -133,7 +163,7 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerClickHandler, IBegin
         SortedSet<Note> selectedNotes = CheckForSelectedNotes(dragStartPointerTime, dragTime, dragStartPointerPos, dragPos);
         if (selectedNotes.Count > 0)
         {
-            UIManager.SelectionGroup.SetSelectedNoteRenderersFlag(true, selectedNotes);
+            UIManager.SelectionGroup.SetSelectedNoteRenderersFlag(addToSelection, selectedNotes, modifyExistingSelection);
             UIManager.SelectedElement = UIManager.SelectionGroup;
         }
         marqueeImage.enabled = false;

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using static UnityEngine.EventSystems.ExecuteEvents;
@@ -22,13 +23,29 @@ public class TrackMarqueeSelectionGroup
         UIManager.SelectionGroup.notes.Clear();
     }
 
-    public void SetSelectedNoteRenderersFlag(bool isInMarqueeSelection, SortedSet<Note> selectedNotes=null)
+    public void SetSelectedNoteRenderersFlag(bool addToSelection, SortedSet<Note> selectedNotes=null, bool modifyExistingSelection=false)
     {
-        if (selectedNotes != null)
+        // create new selection
+        if (selectedNotes != null && !modifyExistingSelection)
         {
             notes = selectedNotes;
         }
-        foreach(Note note in notes)
+        // add or remove notes from existing selection
+        else if (modifyExistingSelection)
+        {
+            if (addToSelection)
+            {
+                notes.AddRange(selectedNotes);
+            }
+            else
+            {
+                notes.RemoveWhere(note => selectedNotes.Contains(note));
+            }
+        }
+
+        // flag existing selection if no new notes were selected
+        SortedSet<Note> notesToFlag = selectedNotes == null ? notes : selectedNotes;
+        foreach(Note note in notesToFlag)
         {
             // get the object associated with each note
             if (track.noteGameObjectMapping.TryGetValue(note, out GameObject gameObject) && gameObject!=null)
@@ -39,19 +56,19 @@ public class TrackMarqueeSelectionGroup
                 {
                     case EditableButtonNote:
                         ButtonNoteRenderer buttonNoteRenderer = gameObject.GetComponent<ButtonNoteRenderer>();
-                        buttonNoteRenderer.isInMarqueeSelection = isInMarqueeSelection;
+                        buttonNoteRenderer.isInMarqueeSelection = addToSelection;
                         break;
                     case EditableLeverNote:
                         LeverNoteRenderer leverNoteRenderer = gameObject.GetComponent<LeverNoteRenderer>();
-                        leverNoteRenderer.isInMarqueeSelection = isInMarqueeSelection;
+                        leverNoteRenderer.isInMarqueeSelection = addToSelection;
                         break;
                     case EditableWheelFlick:
                         WheelFlickRenderer wheelFlickRenderer = gameObject.GetComponent<WheelFlickRenderer>();
-                        wheelFlickRenderer.isInMarqueeSelection = isInMarqueeSelection;
+                        wheelFlickRenderer.isInMarqueeSelection = addToSelection;
                         break;
                     case EditableWheelTurn:
                         WheelSequenceVertexRenderer wheelSequenceVertexRenderer = gameObject.GetComponent<WheelSequenceVertexRenderer>();
-                        wheelSequenceVertexRenderer.isInMarqueeSelection = isInMarqueeSelection;
+                        wheelSequenceVertexRenderer.isInMarqueeSelection = addToSelection;
                         break; 
                     default:
                         break;
