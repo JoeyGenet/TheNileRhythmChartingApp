@@ -173,6 +173,40 @@ public class TrackMarqueeSelectionGroup
         multiselectMoveAction.CommitAction();
     }
 
+    public void CancelMultiselectMoveAction(object previousNote, object newElement)
+    {
+        foreach(Note note in notes)
+        {
+            // get the object associated with each note
+            if (track.noteGameObjectMapping.TryGetValue(note, out GameObject gameObject) && gameObject!=null)
+            {
+                // call deselect callback for each
+                // which then resets notes back to drag start positions/times
+                switch (note)
+                {
+                    case EditableButtonNote:
+                        ButtonNoteRenderer buttonNoteRenderer = gameObject.GetComponent<ButtonNoteRenderer>();
+                        buttonNoteRenderer.OnNoteDeselected(note, newElement);
+                        break;
+                    case EditableLeverNote:
+                        LeverNoteRenderer leverNoteRenderer = gameObject.GetComponent<LeverNoteRenderer>();
+                        leverNoteRenderer.OnNoteDeselected(note, newElement);
+                        break;
+                    case EditableWheelFlick:
+                        WheelFlickRenderer wheelFlickRenderer = gameObject.GetComponent<WheelFlickRenderer>();
+                        wheelFlickRenderer.OnNoteDeselected(note, newElement);
+                        break;
+                    case EditableWheelTurn:
+                        WheelSequenceVertexRenderer wheelSequenceVertexRenderer = gameObject.GetComponent<WheelSequenceVertexRenderer>();
+                        wheelSequenceVertexRenderer.OnNoteDeselected(note, newElement);
+                        break; 
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+
     public bool CommitMultiselectDeleteAction()
     {
         bool isRemoveSuccessful = true;

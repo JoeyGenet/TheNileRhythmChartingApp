@@ -19,7 +19,7 @@ where C : IEditableNoteContainer<NoteType>
 {}
 
 [RequireComponent(typeof(RectTransform))]
-public abstract class NoteRenderer<NoteType, C, N> : MonoBehaviour, IPointerDownHandler, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
+public abstract class NoteRenderer<NoteType, C, N> : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
 where NoteType : N, IEditableNote<C, N>
 where N : Note
 where C : IEditableNoteContainer<N>
@@ -46,7 +46,13 @@ where C : IEditableNoteContainer<N>
     private int lastDragTime;
 
     private bool isReadyToShareEventData;
+
+    // set to true while drag is in progress
+    // set to false if note is deselected or drag is completed
     protected bool isBeingDragged = false;
+
+    // set to true when note is deselected while isBeingDragged is true
+    private bool isDragCancelled = false;
 
     public virtual void Init(Track track, NoteType note)
     {
@@ -68,6 +74,7 @@ where C : IEditableNoteContainer<N>
 
         ChartManager.OnChartChanged += DestroyOnChartChanged;
         UIManager.OnElementSelected += OnNoteSelected;
+        UIManager.OnElementDeselected += OnNoteDeselected;
     }
 
     protected virtual void OnDestroy()
@@ -151,6 +158,30 @@ where C : IEditableNoteContainer<N>
         if (Note != null && newNote == Note) transform.SetAsLastSibling();
     }
 
+    public void OnNoteDeselected(object previousElement, object newElement)
+    {
+        if (isBeingDragged)
+        {
+            // if this note is dropped while in multiselection, drop all other notes
+            if (isInMarqueeSelection && UIManager.SelectionGroup.eventSenderNote==Note && isReadyToShareEventData)
+            {
+                Debug.Log("passing cancel drag to all selected notes!");
+                isReadyToShareEventData = false;
+                UIManager.SelectionGroup.eventSenderNote = null;
+                UIManager.SelectionGroup.CancelMultiselectMoveAction(previousElement, newElement);
+            }
+            else if (previousElement==Note ||
+                    (Note is EditableWheelTurn turn && turn.Container==previousElement) ||
+                    (Note is EditableLeverNote note && note.Container==previousElement))
+            {
+                isReadyToShareEventData = true;
+                isDragCancelled = true;
+                isBeingDragged = false;
+                OnCancelDrag();
+            }
+        }
+    }
+
     void DestroyOnChartChanged(EditableChart prevChart, EditableChart newChart)
     {
         Destroy(gameObject);
@@ -162,12 +193,6 @@ where C : IEditableNoteContainer<N>
         {
             Destroy(gameObject);
         }
-    }
-
-    public void OnPointerDown(PointerEventData eventData)
-    {
-        UIManager.SelectionGroup.eventSenderNote = null;
-        isBeingDragged = false;
     }
 
     public void OnPointerClick(PointerEventData eventData)
@@ -196,7 +221,7 @@ where C : IEditableNoteContainer<N>
             UIManager.SelectionGroup.eventSenderNote=Note;
         }
         // if this note is dragged while in multiselection, drag all other notes
-        if (isInMarqueeSelection && UIManager.SelectionGroup.eventSenderNote==Note && isReadyToShareEventData) //UIManager.ClickedElement == Note && isReadyToShareEventData)
+        if (isInMarqueeSelection && UIManager.SelectionGroup.eventSenderNote==Note && isReadyToShareEventData)
         {
             Debug.Log("passing begin drag to all selected notes!");
             isReadyToShareEventData = false;
@@ -207,6 +232,7 @@ where C : IEditableNoteContainer<N>
         {
             isReadyToShareEventData = true;
             isBeingDragged = true;
+            isDragCancelled = false;
             if (eventData.button != PointerEventData.InputButton.Left) return;
             pointerEventData = eventData;
             if (Track.PointerToTrackPosition(eventData.pressPosition, clamp: false) is not var (pos, time)) return;
@@ -220,50 +246,59 @@ where C : IEditableNoteContainer<N>
 
     public virtual void OnDrag(PointerEventData eventData)
     {
-        // if this note is dragged while in multiselection, drag all other notes
-        if (isInMarqueeSelection && UIManager.SelectionGroup.eventSenderNote==Note && isReadyToShareEventData) //UIManager.ClickedElement == Note && isReadyToShareEventData)
+        if (!isDragCancelled)
         {
-            Debug.Log("passing drag to all selected notes!");
-            // sender marks flag as false so that they can receive the event data at the correct time
-            isReadyToShareEventData = false;
-            UIManager.SelectionGroup.PassEventDataToAllSelectedNotes(eventData, ExecuteEvents.dragHandler);
-        }
-        else
-        {
-            isReadyToShareEventData = true;
-            if (eventData.button != PointerEventData.InputButton.Left) return;
-            pointerEventData = eventData;
-            if (Track.PointerToTrackPosition(eventData.position, clamp: false) is not var (dragPos, dragTime)) return;
-            this.dragPos = dragPos;
-            this.dragTime = dragTime;
-            dragPosDiff = dragPos - dragStartPointerPos;
-            dragTimeDiff = dragTime - dragStartPointerTime;
-            dragPosDelta = dragPos - lastDragPos;
-            dragTimeDelta = dragTime - lastDragTime;
-            lastDragPos = dragPos;
-            lastDragTime = dragTime;
-            OnDrag();
+            // if this note is dragged while in multiselection, drag all other notes
+            if (isInMarqueeSelection && UIManager.SelectionGroup.eventSenderNote==Note && isReadyToShareEventData)
+            {
+                Debug.Log("passing drag to all selected notes!");
+                // sender marks flag as false so that they can receive the event data at the correct time
+                isReadyToShareEventData = false;
+                UIManager.SelectionGroup.PassEventDataToAllSelectedNotes(eventData, ExecuteEvents.dragHandler);
+            }
+            else
+            {
+                isReadyToShareEventData = true;
+                if (eventData.button != PointerEventData.InputButton.Left) return;
+                pointerEventData = eventData;
+                if (Track.PointerToTrackPosition(eventData.position, clamp: false) is not var (dragPos, dragTime)) return;
+                this.dragPos = dragPos;
+                this.dragTime = dragTime;
+                dragPosDiff = dragPos - dragStartPointerPos;
+                dragTimeDiff = dragTime - dragStartPointerTime;
+                dragPosDelta = dragPos - lastDragPos;
+                dragTimeDelta = dragTime - lastDragTime;
+                lastDragPos = dragPos;
+                lastDragTime = dragTime;
+                OnDrag();
+            }
         }
     }
 
     public virtual void OnEndDrag(PointerEventData eventData)
     {
-        // if this note is dropped while in multiselection, drop all other notes
-        if (isInMarqueeSelection && UIManager.SelectionGroup.eventSenderNote==Note && isReadyToShareEventData) //UIManager.ClickedElement == Note && isReadyToShareEventData)
+        if (!isDragCancelled)
         {
-            Debug.Log("passing end drag to all selected notes!");
-            isReadyToShareEventData = false;
-            UIManager.SelectionGroup.eventSenderNote = null;
-            UIManager.SelectionGroup.CommitMultiselectMoveAction(eventData);
+            // if this note is dropped while in multiselection, drop all other notes
+            if (isInMarqueeSelection && UIManager.SelectionGroup.eventSenderNote==Note && isReadyToShareEventData)
+            {
+                Debug.Log("passing end drag to all selected notes!");
+                isReadyToShareEventData = false;
+                UIManager.SelectionGroup.eventSenderNote = null;
+                UIManager.SelectionGroup.CommitMultiselectMoveAction(eventData);
+            }
+            else
+            {
+                isReadyToShareEventData = true;
+                OnEndDrag();
+            }
         }
-        else
-        {
-            isReadyToShareEventData = true;
-            OnEndDrag();
-        }
+        isBeingDragged = false;
+        UIManager.SelectionGroup.eventSenderNote = null;
     }
 
     protected virtual void OnDragStart() {}
     protected virtual void OnDrag() {}
     protected virtual void OnEndDrag() {}
+    protected virtual void OnCancelDrag() {}
 }

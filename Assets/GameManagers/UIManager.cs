@@ -18,9 +18,11 @@ public enum UICursorMode
 public class UIManager : MonoBehaviour
 {
     public delegate void ElementSelectedEvent(object previousElement, object newElement);
+    public delegate void ElementDeselectedEvent(object previousElement, object newElement);
     public delegate void CursorModeChangedEvent(UICursorMode previousMode, UICursorMode newMode);
     
     public static event ElementSelectedEvent OnElementSelected;
+    public static event ElementDeselectedEvent OnElementDeselected;
     public static event CursorModeChangedEvent OnCursorModeChanged;
 
     public static UIManager Instance;
@@ -157,6 +159,7 @@ public class UIManager : MonoBehaviour
 
         deselectEvent.AddListener(() =>
         {
+            OnElementDeselected?.Invoke(SelectedElement, null);
             SelectedElement = null;
             SelectionGroup.ClearSelection();
             CursorMode = UICursorMode.None;

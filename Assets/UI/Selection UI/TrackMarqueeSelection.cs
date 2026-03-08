@@ -7,7 +7,6 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System.Linq;
 
-// TODO: Should this class be a child of NoteRenderer? i.e. make this a type of "note" that is composed of other notes in selection?
 [RequireComponent(typeof(RectTransform))]
 public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
 {

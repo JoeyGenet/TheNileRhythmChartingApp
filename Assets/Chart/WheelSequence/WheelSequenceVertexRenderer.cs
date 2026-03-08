@@ -225,4 +225,26 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
             UIManager.SelectionGroup.AddToMultiselectMoveAction(wheelSequenceAction);
         }
     }
+
+    protected override void OnCancelDrag()
+    {
+        WheelSequence.StartTime = dragStartSeqTime;
+        if (dragStartEndTimes != null)
+        {
+            foreach (var note in dragStartEndTimes.Keys)
+            {
+                note.EndTime = dragStartEndTimes[note];
+            }
+        }
+        // changing the delta angle and wheel sequence position calls RecomputeStartAngle()
+        // so these must be done after all other changes have been made (for some reason)
+        if (oldDeltaAngles != null)
+        {
+            foreach (var note in oldDeltaAngles.Keys)
+            {
+                note.DeltaAngle = oldDeltaAngles[note];
+            }
+        }
+        WheelSequence.Pos = dragStartSeqPos;
+    }
 }

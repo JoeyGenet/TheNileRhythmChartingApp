@@ -147,4 +147,11 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
             UIManager.SelectionGroup.AddToMultiselectMoveAction(moveButtonNoteAction);
         }
     }
+
+    protected override void OnCancelDrag()
+    {
+        Note.LeftPos = dragStartLeftPos;
+        Note.RightPos = dragStartRightPos;
+        Note.StartTime = dragStartTime;
+    }
 }

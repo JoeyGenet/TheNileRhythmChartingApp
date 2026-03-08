@@ -128,4 +128,10 @@ public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerClic
             UIManager.SelectionGroup.AddToMultiselectMoveAction(editWheelFlickAction);
         }
     }
+
+    protected override void OnCancelDrag()
+    {
+        Note.StartTime = dragStartTime;
+        Note.Dir = oldDir;
+    }
 }

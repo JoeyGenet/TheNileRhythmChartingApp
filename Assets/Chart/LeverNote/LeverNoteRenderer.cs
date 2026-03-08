@@ -223,4 +223,17 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
             UIManager.SelectionGroup.AddToMultiselectMoveAction(editLeverSequenceAction);
         }
     }
+
+    protected override void OnCancelDrag()
+    {
+        Note.Container.Dir = dragStartDir;
+        if (dragStartTimes != null)
+        {
+            foreach (EditableLeverNote note in dragStartTimes.Keys)
+            {
+                note.StartTime = dragStartTimes[note];
+                note.Pos = oldLeverPositions[note];
+            }
+        }
+    }
 }
