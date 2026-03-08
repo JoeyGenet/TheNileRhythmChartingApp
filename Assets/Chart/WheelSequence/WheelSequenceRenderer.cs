@@ -4,7 +4,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class WheelSequenceRenderer : NoteRenderer<EditableWheelSequence>, IPointerDownHandler
+public class WheelSequenceRenderer : NoteRenderer<EditableWheelSequence>, IPointerClickHandler
 {
     [SerializeField] RectTransform linesParent;
     [SerializeField] UILine linePrefab;
@@ -91,6 +91,6 @@ public class WheelSequenceRenderer : NoteRenderer<EditableWheelSequence>, IPoint
 
     protected override void OnLeftClick()
     {
-        SelectNoteOrMultiselection(Note);
+        // SelectNoteOrMultiselection(Note);
     } 
 }

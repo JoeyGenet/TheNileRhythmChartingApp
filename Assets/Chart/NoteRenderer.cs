@@ -19,7 +19,7 @@ where C : IEditableNoteContainer<NoteType>
 {}
 
 [RequireComponent(typeof(RectTransform))]
-public abstract class NoteRenderer<NoteType, C, N> : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
+public abstract class NoteRenderer<NoteType, C, N> : MonoBehaviour, IPointerDownHandler, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
 where NoteType : N, IEditableNote<C, N>
 where N : Note
 where C : IEditableNoteContainer<N>
@@ -46,6 +46,7 @@ where C : IEditableNoteContainer<N>
     private int lastDragTime;
 
     private bool isReadyToShareEventData;
+    protected bool isBeingDragged = false;
 
     public virtual void Init(Track track, NoteType note)
     {
@@ -100,12 +101,44 @@ where C : IEditableNoteContainer<N>
         }
     }
 
+    protected void AddOrSubtractNoteFromSelection(Note note, Note sequenceContainer=null)
+    {
+        // create new selection from previously selected note
+        // only include it if there is no current selection
+        // and if it wasn't just cleared from a selection
+        if (UIManager.SelectedElement!=null && UIManager.SelectedElement!=UIManager.SelectionGroup && TrackMarqueeSelection.AddToSelection && 
+            UIManager.ClickedElement is Note previousNote && !UIManager.SelectionGroup.lastDeselectedNotes.Contains(previousNote))
+        {
+            UIManager.SelectionGroup.SelectNotes(TrackMarqueeSelection.AddToSelection, new SortedSet<Note> {previousNote}, true);
+        }
+
+        // for sequence notes, add/remove the sequence itself
+        if (sequenceContainer != null)
+        {
+            UIManager.SelectionGroup.SelectNotes(TrackMarqueeSelection.AddToSelection, new SortedSet<Note> {sequenceContainer}, true);    
+        }
+
+        // add/remove the clicked note to the group
+        UIManager.SelectionGroup.SelectNotes(TrackMarqueeSelection.AddToSelection, new SortedSet<Note> {note}, true);
+
+        if (UIManager.SelectionGroup.notes.Count > 0)
+        {
+            UIManager.SelectedElement = UIManager.SelectionGroup;
+        }
+        else
+        {
+            UIManager.SelectedElement = null;
+        }
+    }
+
     protected void SelectNoteOrMultiselection(Note note)
     {
+        // if this note is in selection group, select the group
         if (isInMarqueeSelection)
         {
             UIManager.SelectedElement = UIManager.SelectionGroup;
         }
+        // if this note is outside selection group, deselect all
         else
         {
             UIManager.SelectedElement = note;
@@ -133,6 +166,12 @@ where C : IEditableNoteContainer<N>
 
     public void OnPointerDown(PointerEventData eventData)
     {
+        UIManager.SelectionGroup.eventSenderNote = null;
+        isBeingDragged = false;
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
         pointerEventData = eventData;
         switch (eventData.button)
         {
@@ -151,8 +190,13 @@ where C : IEditableNoteContainer<N>
 
     public virtual void OnBeginDrag(PointerEventData eventData)
     {
+        // the first note to be dragged should pass event data to all others
+        if (UIManager.SelectionGroup.eventSenderNote==null)
+        {
+            UIManager.SelectionGroup.eventSenderNote=Note;
+        }
         // if this note is dragged while in multiselection, drag all other notes
-        if (isInMarqueeSelection && UIManager.ClickedElement == Note && isReadyToShareEventData)
+        if (isInMarqueeSelection && UIManager.SelectionGroup.eventSenderNote==Note && isReadyToShareEventData) //UIManager.ClickedElement == Note && isReadyToShareEventData)
         {
             Debug.Log("passing begin drag to all selected notes!");
             isReadyToShareEventData = false;
@@ -162,6 +206,7 @@ where C : IEditableNoteContainer<N>
         else
         {
             isReadyToShareEventData = true;
+            isBeingDragged = true;
             if (eventData.button != PointerEventData.InputButton.Left) return;
             pointerEventData = eventData;
             if (Track.PointerToTrackPosition(eventData.pressPosition, clamp: false) is not var (pos, time)) return;
@@ -176,7 +221,7 @@ where C : IEditableNoteContainer<N>
     public virtual void OnDrag(PointerEventData eventData)
     {
         // if this note is dragged while in multiselection, drag all other notes
-        if (isInMarqueeSelection && UIManager.ClickedElement == Note && isReadyToShareEventData)
+        if (isInMarqueeSelection && UIManager.SelectionGroup.eventSenderNote==Note && isReadyToShareEventData) //UIManager.ClickedElement == Note && isReadyToShareEventData)
         {
             Debug.Log("passing drag to all selected notes!");
             // sender marks flag as false so that they can receive the event data at the correct time
@@ -204,10 +249,11 @@ where C : IEditableNoteContainer<N>
     public virtual void OnEndDrag(PointerEventData eventData)
     {
         // if this note is dropped while in multiselection, drop all other notes
-        if (isInMarqueeSelection && UIManager.ClickedElement == Note && isReadyToShareEventData)
+        if (isInMarqueeSelection && UIManager.SelectionGroup.eventSenderNote==Note && isReadyToShareEventData) //UIManager.ClickedElement == Note && isReadyToShareEventData)
         {
             Debug.Log("passing end drag to all selected notes!");
             isReadyToShareEventData = false;
+            UIManager.SelectionGroup.eventSenderNote = null;
             UIManager.SelectionGroup.CommitMultiselectMoveAction(eventData);
         }
         else

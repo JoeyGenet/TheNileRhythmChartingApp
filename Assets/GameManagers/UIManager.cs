@@ -49,7 +49,7 @@ public class UIManager : MonoBehaviour
     public static object ClickedElement
     {
         get => Instance.clickedElement;
-        set { Instance.clickedElement = value ;}
+        set { Instance.clickedElement = value; }
     }
 
     object selectedElement;

@@ -6,7 +6,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(AudioSource))]
-public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerDownHandler, IBeginDragHandler, IDragHandler
+public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerClickHandler, IBeginDragHandler, IDragHandler
 {
     // public WheelFlick Note;
 
@@ -54,8 +54,22 @@ public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerDown
 
     protected override void OnLeftClick() 
     {
+        if (!isBeingDragged)
+        {
+            // if holding shift/ctrl/alt, either add this note to or remove it from current selection
+            if (TrackMarqueeSelection.ModifyExistingSelection && UIManager.SelectedElement != null &&
+                (UIManager.ClickedElement is Note || UIManager.SelectedElement is TrackMarqueeSelectionGroup))
+            {
+                AddOrSubtractNoteFromSelection(Note);
+            }
+            // select the group if it contains Note, or clear group and select Note
+            else
+            {
+                SelectNoteOrMultiselection(Note);
+            }
+        }
+
         UIManager.ClickedElement = Note;
-        SelectNoteOrMultiselection(Note);
     } 
     protected override void OnRightClick() => Note.RemoveSelf();
 

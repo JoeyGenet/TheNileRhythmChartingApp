@@ -82,8 +82,22 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
 
     protected override void OnLeftClick() 
     {
+        if (!isBeingDragged)
+        {
+            // if holding shift/ctrl/alt, either add this note to or remove it from current selection
+            if (TrackMarqueeSelection.ModifyExistingSelection && UIManager.SelectedElement != null &&
+                (UIManager.ClickedElement is Note || UIManager.SelectedElement is TrackMarqueeSelectionGroup))
+            {
+                AddOrSubtractNoteFromSelection(Note, Note.Container);
+            }
+            // select the group if it contains Note, or clear group and select Note.Container
+            else
+            {
+                SelectNoteOrMultiselection(Note.Container);
+            }
+        }
+        
         UIManager.ClickedElement = Note;
-        SelectNoteOrMultiselection(Note.Container);
     }
 
     protected override void OnRightClick()

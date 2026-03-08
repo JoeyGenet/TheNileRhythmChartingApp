@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class LeverSequenceRenderer : NoteRenderer<EditableLeverSequence>, IPointerDownHandler
+public class LeverSequenceRenderer : NoteRenderer<EditableLeverSequence>, IPointerClickHandler
 {
     [SerializeField] RectTransform line;
     [SerializeField] LeverNoteRenderer leverNotePrefab;
@@ -51,6 +51,6 @@ public class LeverSequenceRenderer : NoteRenderer<EditableLeverSequence>, IPoint
 
     protected override void OnLeftClick()
     {
-        SelectNoteOrMultiselection(Note);
+        // SelectNoteOrMultiselection(Note);
     } 
 }

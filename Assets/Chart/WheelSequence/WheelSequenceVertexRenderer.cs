@@ -5,7 +5,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, EditableWheelSequence>, IPointerDownHandler
+public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, EditableWheelSequence>, IPointerClickHandler
 {
     public EditableWheelSequence WheelSequence { get; private set; }
 
@@ -49,8 +49,23 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
 
     protected override void OnLeftClick() 
     {
+        if (!isBeingDragged)
+        {
+            // if holding shift/ctrl/alt, either add this note to or remove it from current selection
+            if (TrackMarqueeSelection.ModifyExistingSelection && UIManager.SelectedElement != null &&
+                (UIManager.ClickedElement is Note || UIManager.SelectedElement is TrackMarqueeSelectionGroup))
+            {
+                AddOrSubtractNoteFromSelection(Note, Note.Container);
+            }
+            // select the group if it contains Note, or clear group and select Note.Container
+            else
+            {
+                SelectNoteOrMultiselection(Note.Container);
+            }
+        }
+
         UIManager.ClickedElement = Note;
-        SelectNoteOrMultiselection(WheelSequence);
+
     } 
 
     protected override void OnRightClick()

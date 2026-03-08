@@ -17,11 +17,9 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IBeginD
     [SerializeField] RectTransform marquee;
     [SerializeField] Image marqueeImage;
     [SerializeField] Track Track;
-    // [SerializeField] EventRelay AddToSelectionToggle;
-    // [SerializeField] EventRelay RemoveFromSelectionToggle;
 
     private bool modifyExistingSelection;
-    private bool ModifyExistingSelection
+    public static bool ModifyExistingSelection
     {
         get 
         { 
@@ -32,7 +30,7 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IBeginD
     }
 
     private bool addToSelection;
-    private bool AddToSelection
+    public static bool AddToSelection
     {
         get 
         { 

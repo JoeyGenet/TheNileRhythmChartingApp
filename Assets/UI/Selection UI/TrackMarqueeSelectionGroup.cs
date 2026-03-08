@@ -9,6 +9,8 @@ public class TrackMarqueeSelectionGroup
 {
     private Track track;
     public SortedSet<Note> notes { get; private set; }
+    public SortedSet<Note> lastDeselectedNotes { get; private set; }
+    public Note eventSenderNote;
     private MultiselectMoveAction multiselectMoveAction;
 
     public TrackMarqueeSelectionGroup(Track track)
@@ -45,6 +47,7 @@ public class TrackMarqueeSelectionGroup
 
         // flag existing selection if no new notes were selected
         SortedSet<Note> notesToFlag = selectedNotes == null ? notes : selectedNotes;
+        if (!addToSelection) lastDeselectedNotes = notesToFlag;
         foreach(Note note in notesToFlag)
         {
             // get the object associated with each note

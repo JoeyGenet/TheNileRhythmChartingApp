@@ -47,8 +47,22 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
 
     protected override void OnLeftClick() 
     {
+        if (!isBeingDragged)
+        {
+            // if holding shift/ctrl/alt, either add this note to or remove it from current selection
+            if (TrackMarqueeSelection.ModifyExistingSelection && UIManager.SelectedElement != null &&
+                (UIManager.ClickedElement is Note || UIManager.SelectedElement is TrackMarqueeSelectionGroup))
+            {
+                AddOrSubtractNoteFromSelection(Note);
+            }
+            // select the group if it contains Note, or clear group and select Note
+            else
+            {
+                SelectNoteOrMultiselection(Note);
+            }
+        }
+        
         UIManager.ClickedElement = Note;
-        SelectNoteOrMultiselection(Note);
     } 
     
     protected override void OnRightClick()
