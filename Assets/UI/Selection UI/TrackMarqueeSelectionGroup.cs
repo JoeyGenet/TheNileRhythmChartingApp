@@ -186,19 +186,19 @@ public class TrackMarqueeSelectionGroup
                 {
                     case EditableButtonNote:
                         ButtonNoteRenderer buttonNoteRenderer = gameObject.GetComponent<ButtonNoteRenderer>();
-                        buttonNoteRenderer.OnNoteDeselected(note, newElement);
+                        buttonNoteRenderer.OnNoteSelected(note, newElement);
                         break;
                     case EditableLeverNote:
                         LeverNoteRenderer leverNoteRenderer = gameObject.GetComponent<LeverNoteRenderer>();
-                        leverNoteRenderer.OnNoteDeselected(note, newElement);
+                        leverNoteRenderer.OnNoteSelected(note, newElement);
                         break;
                     case EditableWheelFlick:
                         WheelFlickRenderer wheelFlickRenderer = gameObject.GetComponent<WheelFlickRenderer>();
-                        wheelFlickRenderer.OnNoteDeselected(note, newElement);
+                        wheelFlickRenderer.OnNoteSelected(note, newElement);
                         break;
                     case EditableWheelTurn:
                         WheelSequenceVertexRenderer wheelSequenceVertexRenderer = gameObject.GetComponent<WheelSequenceVertexRenderer>();
-                        wheelSequenceVertexRenderer.OnNoteDeselected(note, newElement);
+                        wheelSequenceVertexRenderer.OnNoteSelected(note, newElement);
                         break; 
                     default:
                         break;
@@ -209,7 +209,9 @@ public class TrackMarqueeSelectionGroup
 
     public bool CommitMultiselectDeleteAction()
     {
+        UIManager.SelectedElement = null;
         bool isRemoveSuccessful = true;
+
         MultiselectRemoveAction multiselectRemoveAction = new MultiselectRemoveAction(new List<UndoRedoAction>());
         // remove notes from latest to newest
         // this simplifies deleting notes from wheel sequences, as we are guaranteed to remove starting note last
@@ -266,7 +268,6 @@ public class TrackMarqueeSelectionGroup
         }
         multiselectRemoveAction.CommitAction();
         ClearSelection();
-        UIManager.SelectedElement = null;
         return isRemoveSuccessful;
     }
 }
