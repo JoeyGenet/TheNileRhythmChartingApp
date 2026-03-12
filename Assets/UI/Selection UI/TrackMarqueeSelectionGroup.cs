@@ -173,7 +173,7 @@ public class TrackMarqueeSelectionGroup
         multiselectMoveAction.CommitAction();
     }
 
-    public void CancelMultiselectMoveAction(object previousNote, object newElement)
+    public void CancelMultiselectMoveAction()
     {
         foreach(Note note in notes)
         {
@@ -186,19 +186,19 @@ public class TrackMarqueeSelectionGroup
                 {
                     case EditableButtonNote:
                         ButtonNoteRenderer buttonNoteRenderer = gameObject.GetComponent<ButtonNoteRenderer>();
-                        buttonNoteRenderer.OnNoteSelected(note, newElement);
+                        buttonNoteRenderer.CancelDrag();
                         break;
                     case EditableLeverNote:
                         LeverNoteRenderer leverNoteRenderer = gameObject.GetComponent<LeverNoteRenderer>();
-                        leverNoteRenderer.OnNoteSelected(note, newElement);
+                        leverNoteRenderer.CancelDrag();
                         break;
                     case EditableWheelFlick:
                         WheelFlickRenderer wheelFlickRenderer = gameObject.GetComponent<WheelFlickRenderer>();
-                        wheelFlickRenderer.OnNoteSelected(note, newElement);
+                        wheelFlickRenderer.CancelDrag();
                         break;
                     case EditableWheelTurn:
                         WheelSequenceVertexRenderer wheelSequenceVertexRenderer = gameObject.GetComponent<WheelSequenceVertexRenderer>();
-                        wheelSequenceVertexRenderer.OnNoteSelected(note, newElement);
+                        wheelSequenceVertexRenderer.CancelDrag();
                         break; 
                     default:
                         break;

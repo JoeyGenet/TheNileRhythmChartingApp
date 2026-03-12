@@ -152,7 +152,7 @@ where C : IEditableNoteContainer<N>
         }
     }
 
-    public void OnNoteSelected(object previousNote, object newNote)
+    private void OnNoteSelected(object previousNote, object newNote)
     {
         if (Note != null && newNote == Note) transform.SetAsLastSibling();
 
@@ -164,19 +164,24 @@ where C : IEditableNoteContainer<N>
             {
                 Debug.Log("passing cancel drag to all selected notes!");
                 isReadyToShareEventData = false;
-                UIManager.SelectionGroup.CancelMultiselectMoveAction(previousNote, newNote);
+                UIManager.SelectionGroup.CancelMultiselectMoveAction();
             }
             else if (previousNote==Note ||
                     (Note is EditableWheelTurn turn && turn.Container==previousNote) ||
                     (Note is EditableLeverNote note && note.Container==previousNote))
             {
-                isReadyToShareEventData = true;
-                isDragCancelled = true;
-                isBeingDragged = false;
-                UIManager.SelectionGroup.eventSenderNote = null;
-                OnCancelDrag();
+                CancelDrag();
             }
         }
+    }
+
+    public void CancelDrag()
+    {
+        isReadyToShareEventData = true;
+        isDragCancelled = true;
+        isBeingDragged = false;
+        UIManager.SelectionGroup.eventSenderNote = null;
+        OnCancelDrag();
     }
 
     void DestroyOnChartChanged(EditableChart prevChart, EditableChart newChart)

@@ -76,16 +76,22 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
 
         if (Track.PointerToTrackPosition(pointerEventData.position, clamp: false) is not var (clickPos, _)) return;
 
+        // cache note positions before drag clear to detect which note we are mousing over
+        int lastLeftPos = Note.LeftPos;
+        int lastRightPos = rightPos;
+        // if we delete a paired note while dragging, cancel drag
+        // to prevent an UndoRedoAction from being logged when drag is complete
+        CancelDrag();
         int oldLeftPos = Note.LeftPos;
-        int? oldRightPos = Note.RightPos;
+        int oldRightPos = (int)Note.RightPos;
 
-        if (Math.Abs(clickPos - rightPos) < Math.Abs(clickPos - Note.LeftPos))
+        if (Math.Abs(clickPos - lastRightPos) < Math.Abs(clickPos - lastLeftPos))
         {
             Note.RightPos = null;
         }
         else
         {
-            Note.LeftPos = rightPos;
+            Note.LeftPos = oldRightPos;
             Note.RightPos = null;
         }
 
