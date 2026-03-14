@@ -113,7 +113,10 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
         // do not allow for whole sequence dragging if this note is in marquee selection
         if ((Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) && !isInMarqueeSelection)
         {
-            if (Note != null)
+            // undo any single-note drag changes before applying drag diff to whole sequence
+            OnCancelDrag();
+            
+            if (!isStartingVertex)
             {
                 int deltaAngleDiff = dragStartDeltaAngle - Note.DeltaAngle;
                 Note.DeltaAngle += deltaAngleDiff;
@@ -153,12 +156,8 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
             // ... unless this note is in a marquee selection
             if (!isInMarqueeSelection)
             {
-                WheelSequence.StartTime = dragStartSeqTime;
-
-                foreach (var note in dragStartEndTimes.Keys)
-                {
-                    note.EndTime = dragStartEndTimes[note];
-                }
+                // undo any changes to other notes via shift+drag before applying drag diff to this note
+                OnCancelDrag();
             }
 
             int currentDragStartStartAngle = dragStartStartAngle;
