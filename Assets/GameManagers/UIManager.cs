@@ -3,6 +3,8 @@ using TMPro;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
+using Unity.VisualScripting;
+using System.Linq;
 
 // Tells what the cursor does in the UI
 public enum UICursorMode
@@ -56,13 +58,30 @@ public class UIManager : MonoBehaviour
     public static object SelectedElement
     {
         get => Instance.selectedElement;
-        set
+        // no setter. SelectElement() should be used instead
+        // so we can commit selection changes to edit history
+    }
+
+    public static void SelectElement(object newElement, bool updateEditHistory=true)
+    {
+        if (Instance.selectedElement != newElement)
         {
-            if (Instance.selectedElement != value)
+            object prevElement = Instance.selectedElement;
+            Instance.selectedElement = newElement;
+            OnElementSelected?.Invoke(prevElement, newElement);
+            if (prevElement is TrackMarqueeSelectionGroup prevTrackMarqueeSelectionGroup)
             {
-                object prevElement = Instance.selectedElement;
-                Instance.selectedElement = value;
-                OnElementSelected?.Invoke(prevElement, value);
+                prevTrackMarqueeSelectionGroup.FlagNotes(false);
+            }
+            if (newElement is TrackMarqueeSelectionGroup newTrackMarqueeSelectionGroup)
+            {
+                SelectionGroup = newTrackMarqueeSelectionGroup;
+                newTrackMarqueeSelectionGroup.FlagNotes(true);
+            }
+            if (updateEditHistory)
+            {
+                SelectElementAction selectElementAction = new SelectElementAction(prevElement, newElement);
+                selectElementAction.CommitAction();
             }
         }
     }
@@ -72,6 +91,70 @@ public class UIManager : MonoBehaviour
     {
         get => Instance.selectionGroup;
         set { Instance.selectionGroup = value; }
+    }
+
+    public static void MultiselectElements(bool addToSelection, SortedSet<Note> selectedNotes=null, bool modifyExistingSelection=false, bool updateEditHistory=true)
+    {
+        // if notes are being removed from the selection, cache them
+        SortedSet<Note> notesToFlag = selectedNotes == null ? SelectionGroup.notes : selectedNotes;
+        if (!addToSelection) SelectionGroup.lastDeselectedNotes = notesToFlag;
+        
+        // if group is not selected prior to MultiselectElements(), or if not modifying existing multiselection,
+        // make new selection
+        bool makeNewSelection = !modifyExistingSelection || SelectedElement!=SelectionGroup;
+
+        // create new list of selected notes
+        SortedSet<Note> oldNotes = new SortedSet<Note>(SelectionGroup.notes);
+        SortedSet<Note> newNotes = makeNewSelection ? new SortedSet<Note>() : new SortedSet<Note>(SelectionGroup.notes);
+        if (selectedNotes != null && selectedNotes.Count > 0)
+        {
+            if (addToSelection)
+            {
+                newNotes.AddRange(selectedNotes);
+            }
+            else
+            {
+                newNotes.RemoveWhere(note => selectedNotes.Contains(note));
+            }
+        }
+
+        // selection/edit history management
+        // only update history if the contents of selection changed, 
+        // or if  selection is changing from note to selection group
+        bool selectionChanged = !newNotes.All(note => oldNotes.Contains(note)) || newNotes.Count!=oldNotes.Count || SelectedElement!=SelectionGroup;
+        if (selectionChanged)
+        {
+            // unflag all notes to reset before modifying notes list
+            SelectionGroup.FlagNotes(false);
+            // if we clear multiselection, treat it like a selection action
+            if (newNotes.Count==0)
+            {
+                SelectElement(null, updateEditHistory);
+            }
+            else
+            {
+                // create new multiselection and select it with selection action
+                if (makeNewSelection)
+                {
+                    if (updateEditHistory)
+                    {
+                        SelectionGroup = new TrackMarqueeSelectionGroup(Instance.track);
+                    }
+                    SelectionGroup.notes = newNotes;
+                    SelectElement(SelectionGroup, updateEditHistory);
+                }
+                // otherwise, if we modify existing multiselection, commit modify multiselect action
+                else if (updateEditHistory)
+                {
+                    SelectionGroup.notes = newNotes;
+                    ModifyMultiselectionAction modifyMultiselectionAction = new ModifyMultiselectionAction(oldNotes, newNotes);
+                    modifyMultiselectionAction.CommitAction();
+                }
+                // flag all notes that are now selected
+                SelectionGroup.notes = newNotes;
+                SelectionGroup.FlagNotes(true);
+            }
+        }
     }
 
     UICursorMode cursorMode;
@@ -157,8 +240,7 @@ public class UIManager : MonoBehaviour
 
         deselectEvent.AddListener(() =>
         {
-            SelectedElement = null;
-            SelectionGroup.ClearSelection();
+            SelectElement(null);
             CursorMode = UICursorMode.None;
         });
 
@@ -195,7 +277,7 @@ public class UIManager : MonoBehaviour
         return alert;
     }
 
-    public void DeselectOnChartChanged(EditableChart prevChart, EditableChart newChart) => SelectedElement = null;// SelectNote(null);
-    public void SelectNoteOnNoteAdded(Note note) => SelectedElement = note;// SelectNote(note);
-    void DeselectNoteOnNoteRemoved(Note note) => SelectedElement = null;// SelectNote(null);
+    public void DeselectOnChartChanged(EditableChart prevChart, EditableChart newChart) => SelectElement(null, updateEditHistory:false);
+    public void SelectNoteOnNoteAdded(Note note) => SelectElement(note, updateEditHistory:false);
+    void DeselectNoteOnNoteRemoved(Note note) => SelectElement(null, updateEditHistory:false);
 }

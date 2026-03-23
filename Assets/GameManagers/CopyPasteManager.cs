@@ -70,7 +70,11 @@ public class CopyPasteManager : MonoBehaviour
     {
         if (Instance.noteClipboard.Count > 0)
         {
-            MultiselectPasteAction multiselectPasteAction = new MultiselectPasteAction(new List<UndoRedoAction>());
+            // deselect current note or selection
+            // commit as UndoRedoAction
+            UIManager.SelectElement(null);
+
+            MultiselectPasteAction multiselectPasteAction = new MultiselectPasteAction( new List<UndoRedoAction>());
             EditableChart chart = ChartManager.SelectedChart;
             int selectionStartTime = Instance.noteClipboard.First().StartTime;
             int pasteStartTime = time;

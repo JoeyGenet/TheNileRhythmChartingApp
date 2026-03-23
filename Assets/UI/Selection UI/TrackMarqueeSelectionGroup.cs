@@ -8,73 +8,50 @@ using static UnityEngine.EventSystems.ExecuteEvents;
 public class TrackMarqueeSelectionGroup
 {
     private Track track;
-    public SortedSet<Note> notes { get; private set; }
-    public SortedSet<Note> lastDeselectedNotes { get; private set; }
+    public SortedSet<Note> notes { get; set; }
+    public SortedSet<Note> lastDeselectedNotes { get; set; }
     public Note eventSenderNote;
     private MultiselectMoveAction multiselectMoveAction;
 
     public TrackMarqueeSelectionGroup(Track track)
     {
         notes = new SortedSet<Note>();
+        lastDeselectedNotes = new SortedSet<Note>();
         this.track = track;
     }
 
-    public void ClearSelection()
+    public void FlagNotes(bool addToSelection)
     {
-        SelectNotes(false);
-        UIManager.SelectionGroup.notes.Clear();
-    }
-
-    public void SelectNotes(bool addToSelection, SortedSet<Note> selectedNotes=null, bool modifyExistingSelection=false)
-    {
-        // create new selection
-        if (selectedNotes != null && !modifyExistingSelection)
+        if (notes!=null)
         {
-            notes = selectedNotes;
-        }
-        // add or remove notes from existing selection
-        else if (modifyExistingSelection)
-        {
-            if (addToSelection)
+            foreach(Note note in notes)
             {
-                notes.AddRange(selectedNotes);
-            }
-            else
-            {
-                notes.RemoveWhere(note => selectedNotes.Contains(note));
-            }
-        }
-
-        // flag existing selection if no new notes were selected
-        SortedSet<Note> notesToFlag = selectedNotes == null ? notes : selectedNotes;
-        if (!addToSelection) lastDeselectedNotes = notesToFlag;
-        foreach(Note note in notesToFlag)
-        {
-            // get the object associated with each note
-            if (track.noteGameObjectMapping.TryGetValue(note, out GameObject gameObject) && gameObject!=null)
-            {
-                // flag all selected notes to change their click/drag/drop behavior
-                // only the clickable renderers will be added--no WheelSequences or LeverSequences here
-                switch (note)
+                // get the object associated with each note
+                if (track.noteGameObjectMapping.TryGetValue(note, out GameObject gameObject) && gameObject!=null)
                 {
-                    case EditableButtonNote:
-                        ButtonNoteRenderer buttonNoteRenderer = gameObject.GetComponent<ButtonNoteRenderer>();
-                        buttonNoteRenderer.isInMarqueeSelection = addToSelection;
-                        break;
-                    case EditableLeverNote:
-                        LeverNoteRenderer leverNoteRenderer = gameObject.GetComponent<LeverNoteRenderer>();
-                        leverNoteRenderer.isInMarqueeSelection = addToSelection;
-                        break;
-                    case EditableWheelFlick:
-                        WheelFlickRenderer wheelFlickRenderer = gameObject.GetComponent<WheelFlickRenderer>();
-                        wheelFlickRenderer.isInMarqueeSelection = addToSelection;
-                        break;
-                    case EditableWheelTurn:
-                        WheelSequenceVertexRenderer wheelSequenceVertexRenderer = gameObject.GetComponent<WheelSequenceVertexRenderer>();
-                        wheelSequenceVertexRenderer.isInMarqueeSelection = addToSelection;
-                        break; 
-                    default:
-                        break;
+                    // flag all selected notes to change their click/drag/drop behavior
+                    // only the clickable renderers will be added--no WheelSequences or LeverSequences here
+                    switch (note)
+                    {
+                        case EditableButtonNote:
+                            ButtonNoteRenderer buttonNoteRenderer = gameObject.GetComponent<ButtonNoteRenderer>();
+                            buttonNoteRenderer.isInMarqueeSelection = addToSelection;
+                            break;
+                        case EditableLeverNote:
+                            LeverNoteRenderer leverNoteRenderer = gameObject.GetComponent<LeverNoteRenderer>();
+                            leverNoteRenderer.isInMarqueeSelection = addToSelection;
+                            break;
+                        case EditableWheelFlick:
+                            WheelFlickRenderer wheelFlickRenderer = gameObject.GetComponent<WheelFlickRenderer>();
+                            wheelFlickRenderer.isInMarqueeSelection = addToSelection;
+                            break;
+                        case EditableWheelTurn:
+                            WheelSequenceVertexRenderer wheelSequenceVertexRenderer = gameObject.GetComponent<WheelSequenceVertexRenderer>();
+                            wheelSequenceVertexRenderer.isInMarqueeSelection = addToSelection;
+                            break; 
+                        default:
+                            break;
+                    }
                 }
             }
         }
@@ -209,7 +186,7 @@ public class TrackMarqueeSelectionGroup
 
     public bool CommitMultiselectDeleteAction()
     {
-        UIManager.SelectedElement = null;
+        UIManager.SelectElement(null, updateEditHistory:false);
         bool isRemoveSuccessful = true;
 
         MultiselectRemoveAction multiselectRemoveAction = new MultiselectRemoveAction(new List<UndoRedoAction>());
@@ -267,7 +244,6 @@ public class TrackMarqueeSelectionGroup
             }
         }
         multiselectRemoveAction.CommitAction();
-        ClearSelection();
         return isRemoveSuccessful;
     }
 }

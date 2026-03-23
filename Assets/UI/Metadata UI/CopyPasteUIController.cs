@@ -31,12 +31,12 @@ public class CopyPasteUIController : MonoBehaviour
 
     public void Copy()
     {
-        if (UIManager.SelectionGroup.notes.Count > 0)
+        // only copy notes from the last selection group if it is currently selected
+        if (UIManager.SelectedElement == UIManager.SelectionGroup && UIManager.SelectionGroup.notes.Count > 0)
         {
             CopyPasteManager.CopySelectedNotesToClipboard(UIManager.SelectionGroup.notes);
-            UIManager.SelectionGroup.ClearSelection();
-            UIManager.SelectedElement = null;
         }
+        // otherwise, copy selected note, if anything is selected at all
         else if (UIManager.SelectedElement != null && UIManager.SelectedElement is Note note)
         {
             SortedSet<Note> copiedNote = new SortedSet<Note>{note};

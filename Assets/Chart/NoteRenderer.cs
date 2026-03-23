@@ -109,46 +109,39 @@ where C : IEditableNoteContainer<N>
 
     protected void AddOrSubtractNoteFromSelection(Note note, Note sequenceContainer=null)
     {
+        SortedSet<Note> selectedNotes = new SortedSet<Note>();
+        
         // create new selection from previously selected note
         // only include it if there is no current selection
         // and if it wasn't just cleared from a selection
         if (UIManager.SelectedElement!=null && UIManager.SelectedElement!=UIManager.SelectionGroup && TrackMarqueeSelection.AddToSelection && 
             UIManager.ClickedElement is Note previousNote && !UIManager.SelectionGroup.lastDeselectedNotes.Contains(previousNote))
         {
-            UIManager.SelectionGroup.SelectNotes(TrackMarqueeSelection.AddToSelection, new SortedSet<Note> {previousNote}, true);
+            selectedNotes.Add(previousNote);
         }
 
         // for sequence notes, add/remove the sequence itself
         if (sequenceContainer != null)
         {
-            UIManager.SelectionGroup.SelectNotes(TrackMarqueeSelection.AddToSelection, new SortedSet<Note> {sequenceContainer}, true);    
+            selectedNotes.Add(sequenceContainer);
         }
 
         // add/remove the clicked note to the group
-        UIManager.SelectionGroup.SelectNotes(TrackMarqueeSelection.AddToSelection, new SortedSet<Note> {note}, true);
-
-        if (UIManager.SelectionGroup.notes.Count > 0)
-        {
-            UIManager.SelectedElement = UIManager.SelectionGroup;
-        }
-        else
-        {
-            UIManager.SelectedElement = null;
-        }
+        selectedNotes.Add(note);
+        UIManager.MultiselectElements(TrackMarqueeSelection.AddToSelection, selectedNotes, true);
     }
 
-    protected void SelectNoteOrMultiselection(Note note)
+    protected void SelectNoteOrMultiselection(Note note, bool updateEditHistory=true)
     {
         // if this note is in selection group, select the group
         if (isInMarqueeSelection)
         {
-            UIManager.SelectedElement = UIManager.SelectionGroup;
+            UIManager.SelectElement(UIManager.SelectionGroup, updateEditHistory);
         }
-        // if this note is outside selection group, deselect all
+        // if this note is outside selection group, deselect selection group and select this
         else
         {
-            UIManager.SelectedElement = note;
-            UIManager.SelectionGroup.ClearSelection();
+            UIManager.SelectElement(note, updateEditHistory);
         }
     }
 
@@ -159,7 +152,7 @@ where C : IEditableNoteContainer<N>
         // handle deselection of previous note/selection group
         if (isBeingDragged)
         {
-            // if this note is dropped while in multiselection, drop all other notes
+            // if this note is deselected while in multiselection, deselect all other notes
             if (isInMarqueeSelection && previousNote==UIManager.SelectionGroup && UIManager.SelectionGroup.eventSenderNote==Note && isReadyToShareEventData)
             {
                 Debug.Log("passing cancel drag to all selected notes!");

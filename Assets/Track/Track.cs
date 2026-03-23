@@ -204,7 +204,7 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
                         {
                             closestButtonNote.RightPos = closestButtonNote.LeftPos;
                             closestButtonNote.LeftPos = pos;
-                            UIManager.SelectedElement = closestButtonNote;
+                            UIManager.SelectElement(closestButtonNote, updateEditHistory:false);
                         }
                     }
                     else
@@ -214,7 +214,7 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
                         if (placeNote)
                         {
                             closestButtonNote.RightPos = pos;
-                            UIManager.SelectedElement = closestButtonNote;
+                            UIManager.SelectElement(closestButtonNote, updateEditHistory: false);
                         }
                     }
                     
@@ -347,7 +347,7 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
                 int endAngle = WheelTurn.PosToAngle(pos);
 
                 lastWheelSequence.AddNote(new EditableWheelTurn(lastWheelSequence, time, endAngle - prevEndAngle));
-                if (selectNote) UIManager.SelectedElement = lastWheelSequence;
+                if (selectNote) UIManager.SelectElement(lastWheelSequence, updateEditHistory:false);
             }
 
             return PlaybackManager.Instance.TrackToUIPosition(pos, time+1);
@@ -379,7 +379,7 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
             if (placeNote)
             {
                 lastLeverSequence.AddNote(new EditableLeverNote(lastLeverSequence, time, leverPos));
-                if (selectNote) UIManager.SelectedElement = lastLeverSequence;
+                if (selectNote) UIManager.SelectElement(lastLeverSequence, updateEditHistory:false);
             }
         }
         else
@@ -426,7 +426,7 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         AddEnvironmentChangeAction editEnvironmentChangeAction = new AddEnvironmentChangeAction(evt, chart);
         editEnvironmentChangeAction.CommitAction();
         chart.AddEvent(evt);
-        UIManager.SelectedElement = evt;
+        UIManager.SelectElement(evt, updateEditHistory:false);
     }
     void AddChartEvent(EnvironmentChangeEvent evt)
     {

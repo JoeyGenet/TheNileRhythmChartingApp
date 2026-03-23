@@ -65,7 +65,6 @@ public class EnvironmentTrackColor : MonoBehaviour, IPointerClickHandler
     {
         if (eventData.button != PointerEventData.InputButton.Left) return;
 
-        UIManager.SelectedElement = EnvironmentChange ?? new ChartEnvironment(ChartManager.SelectedChart);
-        UIManager.SelectionGroup.ClearSelection();
+        UIManager.SelectElement(EnvironmentChange ?? new ChartEnvironment(ChartManager.SelectedChart));
     }
 }

@@ -8,7 +8,7 @@ using UnityEngine.UI;
 using System.Linq;
 
 [RequireComponent(typeof(RectTransform))]
-public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     [SerializeField] RectTransform scrollUpArea;
     [SerializeField] RectTransform scrollDownArea;
@@ -38,6 +38,8 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IBeginD
                    (!Input.GetKey(KeyCode.LeftAlt) && !Input.GetKey(KeyCode.RightAlt));
         }
     }
+
+    protected bool isBeingDragged = false;
 
     protected RectTransform rect;
 
@@ -83,8 +85,30 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IBeginD
         
     }
 
-
     public void OnPointerDown(PointerEventData eventData)
+    {
+        pointerEventData = eventData;
+        switch (eventData.button)
+        {
+            case PointerEventData.InputButton.Left:
+                OnLeftDown();
+                break;
+            case PointerEventData.InputButton.Right:
+                OnRightDown();
+                break;
+        }
+    }
+
+    protected void OnLeftDown()
+    {
+        // update selection modifiers based on keypresses the moment you click
+        modifyExistingSelection = ModifyExistingSelection;
+        addToSelection = AddToSelection;
+    }
+
+    protected void OnRightDown() {}
+
+    public void OnPointerClick(PointerEventData eventData)
     {
         pointerEventData = eventData;
         switch (eventData.button)
@@ -100,15 +124,12 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IBeginD
 
     protected void OnLeftClick() 
     {
-        // clear selection if we click on the track without dragging
-        // don't clear if we are holding a key to modify the current selection
-        modifyExistingSelection = ModifyExistingSelection;
-        addToSelection = AddToSelection;
-
-        if (!modifyExistingSelection)
+        // clear selection if we completed click on the track without dragging
+        // don't clear if we started click while holding a key to modify the current selection
+        // and only clear if we don't have a note cursor selected
+        if (!modifyExistingSelection && !isBeingDragged && UIManager.CursorMode==UICursorMode.None)
         {
-            UIManager.SelectionGroup.ClearSelection();
-            UIManager.SelectedElement = null;
+            UIManager.SelectElement(null);
         }
     }
     
@@ -129,6 +150,7 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IBeginD
 
         Debug.Log("Start drag pos: "+Track.TrackToUIPosition(dragStartPointerPos, dragStartPointerTime));
         marqueeImage.enabled = true;
+        isBeingDragged = true;
     }
     
     // get current timestamp and horizontal pos when dragging
@@ -155,17 +177,11 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IBeginD
         if (eventData.button != PointerEventData.InputButton.Left || UIManager.CursorMode != UICursorMode.None) return;
 
         Debug.Log("End drag pos: "+Track.TrackToUIPosition(dragPos, dragTime));
-        // this class only detects selected notes. The selected notes are controlled
-        // by UIManager.SelectionGroup.
-        SortedSet<Note> selectedNotes = CheckForSelectedNotes(dragStartPointerTime, dragTime, dragStartPointerPos, dragPos);
-        if (selectedNotes.Count > 0)
-        {
-            UIManager.SelectionGroup.SelectNotes(addToSelection, selectedNotes, modifyExistingSelection);
-            // UIManager focus the selection group if there are selected notes
-            // otherwise clear the selection if the list is empty
-            UIManager.SelectedElement = UIManager.SelectionGroup.notes.Count == 0 ? null : UIManager.SelectionGroup;
-        }
+        // this class only detects selected notes. The selected notes are controlled by UIManager.SelectionGroup.
+        SortedSet<Note> selectedNotes = CheckForSelectedNotes(dragStartPointerTime, dragTime, dragStartPointerPos, dragPos); // OFFENDER!!!
+        UIManager.MultiselectElements(addToSelection, selectedNotes, modifyExistingSelection);
         marqueeImage.enabled = false;
+        isBeingDragged = false;
     }
 
     protected void DrawSelectionRectangle() 
