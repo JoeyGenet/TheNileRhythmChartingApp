@@ -67,8 +67,8 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
     
     protected override void OnRightClick()
     {
-        if (Note.RightPos is not int rightPos                 // Single note, so delete entire thing
-            || UIManager.SelectionGroup.notes.Contains(Note)) // or if in multiselection, delete entire thing
+        // If single note or in multiselection, delete entire thing
+        if (Note.RightPos is not int rightPos || isInMarqueeSelection)
         {
             Note.RemoveSelf();
             return;
@@ -81,7 +81,10 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
         int lastRightPos = rightPos;
         // if we delete a paired note while dragging, cancel drag
         // to prevent an UndoRedoAction from being logged when drag is complete
-        CancelDrag();
+        if (isBeingDragged)
+        {
+            CancelDrag();
+        }
         int oldLeftPos = Note.LeftPos;
         int oldRightPos = (int)Note.RightPos;
 

@@ -71,15 +71,7 @@ public class WheelSequenceRenderer : NoteRenderer<EditableWheelSequence>, IPoint
             var (note1, pos1, time1, note2, pos2, time2) = linePositions[i];
             lines[i].pos1 = PlaybackManager.Instance.TrackToUIPosition(pos1, time1);
             lines[i].pos2 = PlaybackManager.Instance.TrackToUIPosition(pos2, time2);
-            if ((UIManager.SelectionGroup.notes.Contains(note1) && UIManager.SelectionGroup.notes.Contains(note2)) ||
-                (note2==Note.Notes.First && UIManager.SelectionGroup.notes.Contains(Note.startingNote) && UIManager.SelectionGroup.notes.Contains(note2)))
-            {
-                lines[i].Image.material = lineSelectedMaterial;
-            }
-            else
-            {
-                lines[i].Image.material = lineDefaultMaterial;
-            }
+            lines[i].Image.material = lineDefaultMaterial;
         }
     }
 

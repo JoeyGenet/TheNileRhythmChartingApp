@@ -238,7 +238,6 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IBeginD
             switch (note)
             {
                 case EditableButtonNote:
-                Debug.Log("ButtonNote detected");
                     EditableButtonNote buttonNote = note as EditableButtonNote;
                     // select both button notes in a pair if either is in marquee
                     if ((buttonNote.LeftPos >= minPos && buttonNote.LeftPos <= maxPos) ||
@@ -248,13 +247,11 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IBeginD
                     }
                     break;
                 case EditableLeverSequence:
-                    Debug.Log("LeverSequence detected");
                     EditableLeverSequence leverSequence = note as EditableLeverSequence;
                     // if lever sequence is in range and if marquee covers the correct side of the track...
                     if ((leverSequence.Dir == LeftRight.Left && leftTrackSelected) ||
                         (leverSequence.Dir == LeftRight.Right && rightTrackSelected))
                     {
-                        selectedNotes.Add(leverSequence);
                         // get all sequence notes that fall within selection range
                         IReadOnlyCollection<LeverNote> leverNotesInRange = leverSequence.GetNotesBetween(minTime, maxTime);
                         bool noteAdded = false;
@@ -270,7 +267,6 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IBeginD
                     }
                     break;
                 case EditableWheelFlick:
-                    Debug.Log("wheelFlick detected");
                     EditableWheelFlick wheelFlick = note as EditableWheelFlick;
                     // wheel flicks take up whole track, so just check if marquee intersects with track
                     if (mainTrackSelected)
@@ -279,7 +275,6 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IBeginD
                     }
                     break;
                 case EditableWheelSequence:
-                    Debug.Log("WheelSequence detected");
                     EditableWheelSequence wheelSequence = note as EditableWheelSequence;
                     // the sequence start is not included in list of turns, so consider it separately
                     if (wheelSequence.Pos >= minPos && wheelSequence.Pos <= maxPos)
@@ -370,7 +365,7 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IBeginD
         }
 
         // log selected notes
-        string selectedNoteLog = "";
+        string selectedNoteLog = "Selected Notes:";
         foreach(Note note in selectedNotes)
         {
             selectedNoteLog += "\nID: " + note.Id + " | start time: " + note.StartTime+ " | " + note.ToString();
