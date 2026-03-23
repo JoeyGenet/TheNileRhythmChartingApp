@@ -99,11 +99,12 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
         if (isInMarqueeSelection)
         {
             EditableWheelTurn currentTurn = Note.Container.Notes.Last();
-            while (!UIManager.SelectionGroup.notes.Contains(currentTurn) && currentTurn.PreviousTurn!=null)
+            while (!UIManager.SelectionGroup.notes.Contains(currentTurn) && currentTurn!=null)
             {
                 currentTurn = currentTurn.PreviousTurn;
             }
-            isLastSelectedVertex = Note == currentTurn;
+            // if the note is the last one in the selection, of if the starting vertex the sole selected note
+            isLastSelectedVertex = Note == currentTurn || (currentTurn == null && isStartingVertex);
         }
     }
 
