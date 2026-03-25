@@ -126,13 +126,14 @@ public class CopyPasteManager : MonoBehaviour
     private static UndoRedoAction PasteWheelTurn(EditableWheelTurn originalTurn, int startTime, int endTime, int startAngle, int deltaAngle, EditableChart chart)
     {
         // the starting vertex has a dummy note only used for selection logic--it does not represent real note data, so skip it
-        // if (originalTurn.Container.startingNote == originalTurn) return null;
         bool isStartingVertex = originalTurn.Container.startingNote == originalTurn;
+        bool previousTurnInSequenceWasPasted = originalTurn.PreviousTurn!=null && Instance.noteClipboard.Contains(originalTurn.PreviousTurn);
         // If placing inside an existing sequence or holding shift, add to the previous sequence. Otherwise create a new sequence
         var lastWheelSequence = chart.GetNotesBefore(endTime).OfType<EditableWheelSequence>().LastOrDefault();
-        bool addToWheelSequence = lastWheelSequence != null && ((lastWheelSequence.EndTime > startTime && lastWheelSequence.StartTime < endTime) 
-            || (originalTurn.PreviousTurn!=null && Instance.noteClipboard.Contains(originalTurn.PreviousTurn))
-            || Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift));
+        bool addToWheelSequence = lastWheelSequence != null && (
+            (lastWheelSequence.EndTime > startTime && lastWheelSequence.StartTime < endTime) || // pasted note falls between two existing notes
+            previousTurnInSequenceWasPasted ||                                                  // the original note's previous note was pasted
+            Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift));               // if holding shift, always append
 
         if (addToWheelSequence)
         {
@@ -141,9 +142,21 @@ public class CopyPasteManager : MonoBehaviour
                 startAngle = WheelTurn.PosToAngle(originalTurn.Container.Pos);
             }
             int endAngle = startAngle + deltaAngle;
-            var prevNote = lastWheelSequence.GetNotesBefore(endTime).LastOrDefault() as EditableWheelTurn;
-            int prevEndAngle = prevNote == null ? WheelTurn.PosToAngle(lastWheelSequence.Pos)
-                : prevNote.StartAngle + prevNote.DeltaAngle;
+
+            EditableWheelTurn prevNoteOnTrack = lastWheelSequence.GetNotesBefore(endTime).LastOrDefault() as EditableWheelTurn;
+            EditableWheelTurn prevNote = prevNoteOnTrack;
+            int timeDiff = startTime - originalTurn.StartTime;
+            // if original turn's previous note is closer to pasted note than the start of the last sequence or prevNoteOnTrack,
+            // use the original turn's end angle
+            if (previousTurnInSequenceWasPasted && ((prevNoteOnTrack==null && originalTurn.PreviousTurn.EndTime+timeDiff >= lastWheelSequence.StartTime) ||
+                                                    (prevNoteOnTrack!=null && originalTurn.PreviousTurn.EndTime+timeDiff >= prevNoteOnTrack.EndTime)))
+            {
+                prevNote = originalTurn.PreviousTurn;
+            }
+
+            // if no previous note can be found, use angle from sequence start pos
+            // otherwise, use end angle of previous note
+            int prevEndAngle = prevNote==null ? WheelTurn.PosToAngle(lastWheelSequence.Pos) : prevNote.StartAngle + prevNote.DeltaAngle;
 
             EditableWheelTurn editableWheelTurn = new EditableWheelTurn(lastWheelSequence, endTime, endAngle - prevEndAngle);
             lastWheelSequence.AddNote(editableWheelTurn, updateEditHistory:false);
