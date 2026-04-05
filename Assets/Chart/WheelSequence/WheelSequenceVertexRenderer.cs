@@ -88,7 +88,7 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
 
     protected override void OnDragStart()
     {
-        SelectNoteOrMultiselection(WheelSequence);
+        SelectNoteOrMultiselection(WheelSequence, updateEditHistory:false);
         dragStartStartAngle = isStartingVertex ? WheelSequence.Notes.First.StartAngle : Note.StartAngle;
         dragStartDeltaAngle = isStartingVertex ? WheelSequence.Notes.First.DeltaAngle : Note.DeltaAngle;
         dragStartSeqPos = WheelSequence.Pos;

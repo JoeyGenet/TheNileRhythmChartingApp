@@ -129,7 +129,7 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IPointe
         // and only clear if we don't have a note cursor selected
         if (!modifyExistingSelection && !isBeingDragged && UIManager.CursorMode==UICursorMode.None)
         {
-            UIManager.SelectElement(null);
+            UIManager.SelectElement(null, updateEditHistory: true);
         }
     }
     

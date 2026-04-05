@@ -62,7 +62,7 @@ public class UIManager : MonoBehaviour
         // so we can commit selection changes to edit history
     }
 
-    public static void SelectElement(object newElement, bool updateEditHistory=true)
+    public static void SelectElement(object newElement, bool updateEditHistory=false)
     {
         if (Instance.selectedElement != newElement)
         {
@@ -93,7 +93,7 @@ public class UIManager : MonoBehaviour
         set { Instance.selectionGroup = value; }
     }
 
-    public static void MultiselectElements(bool addToSelection, SortedSet<Note> selectedNotes=null, bool modifyExistingSelection=false, bool updateEditHistory=true)
+    public static void MultiselectElements(bool addToSelection, SortedSet<Note> selectedNotes=null, bool modifyExistingSelection=false, bool createNewSelection=false, bool updateEditHistory=true)
     {
         // if notes are being removed from the selection, cache them
         SortedSet<Note> notesToFlag = selectedNotes == null ? SelectionGroup.notes : selectedNotes;
@@ -101,11 +101,11 @@ public class UIManager : MonoBehaviour
         
         // if group is not selected prior to MultiselectElements(), or if not modifying existing multiselection,
         // make new selection
-        bool makeNewSelection = !modifyExistingSelection || SelectedElement!=SelectionGroup;
+        bool overwriteCurrentSelection = !modifyExistingSelection || SelectedElement!=SelectionGroup;
 
         // create new list of selected notes
         SortedSet<Note> oldNotes = new SortedSet<Note>(SelectionGroup.notes);
-        SortedSet<Note> newNotes = makeNewSelection ? new SortedSet<Note>() : new SortedSet<Note>(SelectionGroup.notes);
+        SortedSet<Note> newNotes = overwriteCurrentSelection ? new SortedSet<Note>() : new SortedSet<Note>(SelectionGroup.notes);
         if (selectedNotes != null && selectedNotes.Count > 0)
         {
             if (addToSelection)
@@ -134,24 +134,19 @@ public class UIManager : MonoBehaviour
             else
             {
                 // create new multiselection and select it with selection action
-                if (makeNewSelection)
+                if (createNewSelection || (overwriteCurrentSelection && updateEditHistory))
                 {
-                    if (updateEditHistory)
-                    {
-                        SelectionGroup = new TrackMarqueeSelectionGroup(Instance.track);
-                    }
-                    SelectionGroup.notes = newNotes;
-                    SelectElement(SelectionGroup, updateEditHistory);
+                    SelectionGroup = new TrackMarqueeSelectionGroup(Instance.track);
                 }
                 // otherwise, if we modify existing multiselection, commit modify multiselect action
                 else if (updateEditHistory)
                 {
-                    SelectionGroup.notes = newNotes;
-                    ModifyMultiselectionAction modifyMultiselectionAction = new ModifyMultiselectionAction(oldNotes, newNotes);
+                    ModifyMultiselectionAction modifyMultiselectionAction = new ModifyMultiselectionAction(oldNotes, newNotes, SelectionGroup);
                     modifyMultiselectionAction.CommitAction();
                 }
                 // flag all notes that are now selected
                 SelectionGroup.notes = newNotes;
+                SelectElement(SelectionGroup, updateEditHistory);
                 SelectionGroup.FlagNotes(true);
             }
         }
@@ -240,7 +235,7 @@ public class UIManager : MonoBehaviour
 
         deselectEvent.AddListener(() =>
         {
-            SelectElement(null);
+            SelectElement(null, updateEditHistory:true);
             CursorMode = UICursorMode.None;
         });
 

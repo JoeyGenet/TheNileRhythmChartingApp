@@ -115,7 +115,7 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
 
     protected override void OnDragStart()
     {   
-        SelectNoteOrMultiselection(Note.Container);
+        SelectNoteOrMultiselection(Note.Container, updateEditHistory:false);
         dragStartTime = Note.StartTime;
         dragStartTimes = Note.Container.Notes.ToDictionary(n => n, n => n.StartTime);
         dragStartLeverPos = Note.Pos;

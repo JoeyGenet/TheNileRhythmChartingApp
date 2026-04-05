@@ -143,7 +143,7 @@ public class TrackMarqueeSelectionGroup
 
     public void CommitMultiselectMoveAction(PointerEventData eventData)
     {
-        multiselectMoveAction = new MultiselectMoveAction(new List<UndoRedoAction>());
+        multiselectMoveAction = new MultiselectMoveAction(new List<UndoRedoAction>(), this);
         // this triggers all selected notes to execute end drag events, which then
         // pass in their individual UndoRedoActions
         PassEventDataToAllSelectedNotes(eventData, endDragHandler);

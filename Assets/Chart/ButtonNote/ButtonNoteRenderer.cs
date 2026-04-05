@@ -105,7 +105,7 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
 
     protected override void OnDragStart()
     {   
-        SelectNoteOrMultiselection(Note);
+        SelectNoteOrMultiselection(Note, updateEditHistory:false);
         dragStartLeftPos = Note.LeftPos;
         dragStartRightPos = Note.RightPos;
         dragStartTime = Note.StartTime;

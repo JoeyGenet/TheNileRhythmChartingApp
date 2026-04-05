@@ -33,6 +33,7 @@ public static class EditHistoryManager
             undoRedoAction.Undo();
             Debug.Log("Undid " + undoRedoAction.Message + "\n\n" + undoRedoAction.ToString() + "\n");
             editHistoryHeadIndex -= 1;
+            UIManager.SelectElement(editHistoryHeadIndex>-1 ? editHistory[editHistoryHeadIndex].selectedElement : null, false);
         }
     }
 
@@ -46,6 +47,7 @@ public static class EditHistoryManager
             UndoRedoAction undoRedoAction = editHistory[editHistoryHeadIndex];
             undoRedoAction.Redo();
             Debug.Log("Redid " + undoRedoAction.Message + "\n\n" + undoRedoAction.ToString() + "\n");
+            UIManager.SelectElement(editHistory[editHistoryHeadIndex].selectedElement, false);
         }
     }
 
@@ -61,6 +63,9 @@ public static class EditHistoryManager
 
 public abstract class UndoRedoAction
 {
+    // element that should be selected when this action is redone, or when the next action is undone.
+    public object selectedElement;
+
     // message that describes the action performed, i.e. "add note"
     public abstract string Message { get; }
 
@@ -133,17 +138,14 @@ public class SelectElementAction : UndoRedoAction
     {
         this.oldSelectedElement = oldSelectedElement;
         this.newSelectedElement = newSelectedElement;
+        selectedElement = newSelectedElement;
     }
 
-    public override void Redo()
-    {
-        UIManager.SelectElement(newSelectedElement, updateEditHistory:false);
-    }
+    // EditHistoryManager.Undo()/Redo() change the selection based on the "selectedElement" of the action
+    // these don't have to do anything!
+    public override void Redo() { }
 
-    public override void Undo()
-    {
-        UIManager.SelectElement(oldSelectedElement, updateEditHistory:false);
-    }
+    public override void Undo() { }
 }
 
 // MARK: Basic note actions
@@ -167,6 +169,7 @@ public class AddNoteAction : UndoRedoAction
     {
         this.editableChart = editableChart;
         this.note = note;
+        selectedElement = note;
     }
 
     public override void Redo()
@@ -199,6 +202,7 @@ public class RemoveNoteAction : UndoRedoAction
     {
         this.editableChart = editableChart;
         this.note = note;
+        selectedElement = null;
     }
 
     public override void Redo()
@@ -241,6 +245,7 @@ public class EditButtonNoteAction : UndoRedoAction
         this.oldRightPos = oldRightPos;        
         this.newLeftPos = newLeftPos;
         this.newRightPos = newRightPos;
+        selectedElement = buttonNote;
     }
 
     public override void Redo()
@@ -248,7 +253,6 @@ public class EditButtonNoteAction : UndoRedoAction
         buttonNote.StartTime += startTimeDelta;
         buttonNote.LeftPos = newLeftPos;
         buttonNote.RightPos = newRightPos;
-        UIManager.SelectElement(buttonNote, updateEditHistory:false);
     }
 
     public override void Undo()
@@ -256,7 +260,6 @@ public class EditButtonNoteAction : UndoRedoAction
         buttonNote.StartTime -= startTimeDelta;
         buttonNote.LeftPos = oldLeftPos;
         buttonNote.RightPos = oldRightPos;
-        UIManager.SelectElement(buttonNote, updateEditHistory:false);
     }
 }
 
@@ -283,20 +286,19 @@ public class EditWheelFlickAction : UndoRedoAction
         this.editableWheelFlick = editableWheelFlick;
         this.startTimeDelta = startTimeDelta;
         this.dirDelta = dirDelta;
+        selectedElement = editableWheelFlick;
     }
 
     public override void Redo()
     {
         editableWheelFlick.StartTime += startTimeDelta;
         editableWheelFlick.Dir += dirDelta;
-        UIManager.SelectElement(editableWheelFlick, updateEditHistory:false);
     }
 
     public override void Undo()
     {
         editableWheelFlick.StartTime -= startTimeDelta;
         editableWheelFlick.Dir -= dirDelta;
-        UIManager.SelectElement(editableWheelFlick, updateEditHistory:false);
     }
 }
 
@@ -336,6 +338,7 @@ public class EditWheelSequenceAction : UndoRedoAction
         this.newEndTimes = newEndTimes;
         this.oldDeltaAngles = oldDeltaAngles;
         this.newDeltaAngles = newDeltaAngles;
+        selectedElement = wheelSequence;
     }
 
     public override void Redo()
@@ -358,7 +361,6 @@ public class EditWheelSequenceAction : UndoRedoAction
             }
         }
         wheelSequence.Pos += PosDelta;
-        UIManager.SelectElement(wheelSequence, updateEditHistory:false);
     }
 
     public override void Undo()
@@ -381,7 +383,6 @@ public class EditWheelSequenceAction : UndoRedoAction
             }
         }
         wheelSequence.Pos -= PosDelta;
-        UIManager.SelectElement(wheelSequence, updateEditHistory:false);
     }
 }
 
@@ -407,18 +408,17 @@ public class AddNoteToWheelSequenceAction : UndoRedoAction
     {
         this.editableWheelSequence = editableWheelSequence;
         this.editableWheelTurn = editableWheelTurn;
+        selectedElement = editableWheelSequence;
     }
 
     public override void Redo()
     {
         editableWheelSequence.AddNote(editableWheelTurn, notify: true, updateEditHistory: false);
-        UIManager.SelectElement(editableWheelSequence, updateEditHistory:false);
     }
 
     public override void Undo()
     {
         editableWheelSequence.RemoveNote(editableWheelTurn, notify: true, updateEditHistory: false);
-        UIManager.SelectElement(editableWheelSequence, updateEditHistory:false);
     }
 }
 
@@ -446,6 +446,7 @@ public class RemoveNoteFromWheelSequenceAction : UndoRedoAction
         this.editableWheelSequence = editableWheelSequence;
         this.editableWheelTurn = editableWheelTurn;
         this.isStartingVertex = isStartingVertex;
+        selectedElement = editableWheelSequence;
     }
 
     public override void Redo()
@@ -458,7 +459,6 @@ public class RemoveNoteFromWheelSequenceAction : UndoRedoAction
         {
             editableWheelSequence.RemoveNote(editableWheelTurn, notify: true, updateEditHistory: false);
         }
-        UIManager.SelectElement(editableWheelSequence, updateEditHistory:false);
     }
 
     public override void Undo()
@@ -471,7 +471,6 @@ public class RemoveNoteFromWheelSequenceAction : UndoRedoAction
         {
             editableWheelSequence.AddNote(editableWheelTurn, notify: true, updateEditHistory: false);
         }
-        UIManager.SelectElement(editableWheelSequence, updateEditHistory:false);
     }
 }
 
@@ -508,6 +507,7 @@ public class EditLeverSequenceAction : UndoRedoAction
         this.newStartTimes = newStartTimes;
         this.oldLeverPositions = oldLeverPositions;
         this.newLeverPositions = newLeverPositions;
+        selectedElement = leverSequence;
     }
 
     public override void Redo()
@@ -521,7 +521,6 @@ public class EditLeverSequenceAction : UndoRedoAction
                 note.Pos = newLeverPositions[note];
             }
         }
-        UIManager.SelectElement(leverSequence, updateEditHistory:false);
     }
 
     public override void Undo()
@@ -535,7 +534,6 @@ public class EditLeverSequenceAction : UndoRedoAction
                 note.Pos = oldLeverPositions[note];
             }
         }
-        UIManager.SelectElement(leverSequence, updateEditHistory:false);
     }
 }
 
@@ -561,18 +559,17 @@ public class AddNoteToLeverSequenceAction : UndoRedoAction
     {
         this.editableLeverSequence = editableLeverSequence;
         this.editableLeverNote = editableLeverNote;
+        selectedElement = editableLeverSequence;
     }
 
     public override void Redo()
     {
         editableLeverSequence.AddNote(editableLeverNote, notify: true, updateEditHistory: false);
-        UIManager.SelectElement(editableLeverSequence, updateEditHistory:false);
     }
 
     public override void Undo()
     {
         editableLeverSequence.RemoveNote(editableLeverNote, notify: true, updateEditHistory: false);
-        UIManager.SelectElement(editableLeverSequence, updateEditHistory:false);
     }
 }
 
@@ -598,18 +595,17 @@ public class RemoveNoteFromLeverSequenceAction : UndoRedoAction
     {
         this.editableLeverSequence = editableLeverSequence;
         this.editableLeverNote = editableLeverNote;
+        selectedElement = editableLeverSequence;
     }
 
     public override void Redo()
     {
         editableLeverSequence.RemoveNote(editableLeverNote, notify: true, updateEditHistory: false);
-        UIManager.SelectElement(editableLeverSequence, updateEditHistory:false);
     }
 
     public override void Undo()
     {
         editableLeverSequence.AddNote(editableLeverNote, notify: true, updateEditHistory: false);
-        UIManager.SelectElement(editableLeverSequence, updateEditHistory:false);
     }
 }
 
@@ -627,10 +623,11 @@ public class ModifyMultiselectionAction : UndoRedoAction
         return $"{Mathf.Abs(noteCountDiff)} notes {(noteCountDiff>0 ? "added to" : "removed from")} selection.";
     }
 
-    public ModifyMultiselectionAction(SortedSet<Note> oldNotes, SortedSet<Note> newNotes)
+    public ModifyMultiselectionAction(SortedSet<Note> oldNotes, SortedSet<Note> newNotes, TrackMarqueeSelectionGroup trackMarqueeSelectionGroup)
     {
         this.oldNotes = oldNotes;
         this.newNotes = newNotes;
+        selectedElement = trackMarqueeSelectionGroup;
     }
 
     public override void Redo()
@@ -653,19 +650,20 @@ public class MultiselectMoveAction : GroupUndoRedoAction
         return $"{undoRedoActions.Count} notes moved.\n";
     }
 
+    public MultiselectMoveAction(List<UndoRedoAction> undoRedoActions, TrackMarqueeSelectionGroup trackMarqueeSelectionGroup) : base(undoRedoActions)
+    {
+        selectedElement = trackMarqueeSelectionGroup;
+    }
+
     public override void Redo()
     {
         base.Redo();
-        UIManager.SelectElement(UIManager.SelectionGroup, updateEditHistory:false);
     }
 
     public override void Undo()
     {
         base.Undo();
-        UIManager.SelectElement(UIManager.SelectionGroup, updateEditHistory:false);
     }
-
-    public MultiselectMoveAction(List<UndoRedoAction> undoRedoActions) : base(undoRedoActions) { }
 }
 
 public class MultiselectPasteAction : GroupUndoRedoAction
@@ -677,6 +675,8 @@ public class MultiselectPasteAction : GroupUndoRedoAction
         return $"{undoRedoActions.Count} notes pasted.\n";
     }
 
+    public MultiselectPasteAction(List<UndoRedoAction> undoRedoActions) : base(undoRedoActions) { }
+
     public override void Redo()
     {
         base.Redo();
@@ -686,8 +686,6 @@ public class MultiselectPasteAction : GroupUndoRedoAction
     {
         base.Undo();
     }
-
-    public MultiselectPasteAction(List<UndoRedoAction> undoRedoActions) : base(undoRedoActions) { }
 }
 
 public class MultiselectRemoveAction : GroupUndoRedoAction
@@ -699,19 +697,20 @@ public class MultiselectRemoveAction : GroupUndoRedoAction
         return $"{undoRedoActions.Count} notes deleted.\n";
     }
 
+    public MultiselectRemoveAction(List<UndoRedoAction> undoRedoActions) : base(undoRedoActions) 
+    {
+        selectedElement = null;
+    }
+
     public override void Redo()
     {
         base.Redo();
-        UIManager.SelectElement(null, updateEditHistory:false);
     }
 
     public override void Undo()
     {
         base.Undo();
-        UIManager.SelectElement(UIManager.SelectionGroup, updateEditHistory:false);
     }
-
-    public MultiselectRemoveAction(List<UndoRedoAction> undoRedoActions) : base(undoRedoActions) { }
 }
 
 public class MultiselectMirrorAction : GroupUndoRedoAction
@@ -723,19 +722,20 @@ public class MultiselectMirrorAction : GroupUndoRedoAction
         return $"{undoRedoActions.Count} notes mirrored.\n";
     }
 
+    public MultiselectMirrorAction(List<UndoRedoAction> undoRedoActions, TrackMarqueeSelectionGroup trackMarqueeSelectionGroup) : base(undoRedoActions) 
+    {
+        selectedElement = trackMarqueeSelectionGroup;
+    } 
+
     public override void Redo()
     {
         base.Redo();
-        UIManager.SelectElement(UIManager.SelectionGroup, updateEditHistory:false);
     }
 
     public override void Undo()
     {
         base.Undo();
-        UIManager.SelectElement(UIManager.SelectionGroup, updateEditHistory:false);
     }
-
-    public MultiselectMirrorAction(List<UndoRedoAction> undoRedoActions) : base(undoRedoActions) { }
 }
 
 // MARK: Environment actions
@@ -758,18 +758,17 @@ public class AddEnvironmentChangeAction : UndoRedoAction
     {
         this.editableEnvironmentChangeEvent = editableEnvironmentChangeEvent;
         this.editableChart = editableChart;
+        selectedElement = editableEnvironmentChangeEvent;
     }
 
     public override void Redo()
     {
         editableChart.AddEvent(editableEnvironmentChangeEvent);
-        UIManager.SelectElement(editableEnvironmentChangeEvent, updateEditHistory: false);
     }
 
     public override void Undo()
     {
         editableChart.RemoveEvent(editableEnvironmentChangeEvent);
-        UIManager.SelectElement(null, updateEditHistory: false);
     }
 }
 
@@ -791,18 +790,17 @@ public class RemoveEnvironmentChangeAction : UndoRedoAction
     {
         this.editableEnvironmentChangeEvent = editableEnvironmentChangeEvent;
         this.editableChart = editableChart;
+        selectedElement = null;
     }
 
     public override void Redo()
     {
         editableChart.RemoveEvent(editableEnvironmentChangeEvent);
-        UIManager.SelectElement(null, updateEditHistory: false);
     }
 
     public override void Undo()
     {
         editableChart.AddEvent(editableEnvironmentChangeEvent);
-        UIManager.SelectElement(editableEnvironmentChangeEvent, updateEditHistory:false);
     }
 }
 
@@ -830,6 +828,7 @@ public class EditEnvironmentChangeAction : UndoRedoAction
         this.endTimeDelta = endTimeDelta;
         this.oldEnvironment = oldEnvironment;
         this.newEnvironment = newEnvironment;
+        selectedElement = editableEnvironmentChangeEvent;
     }
 
     public override void Redo()
@@ -837,7 +836,6 @@ public class EditEnvironmentChangeAction : UndoRedoAction
         editableEnvironmentChangeEvent.StartTime += startTimeDelta;
         editableEnvironmentChangeEvent.EndTime += endTimeDelta;
         editableEnvironmentChangeEvent.Environment = newEnvironment;
-        UIManager.SelectElement(editableEnvironmentChangeEvent, updateEditHistory:false);
     }
 
     public override void Undo()
@@ -845,7 +843,6 @@ public class EditEnvironmentChangeAction : UndoRedoAction
         editableEnvironmentChangeEvent.StartTime -= startTimeDelta;
         editableEnvironmentChangeEvent.EndTime -= endTimeDelta;
         editableEnvironmentChangeEvent.Environment = oldEnvironment;
-        UIManager.SelectElement(editableEnvironmentChangeEvent, updateEditHistory:false);
     }
 }
 

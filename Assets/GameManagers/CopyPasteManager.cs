@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 
 public class CopyPasteManager : MonoBehaviour
@@ -78,6 +79,8 @@ public class CopyPasteManager : MonoBehaviour
             EditableChart chart = ChartManager.SelectedChart;
             int selectionStartTime = Instance.noteClipboard.First().StartTime;
             int pasteStartTime = time;
+            // after pasting, make a selection using the pasted notes
+            SortedSet<Note> pastedNotes = new SortedSet<Note>();
 
             foreach (Note note in Instance.noteClipboard)
             {
@@ -90,11 +93,14 @@ public class CopyPasteManager : MonoBehaviour
                         chart.AddNote(pastedButtonNote, updateEditHistory:false);
                         AddNoteAction addButtonNoteAction = new AddNoteAction(pastedButtonNote, chart);
                         multiselectPasteAction.AddUndoRedoAction(addButtonNoteAction);
+                        pastedNotes.Add(pastedButtonNote);
                         break;
                     case EditableLeverNote:
                         EditableLeverNote leverNote = note as EditableLeverNote;
                         int newLeverNoteStartTime = leverNote.StartTime - selectionStartTime + pasteStartTime;
-                        multiselectPasteAction.AddUndoRedoAction(PasteLeverNote(leverNote, newLeverNoteStartTime, chart));
+                        (UndoRedoAction addLeverNoteAction, Note pastedLeverNote) = PasteLeverNote(leverNote, newLeverNoteStartTime, chart);
+                        multiselectPasteAction.AddUndoRedoAction(addLeverNoteAction);
+                        pastedNotes.Add(pastedLeverNote);
                         break;
                     case EditableWheelFlick:
                         EditableWheelFlick wheelFlick = note as EditableWheelFlick;
@@ -103,15 +109,17 @@ public class CopyPasteManager : MonoBehaviour
                         chart.AddNote(pastedWheelFlick, updateEditHistory:false);
                         AddNoteAction addWheelFlickAction = new AddNoteAction(pastedWheelFlick, chart);
                         multiselectPasteAction.AddUndoRedoAction(addWheelFlickAction);
+                        pastedNotes.Add(pastedWheelFlick);
                         break;
                     case EditableWheelTurn:
                         EditableWheelTurn wheelTurn = note as EditableWheelTurn;
                         int newWheelTurnStartTime = wheelTurn.StartTime - selectionStartTime + pasteStartTime;
                         int newWheelTurnEndTime = wheelTurn.EndTime - selectionStartTime + pasteStartTime;
-                        UndoRedoAction addedWheelTurnAction = PasteWheelTurn(wheelTurn, newWheelTurnStartTime, newWheelTurnEndTime, wheelTurn.StartAngle, wheelTurn.DeltaAngle, chart);
-                        if (addedWheelTurnAction!=null)
+                        (UndoRedoAction addWheelTurnAction, Note pastedWheelNote) = PasteWheelTurn(wheelTurn, newWheelTurnStartTime, newWheelTurnEndTime, wheelTurn.StartAngle, wheelTurn.DeltaAngle, chart);
+                        if (addWheelTurnAction!=null)
                         {
-                            multiselectPasteAction.AddUndoRedoAction(addedWheelTurnAction);
+                            multiselectPasteAction.AddUndoRedoAction(addWheelTurnAction);
+                            pastedNotes.Add(pastedWheelNote);
                         }
                         break;
                     default:
@@ -119,11 +127,15 @@ public class CopyPasteManager : MonoBehaviour
                 }
             }
 
+            // select the pasted notes in multiselection
+            UIManager.MultiselectElements(true, pastedNotes, modifyExistingSelection:false, createNewSelection:true, updateEditHistory:false);
+            multiselectPasteAction.selectedElement = UIManager.SelectionGroup;
+            
             multiselectPasteAction.CommitAction();
         }
     }
 
-    private static UndoRedoAction PasteWheelTurn(EditableWheelTurn originalTurn, int startTime, int endTime, int startAngle, int deltaAngle, EditableChart chart)
+    private static (UndoRedoAction, Note) PasteWheelTurn(EditableWheelTurn originalTurn, int startTime, int endTime, int startAngle, int deltaAngle, EditableChart chart)
     {
         // the starting vertex has a dummy note only used for selection logic--it does not represent real note data, so skip it
         bool isStartingVertex = originalTurn.Container.startingNote == originalTurn;
@@ -161,7 +173,7 @@ public class CopyPasteManager : MonoBehaviour
             EditableWheelTurn editableWheelTurn = new EditableWheelTurn(lastWheelSequence, endTime, endAngle - prevEndAngle);
             lastWheelSequence.AddNote(editableWheelTurn, updateEditHistory:false);
             AddNoteToWheelSequenceAction addNoteToWheelSequenceAction = new AddNoteToWheelSequenceAction(editableWheelTurn, lastWheelSequence);
-            return addNoteToWheelSequenceAction;
+            return (addNoteToWheelSequenceAction, editableWheelTurn);
         }
         else if (!isStartingVertex)
         {
@@ -169,15 +181,15 @@ public class CopyPasteManager : MonoBehaviour
             EditableWheelSequence editableWheelSequence = new EditableWheelSequence(chart, startTime, newSequencePos, new() { (deltaAngle, endTime) });
             chart.AddNote(editableWheelSequence, updateEditHistory:false);
             AddNoteAction addNoteAction = new AddNoteAction(editableWheelSequence, chart);
-            return addNoteAction;
+            return (addNoteAction, editableWheelSequence);
         }
         else
         {
-            return null;
+            return (null, null);
         }
     }
 
-    private static UndoRedoAction PasteLeverNote(EditableLeverNote originalNote, int newTime, EditableChart chart)
+    private static (UndoRedoAction, Note) PasteLeverNote(EditableLeverNote originalNote, int newTime, EditableChart chart)
     {
         LeftRight side = originalNote.Container.Dir;
         LeverPos leverPos = originalNote.Pos;
@@ -194,14 +206,14 @@ public class CopyPasteManager : MonoBehaviour
             EditableLeverNote editableLeverNote = new EditableLeverNote(lastLeverSequence, newTime, leverPos);
             lastLeverSequence.AddNote(editableLeverNote, updateEditHistory:false);
             AddNoteToLeverSequenceAction addNoteToLeverSequenceAction = new AddNoteToLeverSequenceAction(editableLeverNote, lastLeverSequence);
-            return addNoteToLeverSequenceAction;
+            return (addNoteToLeverSequenceAction, editableLeverNote);
         }
         else
         {
             EditableLeverSequence editableLeverSequence = new EditableLeverSequence(chart, newTime, side, new() { (newTime, leverPos) });
             chart.AddNote(editableLeverSequence, updateEditHistory:false);
             AddNoteAction addNoteAction = new AddNoteAction(editableLeverSequence, chart);
-            return addNoteAction;
+            return (addNoteAction, editableLeverSequence);
         }
     }
 }
