@@ -114,7 +114,22 @@ public class UIManager : MonoBehaviour
             }
             else
             {
-                newNotes.RemoveWhere(note => selectedNotes.Contains(note));
+                // remove all selected notes except for sequences
+                newNotes.RemoveWhere(note => selectedNotes.Contains(note) && !(note is EditableWheelSequence || note is EditableLeverSequence));
+
+                // special case for removing sequences:
+                // if no notes from these sequences are still selected, remove them
+                foreach (Note note in selectedNotes.Intersect(newNotes))
+                {
+                    if (note is EditableWheelSequence editableWheelSequence && editableWheelSequence.Notes.Intersect(newNotes).Count() == 0)
+                    { 
+                        newNotes.Remove(editableWheelSequence);
+                    }
+                    else if (note is EditableLeverSequence editableLeverSequence && editableLeverSequence.Notes.Intersect(newNotes).Count() == 0)
+                    {
+                        newNotes.Remove(editableLeverSequence);
+                    }
+                }
             }
         }
 
