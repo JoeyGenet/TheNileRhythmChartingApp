@@ -74,7 +74,7 @@ public class TrackMarqueeSelectionGroup
 
     public void MirrorSelectedNotes()
     {
-        MultiselectMirrorAction multiselectMirrorAction = new MultiselectMirrorAction(new List<UndoRedoAction>());
+        MultiselectMirrorAction multiselectMirrorAction = new MultiselectMirrorAction(new List<UndoRedoAction>(), this);
         foreach(Note note in notes)
         {
             switch (note)
