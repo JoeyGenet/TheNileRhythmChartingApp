@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class CopyPasteManager : MonoBehaviour
@@ -98,9 +98,9 @@ public class CopyPasteManager : MonoBehaviour
                     case EditableLeverNote:
                         EditableLeverNote leverNote = note as EditableLeverNote;
                         int newLeverNoteStartTime = leverNote.StartTime - selectionStartTime + pasteStartTime;
-                        (UndoRedoAction addLeverNoteAction, Note pastedLeverNote) = PasteLeverNote(leverNote, newLeverNoteStartTime, chart);
+                        (UndoRedoAction addLeverNoteAction, SortedSet<Note> pastedLeverNotes) = PasteLeverNote(leverNote, newLeverNoteStartTime, chart);
                         multiselectPasteAction.AddUndoRedoAction(addLeverNoteAction);
-                        pastedNotes.Add(pastedLeverNote);
+                        pastedNotes.AddRange(pastedLeverNotes);
                         break;
                     case EditableWheelFlick:
                         EditableWheelFlick wheelFlick = note as EditableWheelFlick;
@@ -115,11 +115,11 @@ public class CopyPasteManager : MonoBehaviour
                         EditableWheelTurn wheelTurn = note as EditableWheelTurn;
                         int newWheelTurnStartTime = wheelTurn.StartTime - selectionStartTime + pasteStartTime;
                         int newWheelTurnEndTime = wheelTurn.EndTime - selectionStartTime + pasteStartTime;
-                        (UndoRedoAction addWheelTurnAction, Note pastedWheelNote) = PasteWheelTurn(wheelTurn, newWheelTurnStartTime, newWheelTurnEndTime, wheelTurn.StartAngle, wheelTurn.DeltaAngle, chart);
+                        (UndoRedoAction addWheelTurnAction, SortedSet<Note> pastedWheelNotes) = PasteWheelTurn(wheelTurn, newWheelTurnStartTime, newWheelTurnEndTime, wheelTurn.StartAngle, wheelTurn.DeltaAngle, chart);
                         if (addWheelTurnAction!=null)
                         {
                             multiselectPasteAction.AddUndoRedoAction(addWheelTurnAction);
-                            pastedNotes.Add(pastedWheelNote);
+                            pastedNotes.AddRange(pastedWheelNotes);
                         }
                         break;
                     default:
@@ -135,7 +135,7 @@ public class CopyPasteManager : MonoBehaviour
         }
     }
 
-    private static (UndoRedoAction, Note) PasteWheelTurn(EditableWheelTurn originalTurn, int startTime, int endTime, int startAngle, int deltaAngle, EditableChart chart)
+    private static (UndoRedoAction, SortedSet<Note>) PasteWheelTurn(EditableWheelTurn originalTurn, int startTime, int endTime, int startAngle, int deltaAngle, EditableChart chart)
     {
         // the starting vertex has a dummy note only used for selection logic--it does not represent real note data, so skip it
         bool isStartingVertex = originalTurn.Container.startingNote == originalTurn;
@@ -173,7 +173,7 @@ public class CopyPasteManager : MonoBehaviour
             EditableWheelTurn editableWheelTurn = new EditableWheelTurn(lastWheelSequence, endTime, endAngle - prevEndAngle);
             lastWheelSequence.AddNote(editableWheelTurn, updateEditHistory:false);
             AddNoteToWheelSequenceAction addNoteToWheelSequenceAction = new AddNoteToWheelSequenceAction(editableWheelTurn, lastWheelSequence);
-            return (addNoteToWheelSequenceAction, editableWheelTurn);
+            return (addNoteToWheelSequenceAction, new SortedSet<Note>{editableWheelTurn});
         }
         else if (!isStartingVertex)
         {
@@ -181,7 +181,7 @@ public class CopyPasteManager : MonoBehaviour
             EditableWheelSequence editableWheelSequence = new EditableWheelSequence(chart, startTime, newSequencePos, new() { (deltaAngle, endTime) });
             chart.AddNote(editableWheelSequence, updateEditHistory:false);
             AddNoteAction addNoteAction = new AddNoteAction(editableWheelSequence, chart);
-            return (addNoteAction, editableWheelSequence);
+            return (addNoteAction, new SortedSet<Note>{editableWheelSequence, editableWheelSequence.startingNote, editableWheelSequence.Notes.First});
         }
         else
         {
@@ -189,7 +189,7 @@ public class CopyPasteManager : MonoBehaviour
         }
     }
 
-    private static (UndoRedoAction, Note) PasteLeverNote(EditableLeverNote originalNote, int newTime, EditableChart chart)
+    private static (UndoRedoAction, SortedSet<Note>) PasteLeverNote(EditableLeverNote originalNote, int newTime, EditableChart chart)
     {
         LeftRight side = originalNote.Container.Dir;
         LeverPos leverPos = originalNote.Pos;
@@ -206,14 +206,14 @@ public class CopyPasteManager : MonoBehaviour
             EditableLeverNote editableLeverNote = new EditableLeverNote(lastLeverSequence, newTime, leverPos);
             lastLeverSequence.AddNote(editableLeverNote, updateEditHistory:false);
             AddNoteToLeverSequenceAction addNoteToLeverSequenceAction = new AddNoteToLeverSequenceAction(editableLeverNote, lastLeverSequence);
-            return (addNoteToLeverSequenceAction, editableLeverNote);
+            return (addNoteToLeverSequenceAction, new SortedSet<Note>{editableLeverNote});
         }
         else
         {
             EditableLeverSequence editableLeverSequence = new EditableLeverSequence(chart, newTime, side, new() { (newTime, leverPos) });
             chart.AddNote(editableLeverSequence, updateEditHistory:false);
             AddNoteAction addNoteAction = new AddNoteAction(editableLeverSequence, chart);
-            return (addNoteAction, editableLeverSequence);
+            return (addNoteAction, new SortedSet<Note>{editableLeverSequence, editableLeverSequence.Notes.First});
         }
     }
 }
