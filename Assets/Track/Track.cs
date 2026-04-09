@@ -16,6 +16,8 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     [SerializeField] RectTransform mainTrackArea;
     [SerializeField] RectTransform leverTrackArea;
     [SerializeField] RectTransform beatMarkers;
+    [SerializeField] RectTransform scrollUpArea;
+    [SerializeField] RectTransform scrollDownArea;
 
     [Header("Note Prefabs")]
     [SerializeField] ButtonNoteRenderer buttonNotePrefab;
@@ -46,8 +48,11 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
     public bool IsPointerOverTrack { get; private set; } = false;
     public bool IsScrolling { get; set; } = false;
+    public bool IsDragScrolling { get; set; } = false;
     public RectTransform LeverTrackArea { get => leverTrackArea; }
     public RectTransform MainTrackArea { get => mainTrackArea; }
+    public RectTransform ScrollUpArea { get => scrollUpArea; }
+    public RectTransform ScrollDownArea { get => scrollDownArea; }
 
     public Dictionary<Note, GameObject> noteGameObjectMapping = new Dictionary<Note, GameObject>();
 
@@ -316,7 +321,8 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         float scrollDelta = Mathf.Abs(Input.mouseScrollDelta.y) > Mathf.Abs(Input.mouseScrollDelta.x) 
             ? Input.mouseScrollDelta.y : Input.mouseScrollDelta.x;
         int scrollAmount = (int) (PlaybackManager.Instance.VerticalViewSize * scrollDelta * ScrollSpeed);
-        if (IsPointerOverTrack && scrollAmount != 0)
+        // if scrolling mouse wheel over track, or if in the middle of a drag scroll, keep scrolling
+        if ((IsPointerOverTrack && scrollAmount != 0) || IsDragScrolling)
         {
             PlaybackManager.Instance.SetTimestamp(PlaybackManager.Instance.MillisecondsInChart + scrollAmount);
             IsScrolling = true;
@@ -325,6 +331,34 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         {
             IsScrolling = false;
         }
+    }
+
+    // MARK: Drag Scrolling Logic
+    public int DragScrollTrack()
+    {
+        RectTransform scrollUpArea = ScrollUpArea;
+        RectTransform scrollDownArea = ScrollDownArea;
+        float scrollSpeed = ScrollSpeed;
+
+        // check if cursor is above bottom edge of the "scroll up" bounds
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(scrollUpArea, Input.mousePosition, null, out Vector2 localScrollUpPos);
+        bool isScrollingUp = localScrollUpPos.y >= scrollUpArea.rect.yMin;
+        // check if cursor is below top edge of the "scroll down" bounds
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(scrollDownArea, Input.mousePosition, null, out Vector2 localScrollDownPos);
+        bool isScrollingDown = localScrollDownPos.y <= scrollDownArea.rect.yMax;
+
+        int scrollAmount = isScrollingUp ? (int) (PlaybackManager.Instance.VerticalViewSize * scrollSpeed) :
+                           isScrollingDown ? (int) (PlaybackManager.Instance.VerticalViewSize * -scrollSpeed) : 0;
+        if (scrollAmount != 0)
+        {
+            PlaybackManager.Instance.SetTimestamp(PlaybackManager.Instance.MillisecondsInChart + scrollAmount);
+            IsDragScrolling = true;
+        }
+        else
+        {
+            IsDragScrolling = false;
+        }
+        return scrollAmount;
     }
 
     // MARK: Note Adding Logic

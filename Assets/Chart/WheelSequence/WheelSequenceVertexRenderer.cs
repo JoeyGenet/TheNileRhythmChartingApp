@@ -29,6 +29,15 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
     {
         // Don't call base.Update() because we don't need OnNoteStarted or OnNoteEnded, 
         // and it will cause exception when Note is null
+        // we need to copy the scroll logic here:
+        if (isBeingDragged && UIManager.SelectionGroup.eventSenderNote==Note)
+        {
+            int scrollAmount = UIManager.Track.DragScrollTrack();
+            if (scrollAmount != 0)
+            {
+                OnDrag(pointerEventData);
+            }
+        }
 
         int pos;
         int time;

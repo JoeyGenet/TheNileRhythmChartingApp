@@ -408,6 +408,8 @@ MonoBehaviour:
   mainTrackArea: {fileID: 603213738010275416}
   leverTrackArea: {fileID: 886424764403819448}
   beatMarkers: {fileID: 954906750186481495}
+  scrollUpArea: {fileID: 0}
+  scrollDownArea: {fileID: 0}
   buttonNotePrefab: {fileID: 8250355419979038307, guid: 3766dda0e061f4a438c32214d6144ac4, type: 3}
   wheelFlickPrefab: {fileID: 4520919762027920641, guid: 16ab57f263ed0384aa3b9fa7dde487f8, type: 3}
   leverSequencePrefab: {fileID: 7615364491652198070, guid: faa1f754247f248a7a6a0ec96328c5fc, type: 3}

@@ -76,7 +76,11 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IPointe
         // scroll the track if you mouse over the scroll areas
         if (marqueeImage.enabled)
         {
-            DragScrollTrack();
+            int scrollAmount = UIManager.Track.DragScrollTrack();
+            if (scrollAmount != 0)
+            {
+                OnDrag(pointerEventData);
+            }
         }
     }
 
@@ -192,35 +196,6 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IPointe
         marquee.pivot = new Vector2(currentUiPos.x > startUiPos.x ? 0 : 1, currentUiPos.y > startUiPos.y ? 0 : 1);
         marquee.localPosition = startUiPos;
         marquee.sizeDelta = new Vector2(Math.Abs(currentUiPos.x-startUiPos.x), Math.Abs(currentUiPos.y-startUiPos.y));
-    }
-
-    public void DragScrollTrack()
-    {
-        // check if cursor is above bottom edge of the "scroll up" bounds
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(scrollUpArea, Input.mousePosition, null, out Vector2 localScrollUpPos);
-        bool isScrollingUp = localScrollUpPos.y >= scrollUpArea.rect.yMin;
-        // check if cursor is below top edge of the "scroll down" bounds
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(scrollDownArea, Input.mousePosition, null, out Vector2 localScrollDownPos);
-        bool isScrollingDown = localScrollDownPos.y <= scrollDownArea.rect.yMax;
-
-        int scrollAmount = isScrollingUp ? (int) (PlaybackManager.Instance.VerticalViewSize * scrollSpeed) :
-                           isScrollingDown ? (int) (PlaybackManager.Instance.VerticalViewSize * -scrollSpeed) : 0;
-        if (scrollAmount != 0)
-        {
-            PlaybackManager.Instance.SetTimestamp(PlaybackManager.Instance.MillisecondsInChart + scrollAmount);
-            Track.IsScrolling = true;
-            // update marquee bounds while scrolling
-            if (Track.PointerToTrackPosition(Input.mousePosition, clamp: false) is not var (dragPos, dragTime)) return;
-            this.dragPos = dragPos;
-            this.dragTime = dragTime;
-            dragPosDiff = dragPos - dragStartPointerPos;
-            dragTimeDiff = dragTime - dragStartPointerTime;
-            DrawSelectionRectangle();
-        }
-        else
-        {
-            Track.IsScrolling = false;
-        }
     }
 
     // would it be better to search for the note renderers directly?

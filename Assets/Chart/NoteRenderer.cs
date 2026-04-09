@@ -96,6 +96,16 @@ where C : IEditableNoteContainer<N>
 
     protected virtual void Update()
     {
+        // scroll track
+        if (isBeingDragged && UIManager.SelectionGroup.eventSenderNote==Note)
+        {
+            int scrollAmount = UIManager.Track.DragScrollTrack();
+            if (scrollAmount != 0)
+            {
+                OnDrag(pointerEventData);
+            }
+        }
+
         int currTime = PlaybackManager.Instance.MillisecondsInChart;
         if (!Track.IsScrolling && prevTime < Note.StartTime && currTime >= Note.StartTime) OnNoteStarted();
         if (!Track.IsScrolling && prevTime < Note.EndTime && currTime >= Note.EndTime) OnNoteStarted();
@@ -213,7 +223,7 @@ where C : IEditableNoteContainer<N>
         // the first note to be dragged should pass event data to all others
         if (UIManager.SelectionGroup.eventSenderNote==null)
         {
-            UIManager.SelectionGroup.eventSenderNote=Note;
+            UIManager.SelectionGroup.eventSenderNote = Note;
         }
         // if this note is dragged while in multiselection, drag all other notes
         if (isInMarqueeSelection && UIManager.SelectionGroup.eventSenderNote==Note && isReadyToShareEventData)
