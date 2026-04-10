@@ -193,7 +193,7 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IPointe
     protected void DrawSelectionRectangle() 
     {
         // draw the selection rectangle
-        Vector2 startUiPos = Track.TrackToUIPosition(dragStartPointerPos, dragStartPointerTime);
+        Vector2 startUiPos = Track.TrackToUIPosition(dragStartPointerPos, dragStartPointerTime, clamp:false);
         Vector2 currentUiPos = Track.TrackToUIPosition(dragPos, dragTime);
         marquee.pivot = new Vector2(currentUiPos.x > startUiPos.x ? 0 : 1, currentUiPos.y > startUiPos.y ? 0 : 1);
         marquee.localPosition = startUiPos;
