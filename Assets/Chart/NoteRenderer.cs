@@ -97,13 +97,15 @@ where C : IEditableNoteContainer<N>
     protected virtual void Update()
     {
         // scroll track
+        int scrollAmount = 0;
         if (isBeingDragged && UIManager.SelectionGroup.eventSenderNote==Note)
         {
-            int scrollAmount = UIManager.Track.DragScrollTrack();
-            if (scrollAmount != 0)
-            {
-                OnDrag(pointerEventData);
-            }
+            scrollAmount = UIManager.Track.DragScrollTrack();
+        }
+        // drag note if scrolling or in playback
+        if (scrollAmount != 0 || (!PlaybackManager.Instance.IsPaused && isBeingDragged))
+        {
+            OnDrag(pointerEventData);
         }
 
         int currTime = PlaybackManager.Instance.MillisecondsInChart;
