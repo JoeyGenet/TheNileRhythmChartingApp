@@ -109,8 +109,8 @@ where C : IEditableNoteContainer<N>
         }
 
         int currTime = PlaybackManager.Instance.MillisecondsInChart;
-        if (!Track.IsScrolling && prevTime < Note.StartTime && currTime >= Note.StartTime) OnNoteStarted();
-        if (!Track.IsScrolling && prevTime < Note.EndTime && currTime >= Note.EndTime) OnNoteStarted();
+        if (!isBeingDragged && !Track.IsScrolling && prevTime < Note.StartTime && currTime >= Note.StartTime) OnNoteStarted();
+        if (!isBeingDragged && !Track.IsScrolling && prevTime < Note.EndTime && currTime >= Note.EndTime) OnNoteStarted();
         prevTime = currTime;
 
         if (animator != null)
