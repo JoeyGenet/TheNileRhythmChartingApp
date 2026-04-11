@@ -833,15 +833,31 @@ public class EditEnvironmentChangeAction : UndoRedoAction
 
     public override void Redo()
     {
-        editableEnvironmentChangeEvent.StartTime += startTimeDelta;
-        editableEnvironmentChangeEvent.EndTime += endTimeDelta;
+        if (startTimeDelta > 0 || endTimeDelta > 0)
+        {
+            editableEnvironmentChangeEvent.EndTime += endTimeDelta;
+            editableEnvironmentChangeEvent.StartTime += startTimeDelta;
+        }
+        else if (startTimeDelta < 0 || endTimeDelta < 0)
+        {
+            editableEnvironmentChangeEvent.StartTime += startTimeDelta;
+            editableEnvironmentChangeEvent.EndTime += endTimeDelta;
+        }
         editableEnvironmentChangeEvent.Environment = newEnvironment;
     }
 
     public override void Undo()
     {
-        editableEnvironmentChangeEvent.StartTime -= startTimeDelta;
-        editableEnvironmentChangeEvent.EndTime -= endTimeDelta;
+        if (-startTimeDelta > 0 || -endTimeDelta > 0)
+        {
+            editableEnvironmentChangeEvent.EndTime -= endTimeDelta;
+            editableEnvironmentChangeEvent.StartTime -= startTimeDelta;
+        }
+        else if (-startTimeDelta < 0 || -endTimeDelta < 0)
+        {
+            editableEnvironmentChangeEvent.StartTime -= startTimeDelta;
+            editableEnvironmentChangeEvent.EndTime -= endTimeDelta;
+        }
         editableEnvironmentChangeEvent.Environment = oldEnvironment;
     }
 }

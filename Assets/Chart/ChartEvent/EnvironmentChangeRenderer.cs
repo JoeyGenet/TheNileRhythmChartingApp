@@ -175,7 +175,6 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerClickHandler, IB
         if (eventData.button != PointerEventData.InputButton.Left) return;
         int startTimeDelta = Event.StartTime - dragStartStartTime;
         int endTimeDelta = Event.EndTime - dragStartEndTime;
-        int durationDelta = Event.Duration - oldDuration;
         EditEnvironmentChangeAction editEnvironmentChangeAction = new EditEnvironmentChangeAction
         (
             Event, startTimeDelta, endTimeDelta, oldEnvironment, Event.Environment
