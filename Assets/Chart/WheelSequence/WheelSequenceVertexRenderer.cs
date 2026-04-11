@@ -5,7 +5,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, EditableWheelSequence>, IPointerClickHandler
+public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, EditableWheelSequence>, IPointerUpHandler
 {
     public EditableWheelSequence WheelSequence { get; private set; }
 

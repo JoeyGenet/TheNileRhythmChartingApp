@@ -4,7 +4,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class WheelSequenceRenderer : NoteRenderer<EditableWheelSequence>, IPointerClickHandler
+public class WheelSequenceRenderer : NoteRenderer<EditableWheelSequence>, IPointerUpHandler
 {
     [SerializeField] RectTransform linesParent;
     [SerializeField] UILine linePrefab;

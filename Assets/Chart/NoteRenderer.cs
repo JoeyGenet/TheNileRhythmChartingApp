@@ -1,7 +1,4 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -19,7 +16,7 @@ where C : IEditableNoteContainer<NoteType>
 {}
 
 [RequireComponent(typeof(RectTransform))]
-public abstract class NoteRenderer<NoteType, C, N> : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
+public abstract class NoteRenderer<NoteType, C, N> : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
 where NoteType : N, IEditableNote<C, N>
 where N : Note
 where C : IEditableNoteContainer<N>
@@ -202,13 +199,19 @@ where C : IEditableNoteContainer<N>
         }
     }
 
-    public void OnPointerClick(PointerEventData eventData)
+    public void OnPointerUp(PointerEventData eventData)
     {
         pointerEventData = eventData;
         switch (eventData.button)
         {
             case PointerEventData.InputButton.Left:
                 OnLeftClick();
+                // if we dragged without moving the mouse (i.e. during playback)
+                // we need to manually trigger the OnEndDrag function
+                if (isBeingDragged)
+                {
+                    OnEndDrag(eventData);
+                }
                 break;
             case PointerEventData.InputButton.Right:
                 OnRightClick();
@@ -218,6 +221,25 @@ where C : IEditableNoteContainer<N>
 
     protected virtual void OnLeftClick() {}
     protected virtual void OnRightClick() {}
+
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        pointerEventData = eventData;
+        switch (eventData.button)
+        {
+            case PointerEventData.InputButton.Left:
+                // if we drag without moving the mouse (i.e. during playback)
+                // we need to manually trigger the OnBeginDrag function
+                if (!PlaybackManager.Instance.IsPaused)
+                {
+                    OnBeginDrag(eventData);
+                }
+                break;
+            case PointerEventData.InputButton.Right:
+                break;
+        }
+    }
+
 
 
     public virtual void OnBeginDrag(PointerEventData eventData)
@@ -284,7 +306,7 @@ where C : IEditableNoteContainer<N>
 
     public virtual void OnEndDrag(PointerEventData eventData)
     {
-        if (!isDragCancelled)
+        if (!isDragCancelled && isBeingDragged)
         {
             // if this note is dropped while in multiselection, drop all other notes
             if (isInMarqueeSelection && UIManager.SelectionGroup.eventSenderNote==Note && isReadyToShareEventData)
