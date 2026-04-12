@@ -12,6 +12,14 @@ public class TrackMarqueeSelectionGroup
     public SortedSet<Note> lastDeselectedNotes { get; set; }
     public Note eventSenderNote;
     private MultiselectMoveAction multiselectMoveAction;
+    public int StartTime
+    {
+        get 
+        {
+            Note firstNote = notes.FirstOrDefault(note => note is not EditableWheelSequence && note is not EditableLeverSequence);
+            return firstNote is EditableWheelTurn ? firstNote.EndTime : firstNote.StartTime;
+        }
+    }
 
     public TrackMarqueeSelectionGroup(Track track)
     {

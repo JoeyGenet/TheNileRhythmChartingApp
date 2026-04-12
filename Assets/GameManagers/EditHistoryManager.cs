@@ -152,7 +152,7 @@ public class SelectElementAction : UndoRedoAction
         }
         else if (newSelectedElement is TrackMarqueeSelectionGroup group)
         {
-            PlaybackManager.Instance.SnapToTimestamp(group.notes.First().StartTime);
+            PlaybackManager.Instance.SnapToTimestamp(group.StartTime);
         }
     }
 
@@ -164,7 +164,7 @@ public class SelectElementAction : UndoRedoAction
         }
         else if (oldSelectedElement is TrackMarqueeSelectionGroup group)
         {
-            PlaybackManager.Instance.SnapToTimestamp(group.notes.First().StartTime);
+            PlaybackManager.Instance.SnapToTimestamp(group.StartTime);
         }
     }
 }
