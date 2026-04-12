@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 // MARK: Manager
@@ -141,11 +143,30 @@ public class SelectElementAction : UndoRedoAction
         selectedElement = newSelectedElement;
     }
 
-    // EditHistoryManager.Undo()/Redo() change the selection based on the "selectedElement" of the action
-    // these don't have to do anything!
-    public override void Redo() { }
+    // base EditHistoryManager.Undo()/Redo() methods change the selection based on the "selectedElement" of the action
+    public override void Redo() 
+    {
+        if (newSelectedElement is Note note)
+        {
+            PlaybackManager.Instance.SnapToTimestamp(note.StartTime);
+        }
+        else if (newSelectedElement is TrackMarqueeSelectionGroup group)
+        {
+            PlaybackManager.Instance.SnapToTimestamp(group.notes.First().StartTime);
+        }
+    }
 
-    public override void Undo() { }
+    public override void Undo() 
+    {
+        if (oldSelectedElement is Note note)
+        {
+            PlaybackManager.Instance.SnapToTimestamp(note.StartTime);
+        }
+        else if (oldSelectedElement is TrackMarqueeSelectionGroup group)
+        {
+            PlaybackManager.Instance.SnapToTimestamp(group.notes.First().StartTime);
+        }
+    }
 }
 
 // MARK: Basic note actions
@@ -177,11 +198,13 @@ public class AddNoteAction : UndoRedoAction
         editableChart.AddNote(note, notify: true, updateEditHistory: false);
         // TODO: set timestamp to focus on the undone/redone edit if it is not already in view
         //PlaybackManager.Instance.SetTimestamp(note.StartTime);
+        PlaybackManager.Instance.SnapToTimestamp(note.StartTime);
     }
 
     public override void Undo()
     {
         editableChart.RemoveNote(note, notify: true, updateEditHistory: false);
+        PlaybackManager.Instance.SnapToTimestamp(note.StartTime);
     }
 }
 
@@ -208,11 +231,13 @@ public class RemoveNoteAction : UndoRedoAction
     public override void Redo()
     {
         editableChart.RemoveNote(note, notify: true, updateEditHistory: false);
+        PlaybackManager.Instance.SnapToTimestamp(note.StartTime);
     }
 
     public override void Undo()
     {
         editableChart.AddNote(note, notify: true, updateEditHistory: false);
+        PlaybackManager.Instance.SnapToTimestamp(note.StartTime);
     }
 }
 
@@ -253,6 +278,7 @@ public class EditButtonNoteAction : UndoRedoAction
         buttonNote.StartTime += startTimeDelta;
         buttonNote.LeftPos = newLeftPos;
         buttonNote.RightPos = newRightPos;
+        PlaybackManager.Instance.SnapToTimestamp(buttonNote.StartTime);
     }
 
     public override void Undo()
@@ -260,6 +286,7 @@ public class EditButtonNoteAction : UndoRedoAction
         buttonNote.StartTime -= startTimeDelta;
         buttonNote.LeftPos = oldLeftPos;
         buttonNote.RightPos = oldRightPos;
+        PlaybackManager.Instance.SnapToTimestamp(buttonNote.StartTime);
     }
 }
 
@@ -293,12 +320,14 @@ public class EditWheelFlickAction : UndoRedoAction
     {
         editableWheelFlick.StartTime += startTimeDelta;
         editableWheelFlick.Dir += dirDelta;
+        PlaybackManager.Instance.SnapToTimestamp(editableWheelFlick.StartTime);
     }
 
     public override void Undo()
     {
         editableWheelFlick.StartTime -= startTimeDelta;
         editableWheelFlick.Dir -= dirDelta;
+        PlaybackManager.Instance.SnapToTimestamp(editableWheelFlick.StartTime);
     }
 }
 
@@ -361,6 +390,24 @@ public class EditWheelSequenceAction : UndoRedoAction
             }
         }
         wheelSequence.Pos += PosDelta;
+
+        // TODO: pass all the changed turns to SnapToTimestamp--will snap to earliest if NONE are in view
+        if (startTimeDelta != 0 || PosDelta != 0)
+        {
+            PlaybackManager.Instance.SnapToTimestamp(wheelSequence.StartTime);
+        }
+        else
+        {
+            EditableWheelTurn earliestChangedTurn = wheelSequence.Notes.FirstOrDefault(turn =>
+                (oldEndTimes != null && newEndTimes != null && (oldEndTimes[turn] != newEndTimes[turn])) ||
+                (oldDeltaAngles != null && newDeltaAngles != null && (oldDeltaAngles[turn] != newDeltaAngles[turn]))
+            );
+            if (earliestChangedTurn != null)
+            {
+                int snapTime = newEndTimes != null ? newEndTimes[earliestChangedTurn] : earliestChangedTurn.EndTime;
+                PlaybackManager.Instance.SnapToTimestamp(snapTime);
+            }
+        }
     }
 
     public override void Undo()
@@ -383,6 +430,23 @@ public class EditWheelSequenceAction : UndoRedoAction
             }
         }
         wheelSequence.Pos -= PosDelta;
+
+        if (startTimeDelta != 0 || PosDelta != 0)
+        {
+            PlaybackManager.Instance.SnapToTimestamp(wheelSequence.StartTime);
+        }
+        else
+        {
+            EditableWheelTurn earliestChangedTurn = wheelSequence.Notes.FirstOrDefault(turn =>
+                (oldEndTimes != null && newEndTimes != null && (oldEndTimes[turn] != newEndTimes[turn])) ||
+                (oldDeltaAngles != null && newDeltaAngles != null && (oldDeltaAngles[turn] != newDeltaAngles[turn]))
+            );
+            if (earliestChangedTurn != null)
+            {
+                int snapTime = oldEndTimes != null ? oldEndTimes[earliestChangedTurn] : earliestChangedTurn.EndTime;
+                PlaybackManager.Instance.SnapToTimestamp(snapTime);
+            }
+        }
     }
 }
 
@@ -414,11 +478,13 @@ public class AddNoteToWheelSequenceAction : UndoRedoAction
     public override void Redo()
     {
         editableWheelSequence.AddNote(editableWheelTurn, notify: true, updateEditHistory: false);
+        PlaybackManager.Instance.SnapToTimestamp(editableWheelTurn.EndTime);
     }
 
     public override void Undo()
     {
         editableWheelSequence.RemoveNote(editableWheelTurn, notify: true, updateEditHistory: false);
+        PlaybackManager.Instance.SnapToTimestamp(editableWheelTurn.EndTime);
     }
 }
 
@@ -459,6 +525,7 @@ public class RemoveNoteFromWheelSequenceAction : UndoRedoAction
         {
             editableWheelSequence.RemoveNote(editableWheelTurn, notify: true, updateEditHistory: false);
         }
+        PlaybackManager.Instance.SnapToTimestamp(editableWheelTurn.EndTime);
     }
 
     public override void Undo()
@@ -471,6 +538,7 @@ public class RemoveNoteFromWheelSequenceAction : UndoRedoAction
         {
             editableWheelSequence.AddNote(editableWheelTurn, notify: true, updateEditHistory: false);
         }
+        PlaybackManager.Instance.SnapToTimestamp(editableWheelTurn.EndTime);
     }
 }
 
@@ -521,6 +589,23 @@ public class EditLeverSequenceAction : UndoRedoAction
                 note.Pos = newLeverPositions[note];
             }
         }
+
+        if (dirDelta != 0)
+        {
+            PlaybackManager.Instance.SnapToTimestamp(leverSequence.StartTime);
+        }
+        else
+        {
+            EditableLeverNote earliestChangedNote = leverSequence.Notes.FirstOrDefault(note =>
+                (oldStartTimes != null && newStartTimes != null && oldStartTimes[note] != newStartTimes[note]) ||
+                (oldLeverPositions != null && newLeverPositions != null && oldLeverPositions[note] != newLeverPositions[note])
+            );
+            if (earliestChangedNote != null)
+            {
+                int snapTime = newStartTimes != null ? newStartTimes[earliestChangedNote] : earliestChangedNote.StartTime;
+                PlaybackManager.Instance.SnapToTimestamp(snapTime);
+            }
+        }
     }
 
     public override void Undo()
@@ -532,6 +617,23 @@ public class EditLeverSequenceAction : UndoRedoAction
             {
                 note.StartTime = oldStartTimes[note];
                 note.Pos = oldLeverPositions[note];
+            }
+        }
+
+        if (dirDelta != 0)
+        {
+            PlaybackManager.Instance.SnapToTimestamp(leverSequence.StartTime);
+        }
+        else
+        {
+            EditableLeverNote earliestChangedNote = leverSequence.Notes.FirstOrDefault(note =>
+                (oldStartTimes != null && newStartTimes != null && oldStartTimes[note] != newStartTimes[note]) ||
+                (oldLeverPositions != null && newLeverPositions != null && oldLeverPositions[note] != newLeverPositions[note])
+            );
+            if (earliestChangedNote != null)
+            {
+                int snapTime = oldStartTimes != null ? oldStartTimes[earliestChangedNote] : earliestChangedNote.StartTime;
+                PlaybackManager.Instance.SnapToTimestamp(snapTime);
             }
         }
     }
@@ -565,11 +667,13 @@ public class AddNoteToLeverSequenceAction : UndoRedoAction
     public override void Redo()
     {
         editableLeverSequence.AddNote(editableLeverNote, notify: true, updateEditHistory: false);
+        PlaybackManager.Instance.SnapToTimestamp(editableLeverNote.StartTime);
     }
 
     public override void Undo()
     {
         editableLeverSequence.RemoveNote(editableLeverNote, notify: true, updateEditHistory: false);
+        PlaybackManager.Instance.SnapToTimestamp(editableLeverNote.StartTime);
     }
 }
 
@@ -601,11 +705,13 @@ public class RemoveNoteFromLeverSequenceAction : UndoRedoAction
     public override void Redo()
     {
         editableLeverSequence.RemoveNote(editableLeverNote, notify: true, updateEditHistory: false);
+        PlaybackManager.Instance.SnapToTimestamp(editableLeverNote.StartTime);
     }
 
     public override void Undo()
     {
         editableLeverSequence.AddNote(editableLeverNote, notify: true, updateEditHistory: false);
+        PlaybackManager.Instance.SnapToTimestamp(editableLeverNote.StartTime);
     }
 }
 
@@ -633,11 +739,27 @@ public class ModifyMultiselectionAction : UndoRedoAction
     public override void Redo()
     {
         UIManager.MultiselectElements(addToSelection:true, newNotes, modifyExistingSelection:false, updateEditHistory:false);
+
+        // if oldNotes is bigger than newNotes, snap to first note that appears only in oldNotes (first deselected note)
+        // if newNotes is bigger than oldNotes, snap to first note that appears only in newNotes (first added note)
+        Note earliestChangedNote = oldNotes.Count > newNotes.Count ? oldNotes.Except(newNotes).First() : newNotes.Except(oldNotes).First();
+        if (earliestChangedNote != null)
+        {
+            PlaybackManager.Instance.SnapToTimestamp(earliestChangedNote.StartTime);
+        }
     }
 
     public override void Undo()
     {
         UIManager.MultiselectElements(addToSelection:true, oldNotes, modifyExistingSelection:false, updateEditHistory:false);
+
+        // if oldNotes is bigger than newNotes, snap to first note that appears only in oldNotes (first deselected note)
+        // if newNotes is bigger than oldNotes, snap to first note that appears only in newNotes (first added note)
+        Note earliestChangedNote = oldNotes.Count > newNotes.Count ? oldNotes.Except(newNotes).First() : newNotes.Except(oldNotes).First();
+        if (earliestChangedNote != null)
+        {
+            PlaybackManager.Instance.SnapToTimestamp(earliestChangedNote.StartTime);
+        }
     }
 }
 
@@ -764,11 +886,13 @@ public class AddEnvironmentChangeAction : UndoRedoAction
     public override void Redo()
     {
         editableChart.AddEvent(editableEnvironmentChangeEvent);
+        PlaybackManager.Instance.SnapToTimestamp(editableEnvironmentChangeEvent.StartTime);
     }
 
     public override void Undo()
     {
         editableChart.RemoveEvent(editableEnvironmentChangeEvent);
+        PlaybackManager.Instance.SnapToTimestamp(editableEnvironmentChangeEvent.StartTime);
     }
 }
 
@@ -796,11 +920,13 @@ public class RemoveEnvironmentChangeAction : UndoRedoAction
     public override void Redo()
     {
         editableChart.RemoveEvent(editableEnvironmentChangeEvent);
+        PlaybackManager.Instance.SnapToTimestamp(editableEnvironmentChangeEvent.StartTime);
     }
 
     public override void Undo()
     {
         editableChart.AddEvent(editableEnvironmentChangeEvent);
+        PlaybackManager.Instance.SnapToTimestamp(editableEnvironmentChangeEvent.StartTime);
     }
 }
 
@@ -844,6 +970,7 @@ public class EditEnvironmentChangeAction : UndoRedoAction
             editableEnvironmentChangeEvent.EndTime += endTimeDelta;
         }
         editableEnvironmentChangeEvent.Environment = newEnvironment;
+        PlaybackManager.Instance.SnapToTimestamp(editableEnvironmentChangeEvent.StartTime);
     }
 
     public override void Undo()
@@ -859,6 +986,7 @@ public class EditEnvironmentChangeAction : UndoRedoAction
             editableEnvironmentChangeEvent.EndTime -= endTimeDelta;
         }
         editableEnvironmentChangeEvent.Environment = oldEnvironment;
+        PlaybackManager.Instance.SnapToTimestamp(editableEnvironmentChangeEvent.StartTime);
     }
 }
 

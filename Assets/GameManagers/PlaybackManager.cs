@@ -96,6 +96,16 @@ public class PlaybackManager : MonoBehaviour
         lastSyncTimeInChart = time;
     }
 
+    public void SnapToTimestamp(int newTime)
+    {
+        // if the new desired timestamp is not currently visible, snap to it
+        if (newTime < MillisecondsInChart || newTime > MillisecondsInChart+VerticalViewSize)
+        {
+            newTime = Math.Clamp(newTime - (int) VerticalViewSize/2, 0, (int) ChartManager.ChartPackage.SongLength);
+            SetTimestamp(newTime);
+        }
+    }
+
     public void Play()
     {
         if (!IsPaused) return;
