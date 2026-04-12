@@ -25,6 +25,8 @@ where C : IEditableNoteContainer<N>
     public Track Track { get; private set; }
     public NoteType Note { get; private set; }
     public bool isInMarqueeSelection;
+    public bool modifyExistingSelection;
+    public bool addToSelection;
 
     protected RectTransform rect;
 
@@ -123,7 +125,7 @@ where C : IEditableNoteContainer<N>
         // create new selection from previously selected note
         // only include it if there is no current selection
         // and if it wasn't just cleared from a selection
-        if (UIManager.SelectedElement!=null && UIManager.SelectedElement!=UIManager.SelectionGroup && TrackMarqueeSelection.AddToSelection && 
+        if (UIManager.SelectedElement!=null && UIManager.SelectedElement!=UIManager.SelectionGroup && addToSelection && 
             UIManager.ClickedElement is Note previousNote && !UIManager.SelectionGroup.lastDeselectedNotes.Contains(previousNote))
         {
             selectedNotes.Add(previousNote);
@@ -137,7 +139,7 @@ where C : IEditableNoteContainer<N>
 
         // add/remove the clicked note to the group
         selectedNotes.Add(note);
-        UIManager.MultiselectElements(TrackMarqueeSelection.AddToSelection, selectedNotes, true);
+        UIManager.MultiselectElements(addToSelection, selectedNotes, true);
     }
 
     protected void SelectNoteOrMultiselection(Note note, bool updateEditHistory=true)
@@ -228,6 +230,9 @@ where C : IEditableNoteContainer<N>
         switch (eventData.button)
         {
             case PointerEventData.InputButton.Left:
+                // for modifying multiselection, check keys (shift/ctrl/alt) when we click down
+                modifyExistingSelection = TrackMarqueeSelection.ModifyExistingSelection;
+                addToSelection = TrackMarqueeSelection.AddToSelection;
                 // if we drag without moving the mouse (i.e. during playback)
                 // we need to manually trigger the OnBeginDrag function
                 if (!PlaybackManager.Instance.IsPaused)

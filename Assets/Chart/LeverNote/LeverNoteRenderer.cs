@@ -84,8 +84,8 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
     {
         if (!isBeingDragged)
         {
-            // if holding shift/ctrl/alt, either add this note to or remove it from current selection
-            if (TrackMarqueeSelection.ModifyExistingSelection && UIManager.SelectedElement != null &&
+            // if held shift/ctrl/alt when note clicked, either add this note to or remove it from current selection
+            if (modifyExistingSelection && UIManager.SelectedElement != null &&
                 (UIManager.ClickedElement is Note || UIManager.SelectedElement is TrackMarqueeSelectionGroup))
             {
                 AddOrSubtractNoteFromSelection(Note, Note.Container);
