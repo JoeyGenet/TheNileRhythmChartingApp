@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -96,14 +97,22 @@ public class PlaybackManager : MonoBehaviour
         lastSyncTimeInChart = time;
     }
 
+    public void SnapToTimestamp(List<int> newTimes)
+    {
+        if (newTimes != null && newTimes.Count != 0)
+        {
+            if (newTimes.All(newTime => newTime < MillisecondsInChart || newTime > MillisecondsInChart+VerticalViewSize))
+            {
+                newTimes = newTimes.OrderBy(newTime => Math.Min(Math.Abs(newTime - MillisecondsInChart), Math.Abs(newTime - (MillisecondsInChart+VerticalViewSize)))).ToList();
+                int newTime = Math.Clamp(newTimes[0] - (int) VerticalViewSize/2, 0, (int) ChartManager.ChartPackage.SongLength);
+                SetTimestamp(newTime);
+            }
+        }
+    }
+
     public void SnapToTimestamp(int newTime)
     {
-        // if the new desired timestamp is not currently visible, snap to it
-        if (newTime < MillisecondsInChart || newTime > MillisecondsInChart+VerticalViewSize)
-        {
-            newTime = Math.Clamp(newTime - (int) VerticalViewSize/2, 0, (int) ChartManager.ChartPackage.SongLength);
-            SetTimestamp(newTime);
-        }
+        SnapToTimestamp(new List<int>{newTime});
     }
 
     public void Play()

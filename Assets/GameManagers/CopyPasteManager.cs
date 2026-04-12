@@ -130,6 +130,7 @@ public class CopyPasteManager : MonoBehaviour
             // select the pasted notes in multiselection
             UIManager.MultiselectElements(true, pastedNotes, modifyExistingSelection:false, createNewSelection:true, updateEditHistory:false);
             multiselectPasteAction.selectedElement = UIManager.SelectionGroup;
+            multiselectPasteAction.pastedNotes = pastedNotes;
             
             multiselectPasteAction.CommitAction();
         }

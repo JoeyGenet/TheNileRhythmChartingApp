@@ -152,7 +152,7 @@ public class SelectElementAction : UndoRedoAction
         }
         else if (newSelectedElement is TrackMarqueeSelectionGroup group)
         {
-            PlaybackManager.Instance.SnapToTimestamp(group.StartTime);
+            PlaybackManager.Instance.SnapToTimestamp(group.notes.Select(note => note is EditableWheelTurn ? note.EndTime : note.StartTime).ToList());
         }
     }
 
@@ -164,7 +164,7 @@ public class SelectElementAction : UndoRedoAction
         }
         else if (oldSelectedElement is TrackMarqueeSelectionGroup group)
         {
-            PlaybackManager.Instance.SnapToTimestamp(group.StartTime);
+            PlaybackManager.Instance.SnapToTimestamp(group.notes.Select(note => note is EditableWheelTurn ? note.EndTime : note.StartTime).ToList());
         }
     }
 }
@@ -391,22 +391,24 @@ public class EditWheelSequenceAction : UndoRedoAction
         }
         wheelSequence.Pos += PosDelta;
 
-        // TODO: pass all the changed turns to SnapToTimestamp--will snap to earliest if NONE are in view
+        // pass all the changed turns to SnapToTimestamp--will snap to closest if NONE are in view
+        List<int> changedTimes = new List<int>();
+        // add start time if the whole sequence was moved
         if (startTimeDelta != 0 || PosDelta != 0)
         {
-            PlaybackManager.Instance.SnapToTimestamp(wheelSequence.StartTime);
+            changedTimes.Add(wheelSequence.StartTime);
         }
-        else
+        // find all changed turns
+        List<EditableWheelTurn> changedTurns = wheelSequence.Notes.Where(turn =>
+            (oldEndTimes != null && newEndTimes != null && (oldEndTimes[turn] != newEndTimes[turn])) ||
+            (oldDeltaAngles != null && newDeltaAngles != null && (oldDeltaAngles[turn] != newDeltaAngles[turn]))
+        ).ToList();
+        // add the end times of the changed turns (use updated end time if the time was changed)
+        changedTimes.AddRange(changedTurns.Select(turn => newEndTimes != null ? newEndTimes[turn] : turn.EndTime));
+        // snap to closest changed note
+        if (changedTimes.Count != 0)
         {
-            EditableWheelTurn earliestChangedTurn = wheelSequence.Notes.FirstOrDefault(turn =>
-                (oldEndTimes != null && newEndTimes != null && (oldEndTimes[turn] != newEndTimes[turn])) ||
-                (oldDeltaAngles != null && newDeltaAngles != null && (oldDeltaAngles[turn] != newDeltaAngles[turn]))
-            );
-            if (earliestChangedTurn != null)
-            {
-                int snapTime = newEndTimes != null ? newEndTimes[earliestChangedTurn] : earliestChangedTurn.EndTime;
-                PlaybackManager.Instance.SnapToTimestamp(snapTime);
-            }
+            PlaybackManager.Instance.SnapToTimestamp(changedTimes);
         }
     }
 
@@ -431,21 +433,24 @@ public class EditWheelSequenceAction : UndoRedoAction
         }
         wheelSequence.Pos -= PosDelta;
 
+        // pass all the changed turns to SnapToTimestamp--will snap to closest if NONE are in view
+        List<int> changedTimes = new List<int>();
+        // add start time if the whole sequence was moved
         if (startTimeDelta != 0 || PosDelta != 0)
         {
-            PlaybackManager.Instance.SnapToTimestamp(wheelSequence.StartTime);
+            changedTimes.Add(wheelSequence.StartTime);
         }
-        else
+        // find all changed turns
+        List<EditableWheelTurn> changedTurns = wheelSequence.Notes.Where(turn =>
+            (oldEndTimes != null && newEndTimes != null && (oldEndTimes[turn] != newEndTimes[turn])) ||
+            (oldDeltaAngles != null && newDeltaAngles != null && (oldDeltaAngles[turn] != newDeltaAngles[turn]))
+        ).ToList();
+        // add the end times of the changed turns (use updated end time if the time was changed)
+        changedTimes.AddRange(changedTurns.Select(turn => oldEndTimes != null ? oldEndTimes[turn] : turn.EndTime));
+        // snap to closest changed note
+        if (changedTimes.Count != 0)
         {
-            EditableWheelTurn earliestChangedTurn = wheelSequence.Notes.FirstOrDefault(turn =>
-                (oldEndTimes != null && newEndTimes != null && (oldEndTimes[turn] != newEndTimes[turn])) ||
-                (oldDeltaAngles != null && newDeltaAngles != null && (oldDeltaAngles[turn] != newDeltaAngles[turn]))
-            );
-            if (earliestChangedTurn != null)
-            {
-                int snapTime = oldEndTimes != null ? oldEndTimes[earliestChangedTurn] : earliestChangedTurn.EndTime;
-                PlaybackManager.Instance.SnapToTimestamp(snapTime);
-            }
+            PlaybackManager.Instance.SnapToTimestamp(changedTimes);
         }
     }
 }
@@ -590,21 +595,27 @@ public class EditLeverSequenceAction : UndoRedoAction
             }
         }
 
+        // pass all the changed notes to SnapToTimestamp--will snap to closest if NONE are in view
+        List<int> changedTimes = new List<int>();
+        // add all start times if the lever sequence was moved to opposite track
         if (dirDelta != 0)
         {
-            PlaybackManager.Instance.SnapToTimestamp(leverSequence.StartTime);
+            changedTimes.AddRange(leverSequence.Notes.Select(note => note.StartTime));
         }
         else
         {
-            EditableLeverNote earliestChangedNote = leverSequence.Notes.FirstOrDefault(note =>
+            // find all changed notes
+            List<EditableLeverNote> changedNotes = leverSequence.Notes.Where(note =>
                 (oldStartTimes != null && newStartTimes != null && oldStartTimes[note] != newStartTimes[note]) ||
                 (oldLeverPositions != null && newLeverPositions != null && oldLeverPositions[note] != newLeverPositions[note])
-            );
-            if (earliestChangedNote != null)
-            {
-                int snapTime = newStartTimes != null ? newStartTimes[earliestChangedNote] : earliestChangedNote.StartTime;
-                PlaybackManager.Instance.SnapToTimestamp(snapTime);
-            }
+            ).ToList();
+            // add the start times of the changed notes (use updated start time if the time was changed)
+            changedTimes.AddRange(changedNotes.Select(note => newStartTimes != null ? newStartTimes[note] : note.StartTime));
+        }
+        // snap to closest changed note
+        if (changedTimes.Count != 0)
+        {
+            PlaybackManager.Instance.SnapToTimestamp(changedTimes);
         }
     }
 
@@ -620,21 +631,27 @@ public class EditLeverSequenceAction : UndoRedoAction
             }
         }
 
+        // pass all the changed notes to SnapToTimestamp--will snap to closest if NONE are in view
+        List<int> changedTimes = new List<int>();
+        // add all start times if the lever sequence was moved to opposite track
         if (dirDelta != 0)
         {
-            PlaybackManager.Instance.SnapToTimestamp(leverSequence.StartTime);
+            changedTimes.AddRange(leverSequence.Notes.Select(note => note.StartTime));
         }
         else
         {
-            EditableLeverNote earliestChangedNote = leverSequence.Notes.FirstOrDefault(note =>
+            // find all changed notes
+            List<EditableLeverNote> changedNotes = leverSequence.Notes.Where(note =>
                 (oldStartTimes != null && newStartTimes != null && oldStartTimes[note] != newStartTimes[note]) ||
                 (oldLeverPositions != null && newLeverPositions != null && oldLeverPositions[note] != newLeverPositions[note])
-            );
-            if (earliestChangedNote != null)
-            {
-                int snapTime = oldStartTimes != null ? oldStartTimes[earliestChangedNote] : earliestChangedNote.StartTime;
-                PlaybackManager.Instance.SnapToTimestamp(snapTime);
-            }
+            ).ToList();
+            // add the start times of the changed notes (use updated start time if the time was changed)
+            changedTimes.AddRange(changedNotes.Select(note => oldStartTimes != null ? oldStartTimes[note] : note.StartTime));
+        }
+        // snap to closest changed note
+        if (changedTimes.Count != 0)
+        {
+            PlaybackManager.Instance.SnapToTimestamp(changedTimes);
         }
     }
 }
@@ -740,12 +757,13 @@ public class ModifyMultiselectionAction : UndoRedoAction
     {
         UIManager.MultiselectElements(addToSelection:true, newNotes, modifyExistingSelection:false, updateEditHistory:false);
 
-        // if oldNotes is bigger than newNotes, snap to first note that appears only in oldNotes (first deselected note)
-        // if newNotes is bigger than oldNotes, snap to first note that appears only in newNotes (first added note)
-        Note earliestChangedNote = oldNotes.Count > newNotes.Count ? oldNotes.Except(newNotes).First() : newNotes.Except(oldNotes).First();
-        if (earliestChangedNote != null)
+        // if oldNotes is bigger than newNotes, snap to nearest note that appears only in oldNotes (nearest deselected note)
+        // if newNotes is bigger than oldNotes, snap to nearest note that appears only in newNotes (nearest added note)
+        List<Note> changedNotes = oldNotes.Count > newNotes.Count ? oldNotes.Except(newNotes).ToList() : newNotes.Except(oldNotes).ToList();
+        if (changedNotes != null && changedNotes.Count != 0)
         {
-            PlaybackManager.Instance.SnapToTimestamp(earliestChangedNote.StartTime);
+            // use end time for wheel turns, start time for everything else
+            PlaybackManager.Instance.SnapToTimestamp(changedNotes.Select(note => note is EditableWheelTurn ? note.EndTime : note.StartTime).ToList());
         }
     }
 
@@ -753,12 +771,13 @@ public class ModifyMultiselectionAction : UndoRedoAction
     {
         UIManager.MultiselectElements(addToSelection:true, oldNotes, modifyExistingSelection:false, updateEditHistory:false);
 
-        // if oldNotes is bigger than newNotes, snap to first note that appears only in oldNotes (first deselected note)
-        // if newNotes is bigger than oldNotes, snap to first note that appears only in newNotes (first added note)
-        Note earliestChangedNote = oldNotes.Count > newNotes.Count ? oldNotes.Except(newNotes).First() : newNotes.Except(oldNotes).First();
-        if (earliestChangedNote != null)
+        // if oldNotes is bigger than newNotes, snap to nearest note that appears only in oldNotes (nearest deselected note)
+        // if newNotes is bigger than oldNotes, snap to nearest note that appears only in newNotes (nearest added note)
+        List<Note> changedNotes = oldNotes.Count > newNotes.Count ? oldNotes.Except(newNotes).ToList() : newNotes.Except(oldNotes).ToList();
+        if (changedNotes != null && changedNotes.Count != 0)
         {
-            PlaybackManager.Instance.SnapToTimestamp(earliestChangedNote.StartTime);
+            // use end time for wheel turns, start time for everything else
+            PlaybackManager.Instance.SnapToTimestamp(changedNotes.Select(note => note is EditableWheelTurn ? note.EndTime : note.StartTime).ToList());
         }
     }
 }
@@ -779,17 +798,34 @@ public class MultiselectMoveAction : GroupUndoRedoAction
 
     public override void Redo()
     {
+        // cache timestamp
+        int timestamp = PlaybackManager.Instance.MillisecondsInChart;
         base.Redo();
+        PlaybackManager.Instance.SetTimestamp(timestamp);
+        if (UIManager.SelectionGroup != null && UIManager.SelectionGroup.notes.Count != 0)
+        {
+            // use end time for wheel turns, start time for everything else
+            PlaybackManager.Instance.SnapToTimestamp(UIManager.SelectionGroup.notes.Select(note => note is EditableWheelTurn ? note.EndTime : note.StartTime).ToList());
+        }
     }
 
     public override void Undo()
     {
+        // cache timestamp
+        int timestamp = PlaybackManager.Instance.MillisecondsInChart;
         base.Undo();
+        PlaybackManager.Instance.SetTimestamp(timestamp);
+        if (UIManager.SelectionGroup != null && UIManager.SelectionGroup.notes.Count != 0)
+        {
+            // use end time for wheel turns, start time for everything else
+            PlaybackManager.Instance.SnapToTimestamp(UIManager.SelectionGroup.notes.Select(note => note is EditableWheelTurn ? note.EndTime : note.StartTime).ToList());
+        }
     }
 }
 
 public class MultiselectPasteAction : GroupUndoRedoAction
 {
+    [SerializeField] public SortedSet<Note> pastedNotes;
     public override string Message { get { return "multiselect paste"; }}
 
     public override string ToString()
@@ -801,12 +837,28 @@ public class MultiselectPasteAction : GroupUndoRedoAction
 
     public override void Redo()
     {
+        // cache timestamp
+        int timestamp = PlaybackManager.Instance.MillisecondsInChart;
         base.Redo();
+        PlaybackManager.Instance.SetTimestamp(timestamp);
+        if (pastedNotes != null && pastedNotes.Count != 0)
+        {
+            // use end time for wheel turns, start time for everything else
+            PlaybackManager.Instance.SnapToTimestamp(pastedNotes.Select(note => note is EditableWheelTurn ? note.EndTime : note.StartTime).ToList());
+        }
     }
 
     public override void Undo()
     {
+        // cache timestamp
+        int timestamp = PlaybackManager.Instance.MillisecondsInChart;
         base.Undo();
+        PlaybackManager.Instance.SetTimestamp(timestamp);
+        if (pastedNotes != null && pastedNotes.Count != 0)
+        {
+            // use end time for wheel turns, start time for everything else
+            PlaybackManager.Instance.SnapToTimestamp(pastedNotes.Select(note => note is EditableWheelTurn ? note.EndTime : note.StartTime).ToList());
+        }
     }
 }
 
@@ -826,12 +878,28 @@ public class MultiselectRemoveAction : GroupUndoRedoAction
 
     public override void Redo()
     {
+        // cache timestamp
+        int timestamp = PlaybackManager.Instance.MillisecondsInChart;
         base.Redo();
+        PlaybackManager.Instance.SetTimestamp(timestamp);
+        if (UIManager.SelectionGroup != null && UIManager.SelectionGroup.notes.Count != 0)
+        {
+            // use end time for wheel turns, start time for everything else
+            PlaybackManager.Instance.SnapToTimestamp(UIManager.SelectionGroup.notes.Select(note => note is EditableWheelTurn ? note.EndTime : note.StartTime).ToList());
+        }
     }
 
     public override void Undo()
     {
+        // cache timestamp
+        int timestamp = PlaybackManager.Instance.MillisecondsInChart;
         base.Undo();
+        PlaybackManager.Instance.SetTimestamp(timestamp);
+        if (UIManager.SelectionGroup != null && UIManager.SelectionGroup.notes.Count != 0)
+        {
+            // use end time for wheel turns, start time for everything else
+            PlaybackManager.Instance.SnapToTimestamp(UIManager.SelectionGroup.notes.Select(note => note is EditableWheelTurn ? note.EndTime : note.StartTime).ToList());
+        }
     }
 }
 
@@ -851,12 +919,28 @@ public class MultiselectMirrorAction : GroupUndoRedoAction
 
     public override void Redo()
     {
+        // cache timestamp
+        int timestamp = PlaybackManager.Instance.MillisecondsInChart;
         base.Redo();
+        PlaybackManager.Instance.SetTimestamp(timestamp);
+        if (UIManager.SelectionGroup != null && UIManager.SelectionGroup.notes.Count != 0)
+        {
+            // use end time for wheel turns, start time for everything else
+            PlaybackManager.Instance.SnapToTimestamp(UIManager.SelectionGroup.notes.Select(note => note is EditableWheelTurn ? note.EndTime : note.StartTime).ToList());
+        }
     }
 
     public override void Undo()
     {
+        // cache timestamp
+        int timestamp = PlaybackManager.Instance.MillisecondsInChart;
         base.Undo();
+        PlaybackManager.Instance.SetTimestamp(timestamp);
+        if (UIManager.SelectionGroup != null && UIManager.SelectionGroup.notes.Count != 0)
+        {
+            // use end time for wheel turns, start time for everything else
+            PlaybackManager.Instance.SnapToTimestamp(UIManager.SelectionGroup.notes.Select(note => note is EditableWheelTurn ? note.EndTime : note.StartTime).ToList());
+        }
     }
 }
 
