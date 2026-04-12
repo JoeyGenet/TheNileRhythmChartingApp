@@ -119,7 +119,7 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerClickHandler, IB
         switch (eventData.button)
         {
             case PointerEventData.InputButton.Left:
-                UIManager.SelectElement(Event);
+                UIManager.SelectElement(Event, updateEditHistory:true);
                 break;
             case PointerEventData.InputButton.Right:
                 // track the deletion for undo/redo

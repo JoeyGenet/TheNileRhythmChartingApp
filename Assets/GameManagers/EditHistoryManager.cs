@@ -148,6 +148,10 @@ public class SelectElementAction : UndoRedoAction
         {
             PlaybackManager.Instance.SnapToTimestamp(note.StartTime);
         }
+        else if (newSelectedElement is EnvironmentChangeEvent environmentChangeEvent)
+        {
+            PlaybackManager.Instance.SnapToTimestamp(environmentChangeEvent.StartTime);
+        }
         else if (newSelectedElement is TrackMarqueeSelectionGroup group)
         {
             PlaybackManager.Instance.SnapToTimestamp(group.notes.Select(note => note is EditableWheelTurn ? note.EndTime : note.StartTime).ToList());
@@ -159,6 +163,10 @@ public class SelectElementAction : UndoRedoAction
         if (oldSelectedElement is Note note)
         {
             PlaybackManager.Instance.SnapToTimestamp(note.StartTime);
+        }
+        else if (newSelectedElement is EnvironmentChangeEvent environmentChangeEvent)
+        {
+            PlaybackManager.Instance.SnapToTimestamp(environmentChangeEvent.StartTime);
         }
         else if (oldSelectedElement is TrackMarqueeSelectionGroup group)
         {
