@@ -31,7 +31,7 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
         // and it will cause exception when Note is null
         // we need to copy the scroll logic here:
         int scrollAmount = 0;
-        if (isBeingDragged && UIManager.SelectionGroup.eventSenderNote==Note)
+        if (PlaybackManager.Instance.IsPaused && isBeingDragged && UIManager.SelectionGroup.eventSenderNote==Note)
         {
             scrollAmount = UIManager.Track.DragScrollTrack();
         }

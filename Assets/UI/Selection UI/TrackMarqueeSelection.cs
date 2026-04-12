@@ -75,7 +75,7 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IPointe
     {
         // scroll the track if you mouse over the scroll areas
         int scrollAmount = 0;
-        if (isBeingDragged)
+        if (PlaybackManager.Instance.IsPaused && isBeingDragged)
         {
             scrollAmount = UIManager.Track.DragScrollTrack();
         }

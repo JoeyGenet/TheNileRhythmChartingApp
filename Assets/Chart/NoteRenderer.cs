@@ -95,7 +95,7 @@ where C : IEditableNoteContainer<N>
     {
         // scroll track
         int scrollAmount = 0;
-        if (isBeingDragged && UIManager.SelectionGroup.eventSenderNote==Note)
+        if (PlaybackManager.Instance.IsPaused && isBeingDragged && UIManager.SelectionGroup.eventSenderNote==Note)
         {
             scrollAmount = UIManager.Track.DragScrollTrack();
         }
