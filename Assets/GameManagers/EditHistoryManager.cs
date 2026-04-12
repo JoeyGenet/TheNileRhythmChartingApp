@@ -29,8 +29,7 @@ public static class EditHistoryManager
     {
         if (editHistoryHeadIndex >= 0)
         {
-            // TODO: pause playback when undoing/redoing edits?
-            // PlaybackManager.Instance.Pause();
+            PlaybackManager.Instance.Pause();
             UndoRedoAction undoRedoAction = editHistory[editHistoryHeadIndex];
             undoRedoAction.Undo();
             Debug.Log("Undid " + undoRedoAction.Message + "\n\n" + undoRedoAction.ToString() + "\n");
@@ -43,8 +42,7 @@ public static class EditHistoryManager
     {
         if (editHistoryHeadIndex < editHistory.Count - 1)
         {
-            // TODO: pause playback when undoing/redoing edits?
-            // PlaybackManager.Instance.Pause();
+            PlaybackManager.Instance.Pause();
             editHistoryHeadIndex += 1;
             UndoRedoAction undoRedoAction = editHistory[editHistoryHeadIndex];
             undoRedoAction.Redo();
