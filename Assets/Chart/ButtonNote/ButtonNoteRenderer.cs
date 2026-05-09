@@ -45,10 +45,30 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
             : leftUIPos;
     }
 
-    protected override void OnLeftClick() => UIManager.SelectedElement = Note;
+    protected override void OnLeftClick() 
+    {
+        if (!isBeingDragged)
+        {
+            // if held shift/ctrl/alt when note clicked, either add this note to or remove it from current selection
+            if (modifyExistingSelection && UIManager.SelectedElement != null &&
+                (UIManager.ClickedElement is Note || UIManager.SelectedElement is TrackMarqueeSelectionGroup))
+            {
+                AddOrSubtractNoteFromSelection(Note);
+            }
+            // select the group if it contains Note, or clear group and select Note
+            else
+            {
+                SelectNoteOrMultiselection(Note);
+            }
+        }
+        
+        UIManager.ClickedElement = Note;
+    } 
+    
     protected override void OnRightClick()
     {
-        if (Note.RightPos is not int rightPos) // Single note, so delete entire thing
+        // If single note or in multiselection, delete entire thing
+        if (Note.RightPos is not int rightPos || isInMarqueeSelection)
         {
             Note.RemoveSelf();
             return;
@@ -56,16 +76,25 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
 
         if (Track.PointerToTrackPosition(pointerEventData.position, clamp: false) is not var (clickPos, _)) return;
 
+        // cache note positions before drag clear to detect which note we are mousing over
+        int lastLeftPos = Note.LeftPos;
+        int lastRightPos = rightPos;
+        // if we delete a paired note while dragging, cancel drag
+        // to prevent an UndoRedoAction from being logged when drag is complete
+        if (isBeingDragged)
+        {
+            CancelDrag();
+        }
         int oldLeftPos = Note.LeftPos;
-        int? oldRightPos = Note.RightPos;
+        int oldRightPos = (int)Note.RightPos;
 
-        if (Math.Abs(clickPos - rightPos) < Math.Abs(clickPos - Note.LeftPos))
+        if (Math.Abs(clickPos - lastRightPos) < Math.Abs(clickPos - lastLeftPos))
         {
             Note.RightPos = null;
         }
         else
         {
-            Note.LeftPos = rightPos;
+            Note.LeftPos = oldRightPos;
             Note.RightPos = null;
         }
 
@@ -76,7 +105,7 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
 
     protected override void OnDragStart()
     {   
-        UIManager.SelectedElement = Note;
+        SelectNoteOrMultiselection(Note, updateEditHistory:false);
         dragStartLeftPos = Note.LeftPos;
         dragStartRightPos = Note.RightPos;
         dragStartTime = Note.StartTime;
@@ -84,7 +113,7 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
 
     protected override void OnDrag()
     {
-        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift) || isInMarqueeSelection)
         {
             Note.LeftPos = Math.Clamp(dragStartLeftPos + dragPosDiff, 0, 100);
             if (dragStartRightPos is int rightPos) Note.RightPos = Math.Clamp(rightPos + dragPosDiff, 0, 100);
@@ -117,6 +146,21 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
     {
         int startTimeDelta = Note.StartTime - dragStartTime;
         EditButtonNoteAction moveButtonNoteAction = new EditButtonNoteAction(Note, startTimeDelta, dragStartLeftPos, dragStartRightPos, Note.LeftPos, Note.RightPos);
-        moveButtonNoteAction.CommitAction();
+        
+        if (!isInMarqueeSelection)
+        {
+            moveButtonNoteAction.CommitAction();
+        }
+        else
+        {
+            UIManager.SelectionGroup.AddToMultiselectMoveAction(moveButtonNoteAction);
+        }
+    }
+
+    protected override void OnCancelDrag()
+    {
+        Note.LeftPos = dragStartLeftPos;
+        Note.RightPos = dragStartRightPos;
+        Note.StartTime = dragStartTime;
     }
 }

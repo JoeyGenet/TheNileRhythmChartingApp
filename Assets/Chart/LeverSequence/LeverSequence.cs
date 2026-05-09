@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-public class LeverSequence : Note<Chart, Note>, INoteContainer<LeverNote>
+public class LeverSequence : TimedNote<Chart, Note>, INoteContainer<LeverNote>
 {
 	public override bool AffectsScore => false;
 
@@ -14,15 +14,14 @@ public class LeverSequence : Note<Chart, Note>, INoteContainer<LeverNote>
     // public LeverNote FirstNote => notes.Min;
     // public LeverNote LastNote => notes.Max;
 
-	public override int StartTime => notes.Min.StartTime;
 	public override int EndTime => notes.Max.EndTime;
 
-    public LeverSequence(int time, int id) : base(id)
+    public LeverSequence(int time, int id) : base(time, id)
 	{
 		notes = new() { new LeverNote(time, -1) };
 	}
 
-	public LeverSequence(Chart chart, LeftRight dir, List<(int time, LeverPos pos)> levers) : base(chart)
+	public LeverSequence(Chart chart, int time, LeftRight dir, List<(int time, LeverPos pos)> levers) : base(chart, time)
 	{
 		this.dir = dir;
 		InitializeNotes(levers.Select(lever => new LeverNote(this, lever.time, lever.pos)));
@@ -42,4 +41,8 @@ public class LeverSequence : Note<Chart, Note>, INoteContainer<LeverNote>
 
 	public IReadOnlyCollection<LeverNote> GetNotesBefore(int time, bool inclusive = true) 
 		=> notes.GetViewBetween(DummyLeverNote.Min, new DummyLeverNote(time, inclusive ? int.MaxValue : int.MinValue));
+
+	public IReadOnlyCollection<LeverNote> GetNotesBetween(int minTime, int maxTime, bool inclusive = true) 
+		=> notes.GetViewBetween(new DummyLeverNote(minTime, inclusive ? int.MinValue : int.MaxValue), new DummyLeverNote(maxTime, inclusive ? int.MaxValue : int.MinValue));
+
 }

@@ -84,6 +84,10 @@ public class EditableWheelSequence : WheelSequence, IEditableNote<EditableChart,
 		set => this.RegisterChange(ref pos, value, onChanged: () => notes.Min.RecomputeStartAngle());
 	}
 
+	// startingNote acts as a proxy for the wheel sequence start in marquee selection
+	// in other words, when the wheel sequence is selected, this note is what is actually added to the selection
+	// that is associated with the first vertex renderer in the sequence
+	public EditableWheelTurn startingNote;
     public new IReadOnlySortedSet<EditableWheelTurn> Notes => (ReadOnlySortedSet<EditableWheelTurn, WheelTurn>) notes;
 
     // public new EditableWheelTurn FirstNote => notes.Min as EditableWheelTurn;
@@ -92,11 +96,13 @@ public class EditableWheelSequence : WheelSequence, IEditableNote<EditableChart,
 	public EditableWheelSequence(EditableChart chart, int time, int pos, List<(int deltaAngle, int endTime)> turns)
 		: base(chart, time, pos, new())
 	{
+		startingNote = new EditableWheelTurn(this, StartTime, 0);
 		InitializeNotes(turns.Select(turn => new EditableWheelTurn(this, turn.endTime, turn.deltaAngle)));
 	}
 	public EditableWheelSequence(EditableChart chart, WheelSequence seq)
 		: base(chart, seq.StartTime, seq.Pos, new())
 	{
+		startingNote = new EditableWheelTurn(this, StartTime, 0);
 		InitializeNotes(seq.Notes.Select(turn => new EditableWheelTurn(this, turn.EndTime, turn.DeltaAngle)));
 	}
 
@@ -160,6 +166,57 @@ public class EditableWheelSequence : WheelSequence, IEditableNote<EditableChart,
 		onChanged: () => OnNoteRemoved?.Invoke(note)
 	);
 
+	public bool RemoveNoteFromFront(EditableWheelTurn note, bool notify = true, bool updateEditHistory = true) => this.RegisterChange
+	( () =>
+		{
+			// we need to cache the start time of removed note, because otherwise it is lost
+			var secondTurn = Notes.ElementAt(1);
+			note.cachedStartTime = note.StartTime;
+			StartTime = secondTurn.StartTime;
+
+			// Update linked list
+			if (note.NextTurn != null)
+			{
+				note.NextTurn.PreviousTurn = null;
+				note.NextTurn.RecomputeStartAngle();
+			}
+
+			note.PreviousTurn = note.NextTurn = null;
+
+			Assert.IsTrue(notes.Remove(note));
+			Pos = WheelTurn.AngleToPos(WheelTurn.WrapAngle(note.StartAngle + note.DeltaAngle));
+			
+			// track undo/redoable note remove action
+			if (updateEditHistory)
+			{
+				RemoveNoteFromWheelSequenceAction removeNoteFromWheelSequenceAction = new RemoveNoteFromWheelSequenceAction(note, this, isStartingVertex: true);
+				removeNoteFromWheelSequenceAction.CommitAction();
+			}
+
+			return notify;
+		},
+		onChanged: () => OnNoteRemoved?.Invoke(note)
+	);
+
+	// currently only used to undo a removal from the front of the sequence
+	// as such, has no undo/redo tracking
+	public bool AddNoteToFront(EditableWheelTurn note, bool notify = true, bool updateEditHistory = true)=> this.RegisterChange
+	( () =>
+		{
+			// Update linked list
+			EditableWheelTurn nextTurn = Notes.ElementAt(0);
+			note.NextTurn = nextTurn;
+			nextTurn.PreviousTurn = note;
+
+			Pos = WheelTurn.AngleToPos(WheelTurn.WrapAngle(note.StartAngle));
+			StartTime = note.cachedStartTime;
+
+			Assert.IsTrue(notes.Add(note));
+			return notify;
+		},
+		onChanged: () => OnNoteAdded?.Invoke(note)
+	);
+
 	public void NotifyMoved(EditableWheelTurn note) => OnNoteMoved?.Invoke(note);
 
     // public bool UpdateNote(EditableWheelTurn note) => this.RegisterChange(
@@ -201,6 +258,8 @@ public class EditableWheelTurn : WheelTurn, IEditableNote<EditableWheelSequence,
 		set => base.NextTurn = value;
 	}
 
+	public int cachedStartTime;
+
 	public EditableWheelTurn(EditableWheelSequence seq, int endTime, int deltaAngle) : base(seq, endTime, deltaAngle) {}
 }
 
@@ -217,6 +276,12 @@ public class EditableLeverSequence : LeverSequence, IEditableNote<EditableChart,
     public event NoteRemovedEvent<EditableLeverNote> OnNoteRemoved;
     public event NoteMovedEvent<EditableLeverNote> OnNoteMoved;
 
+	public new int StartTime
+	{
+		get => time;
+		set => this.RegisterSortingChange(Container, ref time, value);
+	}
+
     public new LeftRight Dir
 	{
 		get => dir;
@@ -228,13 +293,13 @@ public class EditableLeverSequence : LeverSequence, IEditableNote<EditableChart,
     // public new EditableLeverNote FirstNote => notes.Min as EditableLeverNote;
     // public new EditableLeverNote LastNote => notes.Max as EditableLeverNote;
 
-	public EditableLeverSequence(EditableChart chart, LeftRight dir, List<(int time, LeverPos pos)> levers) 
-		: base(chart, dir, new())
+	public EditableLeverSequence(EditableChart chart, int time, LeftRight dir, List<(int time, LeverPos pos)> levers) 
+		: base(chart, time, dir, new())
 	{
 		InitializeNotes(levers.Select(lever => new EditableLeverNote(this, lever.time, lever.pos)));
 	}
 	public EditableLeverSequence(EditableChart chart, LeverSequence seq)
-		: base(chart, seq.Dir, new())
+		: base(chart, seq.StartTime, seq.Dir, new())
 	{
 		InitializeNotes(seq.Notes.Select(lever => new EditableLeverNote(this, lever.StartTime, lever.Pos)));
 	}
@@ -265,7 +330,12 @@ public class EditableLeverSequence : LeverSequence, IEditableNote<EditableChart,
 				addNoteToLeverSequenceAction.CommitAction();
 			}
 
+			// add note, and if it is the new first note, update the sequence start time
 			Assert.IsTrue(notes.Add(note));
+			if (notes.Min == note)
+			{
+				StartTime = note.StartTime;
+			}
 			return notify;
 		},
 		onChanged: () => OnNoteAdded?.Invoke(note)
@@ -280,6 +350,12 @@ public class EditableLeverSequence : LeverSequence, IEditableNote<EditableChart,
 			if (note.PreviousNote != null) note.PreviousNote.NextNote = note.NextNote;
 			if (note.NextNote != null) note.NextNote.PreviousNote = note.PreviousNote;
 
+			// before removing the note and removing its connections,
+			// if it is the current first note, set the sequence start time to that of the next note
+			if (notes.Min == note && note.NextNote != null)
+			{
+				StartTime = note.NextNote.StartTime;
+			}
 			note.PreviousNote = note.NextNote = null;
 
 			// track undo/redoable note remove action

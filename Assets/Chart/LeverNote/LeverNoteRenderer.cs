@@ -11,8 +11,11 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
 {
     [Header("Sprites")]
     [SerializeField] private Image arrow;
+    [SerializeField] private Image outline;
     [SerializeField] private Sprite arrowSprite;
+    [SerializeField] private Sprite arrowOutline;
     [SerializeField] private Sprite neutralSprite;
+    [SerializeField] private Sprite neutralOutline;
     [SerializeField] private Color leftColor;
     [SerializeField] private Color upColor;
     [SerializeField] private Color rightColor;
@@ -26,12 +29,13 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
 
     AudioSource audioSource;
 
+    int dragStartTime;
+    bool isLastSelectedVertex;
     Dictionary<EditableLeverNote, int> dragStartTimes;
     LeftRight dragStartDir;
     LeverPos dragStartLeverPos;
     Vector2 dragLeverPosChangePos;
     Dictionary<EditableLeverNote, LeverPos> oldLeverPositions;
-
     protected override void Awake()
     {
         base.Awake();
@@ -63,19 +67,39 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
 
         // update lever direction
         float angle;
-        (arrow.sprite, angle, arrow.color) = Note.Pos switch
+        (arrow.sprite, outline.sprite, angle, arrow.color) = Note.Pos switch
         {
-            LeverPos.Left => (arrowSprite, 0, leftColor),
-            LeverPos.Up => (arrowSprite, -90, upColor),
-            LeverPos.Right => (arrowSprite, 180, rightColor),
-            LeverPos.Down => (arrowSprite, 90, downColor),
-            LeverPos.Middle => (neutralSprite, 0, middleColor),
+            LeverPos.Left => (arrowSprite, arrowOutline, 0, leftColor),
+            LeverPos.Up => (arrowSprite, arrowOutline, -90, upColor),
+            LeverPos.Right => (arrowSprite, arrowOutline, 180, rightColor),
+            LeverPos.Down => (arrowSprite, arrowOutline, 90, downColor),
+            LeverPos.Middle => (neutralSprite, neutralOutline, 0, middleColor),
             _ => throw new Exception($"Lever direction {Note.Pos} not supported."),
         };
         arrow.transform.rotation = Quaternion.Euler(0, 0, angle);
+        outline.transform.rotation = Quaternion.Euler(0, 0, angle);
     }
 
-    protected override void OnLeftClick() => UIManager.SelectedElement = Note.Container;
+    protected override void OnLeftClick() 
+    {
+        if (!isBeingDragged)
+        {
+            // if held shift/ctrl/alt when note clicked, either add this note to or remove it from current selection
+            if (modifyExistingSelection && UIManager.SelectedElement != null &&
+                (UIManager.ClickedElement is Note || UIManager.SelectedElement is TrackMarqueeSelectionGroup))
+            {
+                AddOrSubtractNoteFromSelection(Note, Note.Container);
+            }
+            // select the group if it contains Note, or clear group and select Note.Container
+            else
+            {
+                SelectNoteOrMultiselection(Note.Container);
+            }
+        }
+        
+        UIManager.ClickedElement = Note;
+    }
+
     protected override void OnRightClick()
     {
         if (Note.Container.Notes.Count <= 1) 
@@ -91,18 +115,29 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
 
     protected override void OnDragStart()
     {   
-        UIManager.SelectedElement = Note.Container;
+        SelectNoteOrMultiselection(Note.Container, updateEditHistory:false);
+        dragStartTime = Note.StartTime;
         dragStartTimes = Note.Container.Notes.ToDictionary(n => n, n => n.StartTime);
         dragStartLeverPos = Note.Pos;
         dragStartDir = Note.Container.Dir;
         dragLeverPosChangePos = pointerEventData.position;
         oldLeverPositions = Note.Container.Notes.ToDictionary(n => n, n => n.Pos);
+        if (isInMarqueeSelection)
+        {
+            EditableLeverNote currentNote = Note.Container.Notes.Last();
+            while (!UIManager.SelectionGroup.notes.Contains(currentNote) && currentNote.PreviousNote!=null)
+            {
+                currentNote = currentNote.PreviousNote;
+            }
+            isLastSelectedVertex = Note == currentNote;
+        }
     }
 
     protected override void OnDrag()
     {
         bool changeTime = !Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.RightControl);
-        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+        // do not allow for whole sequence dragging if this note is in marquee selection
+        if ((Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) && !isInMarqueeSelection)
         {
             int snappedTimeDiff = UIManager.SnapTime(dragStartTimes[Note] + dragTimeDiff) - dragStartTimes[Note];
             foreach (var note in dragStartTimes.Keys)
@@ -118,9 +153,14 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
         }
         else
         {
-            foreach (var note in dragStartTimes.Keys)
+            // if we stop holding shift, reset note positions to their pos when drag started
+            // ... unless this note is in a marquee selection
+            if (!isInMarqueeSelection)
             {
-                note.StartTime = dragStartTimes[note];
+                foreach (var note in dragStartTimes.Keys)
+                {
+                    note.StartTime = dragStartTimes[note];
+                }
             }
 
             if (changeTime)
@@ -132,6 +172,7 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
             }
             else
             {
+                Note.StartTime = dragStartTime;
                 // while holding ctrl, change the lever position
                 Vector2 changePosDiff = pointerEventData.position - dragLeverPosChangePos;
                 if (Mathf.Abs(changePosDiff.x) > Mathf.Abs(changePosDiff.y))
@@ -172,6 +213,27 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
         Dictionary<EditableLeverNote, int> newStartTimes = Note.Container.Notes.ToDictionary(n => n, n => n.StartTime);
         Dictionary<EditableLeverNote, LeverPos> newLeverPositions = Note.Container.Notes.ToDictionary(n => n, n => n.Pos);
         EditLeverSequenceAction editLeverSequenceAction = new EditLeverSequenceAction(Note.Container, dirDelta, dragStartTimes, newStartTimes, oldLeverPositions, newLeverPositions);
-        editLeverSequenceAction.CommitAction();
+        
+        if (!isInMarqueeSelection)
+        {
+            editLeverSequenceAction.CommitAction();
+        }
+        else if (isLastSelectedVertex)
+        {
+            UIManager.SelectionGroup.AddToMultiselectMoveAction(editLeverSequenceAction);
+        }
+    }
+
+    protected override void OnCancelDrag()
+    {
+        Note.Container.Dir = dragStartDir;
+        if (dragStartTimes != null)
+        {
+            foreach (EditableLeverNote note in dragStartTimes.Keys)
+            {
+                note.StartTime = dragStartTimes[note];
+                note.Pos = oldLeverPositions[note];
+            }
+        }
     }
 }

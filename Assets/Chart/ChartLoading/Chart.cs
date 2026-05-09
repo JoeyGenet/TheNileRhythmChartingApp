@@ -32,6 +32,9 @@ public class Chart : INoteContainer<Note>, IComparable<Chart>
 	public IReadOnlyCollection<Note> GetNotesBefore(int time, bool inclusive = true) 
 		=> notes.GetViewBetween(DummyNote.Min, new DummyNote(time, inclusive ? int.MaxValue : int.MinValue));
 
+	public IReadOnlyCollection<Note> GetNotesBetween(int minTime, int maxTime, bool inclusive = true) 
+	=> notes.GetViewBetween(new DummyNote(minTime, inclusive ? int.MinValue : int.MaxValue), new DummyNote(maxTime, inclusive ? int.MaxValue : int.MinValue));
+
 	public IReadOnlyCollection<Note> GetNotesAfter(int time, bool inclusive = true) 
 		=> notes.GetViewBetween(new DummyNote(time, inclusive ? int.MinValue : int.MaxValue), DummyNote.Max);
 
@@ -121,12 +124,13 @@ public class Chart : INoteContainer<Note>, IComparable<Chart>
 				parser.AssertArgCount(c => c % 2 == 0, "Lever sequence");
 				
 				LeftRight dir = parseLeftRight(args[1]);
+				int time = int.Parse(args[2]);
 				List<(int time, LeverPos pos)> levers = new();
 				for (int i = 2; i < args.Length; i += 2)
 				{
 					levers.Add((int.Parse(args[i]), parseLeverPos(args[i+1])));
 				}
-				return new LeverSequence(this, dir, levers);
+				return new LeverSequence(this, time, dir, levers);
 			}
 			LeftRight parseLeftRight(string arg)
 			{

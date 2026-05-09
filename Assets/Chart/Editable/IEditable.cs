@@ -29,6 +29,7 @@ where NoteType : Note
 	public event NoteRemovedEvent<NoteType> OnNoteRemoved;
 	public event NoteMovedEvent<NoteType> OnNoteMoved;
 
+    // if notify is true, then return whether or not the add/removal was successful, otherwise return false
 	bool AddNote(NoteType note, bool notify = true, bool updateEditHistory = true);
 	bool RemoveNote(NoteType note, bool notify = true, bool updateEditHistory = true);
     void NotifyMoved(NoteType note);
@@ -53,6 +54,7 @@ public static class IEditableExtensions
     where E : IEditable, N
     {
         if (newValue.Equals(value)) return false;
+        // if notify is true, then return whether or not the add/removal was successful, otherwise return false
         container?.RemoveNote(editable, notify: false, updateEditHistory: false);
         value = newValue;
         container?.AddNote(editable, notify: false, updateEditHistory: false);
@@ -73,5 +75,16 @@ public static class IEditableExtensions
 
     public static bool RemoveSelf<N>(this IEditableNote<IEditableNoteContainer<N>, N> note)
     where N : Note
-        => note.Container.RemoveNote(note as N);
+    {
+        // if deleted note is in multiselection, and if multiselection is selected, delete all other multiselected notes
+		if (UIManager.SelectedElement==UIManager.SelectionGroup && UIManager.SelectionGroup.notes.Contains(note as N))
+		{
+			return UIManager.SelectionGroup.CommitMultiselectDeleteAction();
+		}
+        else
+        {
+            UIManager.SelectElement(null, false);
+            return note.Container.RemoveNote(note as N);
+        }
+    }
 }

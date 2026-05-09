@@ -6,7 +6,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(AudioSource))]
-public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerClickHandler, IBeginDragHandler, IDragHandler
+public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerUpHandler, IBeginDragHandler, IDragHandler
 {
     // public WheelFlick Note;
 
@@ -52,12 +52,30 @@ public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerClic
         };
     }
 
-    protected override void OnLeftClick() => UIManager.SelectedElement = Note;
+    protected override void OnLeftClick() 
+    {
+        if (!isBeingDragged)
+        {
+            // if held shift/ctrl/alt when note clicked, either add this note to or remove it from current selection
+            if (modifyExistingSelection && UIManager.SelectedElement != null &&
+                (UIManager.ClickedElement is Note || UIManager.SelectedElement is TrackMarqueeSelectionGroup))
+            {
+                AddOrSubtractNoteFromSelection(Note);
+            }
+            // select the group if it contains Note, or clear group and select Note
+            else
+            {
+                SelectNoteOrMultiselection(Note);
+            }
+        }
+
+        UIManager.ClickedElement = Note;
+    } 
     protected override void OnRightClick() => Note.RemoveSelf();
 
     protected override void OnDragStart()
     {
-        UIManager.SelectedElement = Note;
+        SelectNoteOrMultiselection(Note, updateEditHistory:false);
         dragStartTime = Note.StartTime;
         oldDir = Note.Dir;
         dragDirChangePosX = pointerEventData.position.x;
@@ -66,20 +84,28 @@ public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerClic
     protected override void OnDrag()
     {
         float dragDirChangePosXDiff = pointerEventData.position.x - dragDirChangePosX;
-        if (dragDirChangePosXDiff < -50 || (dragDirChangePosXDiff < -5 && Note.Dir == LeftRight.Left))
+        bool changeTime = !Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.RightControl);
+        
+        if ((!isInMarqueeSelection || !changeTime) &&
+            (dragDirChangePosXDiff < -50 || (dragDirChangePosXDiff < -5 && Note.Dir == LeftRight.Left)))
         {
             Note.Dir = LeftRight.Left;
             dragDirChangePosX = pointerEventData.position.x;
         }
-        else if (dragDirChangePosXDiff > 50 || (dragDirChangePosXDiff > 5 && Note.Dir == LeftRight.Right))
+        else if ((!isInMarqueeSelection || !changeTime) &&
+                 (dragDirChangePosXDiff > 50 || (dragDirChangePosXDiff > 5 && Note.Dir == LeftRight.Right)))
         {
             Note.Dir = LeftRight.Right;
             dragDirChangePosX = pointerEventData.position.x;
         }
         
-        if (!Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.RightControl))
+        if (changeTime)
         {
             Note.StartTime = PlaybackManager.ClampTime(UIManager.SnapTime(dragStartTime + dragTimeDiff));
+            if (isInMarqueeSelection)
+            {
+                Note.Dir = oldDir;
+            }
         }
         else
         {
@@ -92,6 +118,20 @@ public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerClic
         int startTimeDelta = Note.StartTime - dragStartTime;
         int dirDelta = Note.Dir - oldDir;
         EditWheelFlickAction editWheelFlickAction = new EditWheelFlickAction(Note, startTimeDelta, dirDelta);
-        editWheelFlickAction.CommitAction();
+        
+        if (!isInMarqueeSelection)
+        {
+            editWheelFlickAction.CommitAction();
+        }
+        else
+        {
+            UIManager.SelectionGroup.AddToMultiselectMoveAction(editWheelFlickAction);
+        }
+    }
+
+    protected override void OnCancelDrag()
+    {
+        Note.StartTime = dragStartTime;
+        Note.Dir = oldDir;
     }
 }

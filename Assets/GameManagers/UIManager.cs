@@ -2,7 +2,9 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
-using System.ComponentModel;
+using System.Collections.Generic;
+using Unity.VisualScripting;
+using System.Linq;
 
 // Tells what the cursor does in the UI
 public enum UICursorMode
@@ -37,17 +39,130 @@ public class UIManager : MonoBehaviour
     [SerializeField] Color previewEnvironmentColor;
     Color backgroundColor;
 
+    [Header("Track UI")]
+    [SerializeField] Track track;
+    public static Track Track
+    {
+        get => Instance.track;
+        set { Instance.track = value; }
+    }
+
+    object clickedElement;
+    public static object ClickedElement
+    {
+        get => Instance.clickedElement;
+        set { Instance.clickedElement = value; }
+    }
+
     object selectedElement;
     public static object SelectedElement
     {
         get => Instance.selectedElement;
-        set
+        // no setter. SelectElement() should be used instead
+        // so we can commit selection changes to edit history
+    }
+
+    public static void SelectElement(object newElement, bool updateEditHistory=false)
+    {
+        if (Instance.selectedElement != newElement)
         {
-            if (Instance.selectedElement != value)
+            object prevElement = Instance.selectedElement;
+            Instance.selectedElement = newElement;
+            OnElementSelected?.Invoke(prevElement, newElement);
+            if (prevElement is TrackMarqueeSelectionGroup prevTrackMarqueeSelectionGroup)
             {
-                object prevElement = Instance.selectedElement;
-                Instance.selectedElement = value;
-                OnElementSelected?.Invoke(prevElement, value);
+                prevTrackMarqueeSelectionGroup.FlagNotes(false);
+            }
+            if (newElement is TrackMarqueeSelectionGroup newTrackMarqueeSelectionGroup)
+            {
+                SelectionGroup = newTrackMarqueeSelectionGroup;
+                newTrackMarqueeSelectionGroup.FlagNotes(true);
+            }
+            if (updateEditHistory)
+            {
+                SelectElementAction selectElementAction = new SelectElementAction(prevElement, newElement);
+                selectElementAction.CommitAction();
+            }
+        }
+    }
+
+    TrackMarqueeSelectionGroup selectionGroup;
+    public static TrackMarqueeSelectionGroup SelectionGroup
+    {
+        get => Instance.selectionGroup;
+        set { Instance.selectionGroup = value; }
+    }
+
+    public static void MultiselectElements(bool addToSelection, SortedSet<Note> selectedNotes=null, bool modifyExistingSelection=false, bool createNewSelection=false, bool updateEditHistory=true)
+    {
+        // if notes are being removed from the selection, cache them
+        SortedSet<Note> notesToFlag = selectedNotes == null ? SelectionGroup.notes : selectedNotes;
+        if (!addToSelection) SelectionGroup.lastDeselectedNotes = notesToFlag;
+        
+        // if group is not selected prior to MultiselectElements(), or if not modifying existing multiselection,
+        // make new selection
+        bool overwriteCurrentSelection = !modifyExistingSelection || SelectedElement!=SelectionGroup;
+
+        // create new list of selected notes
+        SortedSet<Note> oldNotes = new SortedSet<Note>(SelectionGroup.notes);
+        SortedSet<Note> newNotes = overwriteCurrentSelection ? new SortedSet<Note>() : new SortedSet<Note>(SelectionGroup.notes);
+        if (selectedNotes != null && selectedNotes.Count > 0)
+        {
+            if (addToSelection)
+            {
+                newNotes.AddRange(selectedNotes);
+            }
+            else
+            {
+                // remove all selected notes except for sequences
+                newNotes.RemoveWhere(note => selectedNotes.Contains(note) && !(note is EditableWheelSequence || note is EditableLeverSequence));
+
+                // special case for removing sequences:
+                // if no notes from these sequences are still selected, remove them
+                foreach (Note note in selectedNotes.Intersect(newNotes))
+                {
+                    if (note is EditableWheelSequence editableWheelSequence && editableWheelSequence.Notes.Intersect(newNotes).Count() == 0)
+                    { 
+                        newNotes.Remove(editableWheelSequence);
+                    }
+                    else if (note is EditableLeverSequence editableLeverSequence && editableLeverSequence.Notes.Intersect(newNotes).Count() == 0)
+                    {
+                        newNotes.Remove(editableLeverSequence);
+                    }
+                }
+            }
+        }
+
+        // selection/edit history management
+        // only update history if the contents of selection changed, 
+        // or if  selection is changing from note to selection group
+        bool selectionChanged = !newNotes.All(note => oldNotes.Contains(note)) || newNotes.Count!=oldNotes.Count || SelectedElement!=SelectionGroup;
+        if (selectionChanged)
+        {
+            // unflag all notes to reset before modifying notes list
+            SelectionGroup.FlagNotes(false);
+            // if we clear multiselection, treat it like a selection action
+            if (newNotes.Count==0)
+            {
+                SelectElement(null, updateEditHistory);
+            }
+            else
+            {
+                // create new multiselection and select it with selection action
+                if (createNewSelection || (overwriteCurrentSelection && updateEditHistory))
+                {
+                    SelectionGroup = new TrackMarqueeSelectionGroup(Instance.track);
+                }
+                // otherwise, if we modify existing multiselection, commit modify multiselect action
+                else if (updateEditHistory)
+                {
+                    ModifyMultiselectionAction modifyMultiselectionAction = new ModifyMultiselectionAction(oldNotes, newNotes, SelectionGroup);
+                    modifyMultiselectionAction.CommitAction();
+                }
+                // flag all notes that are now selected
+                SelectionGroup.notes = newNotes;
+                SelectElement(SelectionGroup, updateEditHistory);
+                SelectionGroup.FlagNotes(true);
             }
         }
     }
@@ -113,6 +228,7 @@ public class UIManager : MonoBehaviour
 
         backgroundColor = backgroundImage.color;
         PreviewEnvironment = previewEnvironment;
+        selectionGroup = new TrackMarqueeSelectionGroup(track);
 
         // TODO: in the future may want to move this into NoteInspector, 
         // and add a button like with NoteContainerInspector.ChildInspector
@@ -122,6 +238,10 @@ public class UIManager : MonoBehaviour
             {
                 editableNote.RemoveSelf();
             }
+            else if (SelectedElement == SelectionGroup)
+            {
+                SelectionGroup.CommitMultiselectDeleteAction();
+            }
             else if (SelectedElement != null)
             {
                 Debug.LogWarning($"Deleting of note {SelectedElement} not supported");
@@ -130,7 +250,7 @@ public class UIManager : MonoBehaviour
 
         deselectEvent.AddListener(() =>
         {
-            SelectedElement = null;
+            SelectElement(null, updateEditHistory:true);
             CursorMode = UICursorMode.None;
         });
 
@@ -167,7 +287,7 @@ public class UIManager : MonoBehaviour
         return alert;
     }
 
-    public void DeselectOnChartChanged(EditableChart prevChart, EditableChart newChart) => SelectedElement = null;// SelectNote(null);
-    public void SelectNoteOnNoteAdded(Note note) => SelectedElement = note;// SelectNote(note);
-    void DeselectNoteOnNoteRemoved(Note note) => SelectedElement = null;// SelectNote(null);
+    public void DeselectOnChartChanged(EditableChart prevChart, EditableChart newChart) => SelectElement(null, updateEditHistory:false);
+    public void SelectNoteOnNoteAdded(Note note) => SelectElement(note, updateEditHistory:false);
+    void DeselectNoteOnNoteRemoved(Note note) => SelectElement(null, updateEditHistory:false);
 }

@@ -4,7 +4,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class WheelSequenceRenderer : NoteRenderer<EditableWheelSequence>, IPointerClickHandler
+public class WheelSequenceRenderer : NoteRenderer<EditableWheelSequence>, IPointerUpHandler
 {
     [SerializeField] RectTransform linesParent;
     [SerializeField] UILine linePrefab;
@@ -13,12 +13,15 @@ public class WheelSequenceRenderer : NoteRenderer<EditableWheelSequence>, IPoint
 
     [SerializeField] RectTransform verticesParent;
     [SerializeField] WheelSequenceVertexRenderer vertexPrefab;
+    //TODO: make material for selected state
+    [SerializeField] Material lineSelectedMaterial;
+    [SerializeField] Material lineDefaultMaterial;
 
     public override void Init(Track track, EditableWheelSequence note)
     {
         base.Init(track, note);
 
-        AddVertex(null);
+        AddVertex(note.startingNote);
         foreach (EditableWheelTurn turn in Note.Notes)
         {
             AddVertex(turn);
@@ -41,10 +44,10 @@ public class WheelSequenceRenderer : NoteRenderer<EditableWheelSequence>, IPoint
         var lineSequences = Note.ComputeLines();
         var linePositions = lineSequences.SelectMany(lineSequence =>
         {
-            List<(int pos1, int time1, int pos2, int time2)> positions = new();
+            List<(WheelTurn note1, int pos1, int time1, WheelTurn note2, int pos2, int time2)> positions = new();
             for (int i = 0; i < lineSequence.Count-1; i++)
             {
-                positions.Add((lineSequence[i].pos, lineSequence[i].time, lineSequence[i+1].pos, lineSequence[i+1].time));
+                positions.Add((lineSequence[i].wheelTurn, lineSequence[i].pos, lineSequence[i].time, lineSequence[i+1].wheelTurn, lineSequence[i+1].pos, lineSequence[i+1].time));
             }
             return positions;
         }).ToList();
@@ -65,9 +68,10 @@ public class WheelSequenceRenderer : NoteRenderer<EditableWheelSequence>, IPoint
         // Update line positions
         for (int i = 0; i < linePositions.Count; i++)
         {
-            var (pos1, time1, pos2, time2) = linePositions[i];
+            var (note1, pos1, time1, note2, pos2, time2) = linePositions[i];
             lines[i].pos1 = PlaybackManager.Instance.TrackToUIPosition(pos1, time1);
             lines[i].pos2 = PlaybackManager.Instance.TrackToUIPosition(pos2, time2);
+            lines[i].Image.material = lineDefaultMaterial;
         }
     }
 
@@ -77,5 +81,8 @@ public class WheelSequenceRenderer : NoteRenderer<EditableWheelSequence>, IPoint
         vertexRenderer.Init(this, turn);
     }
 
-    protected override void OnLeftClick() => UIManager.SelectedElement = Note;
+    protected override void OnLeftClick()
+    {
+        // SelectNoteOrMultiselection(Note);
+    } 
 }
