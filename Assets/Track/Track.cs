@@ -437,6 +437,9 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
 			noteRenderer.Init(this, note);
 
+            // select the note after the renderer is spawned
+            UIManager.SelectElement(note, updateEditHistory:false);
+
 			return noteRenderer;
 		};
 

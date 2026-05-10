@@ -255,7 +255,7 @@ public class UIManager : MonoBehaviour
         });
 
         ChartManager.OnChartChanged += DeselectOnChartChanged;
-        ChartManager.OnNoteAdded += SelectNoteOnNoteAdded;
+        // ChartManager.OnNoteAdded += SelectNoteOnNoteAdded;
         ChartManager.OnNoteRemoved += DeselectNoteOnNoteRemoved;
         // ChartManager.OnLeverNoteAdded += SelectNoteOnNoteAdded;
         // ChartManager.OnWheelTurnAdded += SelectNoteOnNoteAdded;
@@ -265,7 +265,7 @@ public class UIManager : MonoBehaviour
     void OnDestroy()
     {
         ChartManager.OnChartChanged -= DeselectOnChartChanged;
-        ChartManager.OnNoteAdded -= SelectNoteOnNoteAdded;
+        // ChartManager.OnNoteAdded -= SelectNoteOnNoteAdded;
         ChartManager.OnNoteRemoved -= DeselectNoteOnNoteRemoved;
         // ChartManager.OnLeverNoteAdded -= SelectNoteOnNoteAdded;
         // ChartManager.OnWheelTurnAdded -= SelectNoteOnNoteAdded;
