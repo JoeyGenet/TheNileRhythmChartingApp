@@ -66,14 +66,14 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         addEnvironmentChangeEvent.AddListener(AddEnvironmentChange);
         
         ChartManager.OnChartChanged += Reload;
-        ChartManager.OnNoteAdded += AddNote;
+        ChartManager.OnNoteAdded += AddChartNote;
         ChartManager.OnEventAdded += AddChartEvent;
     }
 
     void OnDestroy()
     {
         ChartManager.OnChartChanged -= Reload;
-        ChartManager.OnNoteAdded -= AddNote;
+        ChartManager.OnNoteAdded -= AddChartNote;
         ChartManager.OnEventAdded -= AddChartEvent;
     }
 
@@ -437,9 +437,6 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
 			noteRenderer.Init(this, note);
 
-            // select the note after the renderer is spawned
-            UIManager.SelectElement(note, updateEditHistory:false);
-
 			return noteRenderer;
 		};
 
@@ -451,6 +448,15 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 			EditableWheelSequence wheelSequence => instantiateNoteRenderer(wheelSequencePrefab, wheelSequence, mainTrackArea),
 			_ => throw new Exception($"Spawning of note {note} not supported"),
 		};
+    }
+
+    // called when adding new note to the chart (i.e. placing one manually or undoing a deletion)
+    void AddChartNote(Note note)
+    {
+        AddNote(note);
+
+        // select the note after the renderer is spawned
+        UIManager.SelectElement(note, false);
     }
 
     // MARK: Environment Changes
