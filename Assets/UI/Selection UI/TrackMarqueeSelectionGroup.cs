@@ -43,19 +43,19 @@ public class TrackMarqueeSelectionGroup
                     {
                         case EditableButtonNote:
                             ButtonNoteRenderer buttonNoteRenderer = gameObject.GetComponent<ButtonNoteRenderer>();
-                            buttonNoteRenderer.isInMarqueeSelection = addToSelection;
+                            buttonNoteRenderer.IsInMarqueeSelection = addToSelection;
                             break;
                         case EditableLeverNote:
                             LeverNoteRenderer leverNoteRenderer = gameObject.GetComponent<LeverNoteRenderer>();
-                            leverNoteRenderer.isInMarqueeSelection = addToSelection;
+                            leverNoteRenderer.IsInMarqueeSelection = addToSelection;
                             break;
                         case EditableWheelFlick:
                             WheelFlickRenderer wheelFlickRenderer = gameObject.GetComponent<WheelFlickRenderer>();
-                            wheelFlickRenderer.isInMarqueeSelection = addToSelection;
+                            wheelFlickRenderer.IsInMarqueeSelection = addToSelection;
                             break;
                         case EditableWheelTurn:
                             WheelSequenceVertexRenderer wheelSequenceVertexRenderer = gameObject.GetComponent<WheelSequenceVertexRenderer>();
-                            wheelSequenceVertexRenderer.isInMarqueeSelection = addToSelection;
+                            wheelSequenceVertexRenderer.IsInMarqueeSelection = addToSelection;
                             break; 
                         default:
                             break;

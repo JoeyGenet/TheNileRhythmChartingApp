@@ -55,7 +55,7 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
         }
         rect.anchorMin = rect.anchorMax = PlaybackManager.Instance.TrackToUIPosition(pos, time);
 
-        animator.SetBool("IsMultiSelected", isInMarqueeSelection);
+        // animator.SetBool("IsMultiSelected", IsInMarqueeSelection);
     }
 
     protected override void OnLeftClick() 
@@ -87,7 +87,7 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
             return;
         }
 
-        if (isStartingVertex && !isInMarqueeSelection) // If right clicked start vertex, remove the 1st turn and move start to the end of the first turn
+        if (isStartingVertex && !IsInMarqueeSelection) // If right clicked start vertex, remove the 1st turn and move start to the end of the first turn
         {
             WheelSequence.RemoveNoteFromFront(WheelSequence.Notes.ElementAt(0));
         }
@@ -107,7 +107,7 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
         dragStartEndTimes = WheelSequence.Notes.ToDictionary(n => n, n => n.EndTime);
         oldDeltaAngles = WheelSequence.Notes.ToDictionary(n => n, n => n.DeltaAngle);
         isStartingVertex = Note == WheelSequence.startingNote;
-        if (isInMarqueeSelection)
+        if (IsInMarqueeSelection)
         {
             EditableWheelTurn currentTurn = Note.Container.Notes.Last();
             while (!UIManager.SelectionGroup.notes.Contains(currentTurn) && currentTurn!=null)
@@ -123,7 +123,7 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
     {
         bool changeTime = !Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.RightControl);
         // do not allow for whole sequence dragging if this note is in marquee selection
-        if ((Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) && !isInMarqueeSelection)
+        if ((Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) && !IsInMarqueeSelection)
         {
             // undo any single-note drag changes before applying drag diff to whole sequence
             OnCancelDrag();
@@ -166,7 +166,7 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
         {
             // if we stop holding shift, reset note positions to their pos when drag started
             // ... unless this note is in a marquee selection
-            if (!isInMarqueeSelection)
+            if (!IsInMarqueeSelection)
             {
                 // undo any changes to other notes via shift+drag before applying drag diff to this note
                 OnCancelDrag();
@@ -179,7 +179,7 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
             // if in marquee selection, other notes may have moved in the same frame,
             // which changes the start/delta angle and sequence position, so reset these values
             // and use the delta drag position of this frame
-            if (isInMarqueeSelection)
+            if (IsInMarqueeSelection)
             {
                 currentDragStartStartAngle = isStartingVertex ? WheelSequence.Notes.First.StartAngle : Note.StartAngle;
                 currentDragStartDeltaAngle = isStartingVertex ? WheelSequence.Notes.First.DeltaAngle : Note.DeltaAngle;
@@ -227,7 +227,7 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
         Dictionary<EditableWheelTurn, int> newDeltaAngles = WheelSequence.Notes.ToDictionary(n => n, n => n.DeltaAngle);
         EditWheelSequenceAction wheelSequenceAction = new EditWheelSequenceAction(WheelSequence, startTimeDelta, posDelta, dragStartEndTimes, newEndTimes, oldDeltaAngles, newDeltaAngles);
         
-        if (!isInMarqueeSelection)
+        if (!IsInMarqueeSelection)
         {
             wheelSequenceAction.CommitAction();
         }

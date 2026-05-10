@@ -122,7 +122,7 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
         dragStartDir = Note.Container.Dir;
         dragLeverPosChangePos = pointerEventData.position;
         oldLeverPositions = Note.Container.Notes.ToDictionary(n => n, n => n.Pos);
-        if (isInMarqueeSelection)
+        if (IsInMarqueeSelection)
         {
             EditableLeverNote currentNote = Note.Container.Notes.Last();
             while (!UIManager.SelectionGroup.notes.Contains(currentNote) && currentNote.PreviousNote!=null)
@@ -137,7 +137,7 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
     {
         bool changeTime = !Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.RightControl);
         // do not allow for whole sequence dragging if this note is in marquee selection
-        if ((Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) && !isInMarqueeSelection)
+        if ((Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) && !IsInMarqueeSelection)
         {
             int snappedTimeDiff = UIManager.SnapTime(dragStartTimes[Note] + dragTimeDiff) - dragStartTimes[Note];
             foreach (var note in dragStartTimes.Keys)
@@ -155,7 +155,7 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
         {
             // if we stop holding shift, reset note positions to their pos when drag started
             // ... unless this note is in a marquee selection
-            if (!isInMarqueeSelection)
+            if (!IsInMarqueeSelection)
             {
                 foreach (var note in dragStartTimes.Keys)
                 {
@@ -214,7 +214,7 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
         Dictionary<EditableLeverNote, LeverPos> newLeverPositions = Note.Container.Notes.ToDictionary(n => n, n => n.Pos);
         EditLeverSequenceAction editLeverSequenceAction = new EditLeverSequenceAction(Note.Container, dirDelta, dragStartTimes, newStartTimes, oldLeverPositions, newLeverPositions);
         
-        if (!isInMarqueeSelection)
+        if (!IsInMarqueeSelection)
         {
             editLeverSequenceAction.CommitAction();
         }

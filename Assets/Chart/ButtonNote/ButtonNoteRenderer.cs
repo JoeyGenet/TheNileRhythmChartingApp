@@ -68,7 +68,7 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
     protected override void OnRightClick()
     {
         // If single note or in multiselection, delete entire thing
-        if (Note.RightPos is not int rightPos || isInMarqueeSelection)
+        if (Note.RightPos is not int rightPos || IsInMarqueeSelection)
         {
             Note.RemoveSelf();
             return;
@@ -113,7 +113,7 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
 
     protected override void OnDrag()
     {
-        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift) || isInMarqueeSelection)
+        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift) || IsInMarqueeSelection)
         {
             Note.LeftPos = Math.Clamp(dragStartLeftPos + dragPosDiff, 0, 100);
             if (dragStartRightPos is int rightPos) Note.RightPos = Math.Clamp(rightPos + dragPosDiff, 0, 100);
@@ -147,7 +147,7 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
         int startTimeDelta = Note.StartTime - dragStartTime;
         EditButtonNoteAction moveButtonNoteAction = new EditButtonNoteAction(Note, startTimeDelta, dragStartLeftPos, dragStartRightPos, Note.LeftPos, Note.RightPos);
         
-        if (!isInMarqueeSelection)
+        if (!IsInMarqueeSelection)
         {
             moveButtonNoteAction.CommitAction();
         }

@@ -21,17 +21,13 @@ where NoteType : N, IEditableNote<C, N>
 where N : Note
 where C : IEditableNoteContainer<N>
 {
+    // UI references
     [SerializeField] protected Animator animator;
     public Track Track { get; private set; }
     public NoteType Note { get; private set; }
-    public bool isInMarqueeSelection;
-    public bool modifyExistingSelection;
-    public bool addToSelection;
-
     protected RectTransform rect;
 
-    int prevTime = int.MaxValue;
-
+    // drag UI fields
     protected PointerEventData pointerEventData { get; private set; }
     protected int dragStartPointerPos { get; private set; }
     protected int dragStartPointerTime { get; private set; }
@@ -43,15 +39,47 @@ where C : IEditableNoteContainer<N>
     protected int dragTimeDelta { get; private set; }
     private int lastDragPos;
     private int lastDragTime;
+    int prevTime = int.MaxValue;
 
-    private bool isReadyToShareEventData;
-
+    // drag state fields+properties
     // set to true while drag is in progress
     // set to false if note is deselected or drag is completed
     protected bool isBeingDragged = false;
 
     // set to true when note is deselected while isBeingDragged is true
     private bool isDragCancelled = false;
+
+    // selection fields and properties
+    private bool isClicked;
+    public bool IsClicked
+    {
+        get { return isClicked; }
+        set 
+        {
+            isClicked = value;
+            if (animator != null)
+            {
+                animator.SetBool("IsClicked", isClicked);
+            }
+        }
+    }
+
+    private bool isInMarqueeSelection;
+    public bool IsInMarqueeSelection
+    {
+        get { return isInMarqueeSelection; }
+        set 
+        {
+            isInMarqueeSelection = value;
+            if (animator != null)
+            {
+                animator.SetBool("IsMultiSelected", isInMarqueeSelection);
+            }
+        }
+    }
+    private bool isReadyToShareEventData;
+    public bool modifyExistingSelection;
+    public bool addToSelection;
 
     public virtual void Init(Track track, NoteType note)
     {
@@ -114,7 +142,8 @@ where C : IEditableNoteContainer<N>
 
         if (animator != null)
         {
-            animator.SetBool("IsMultiSelected", isInMarqueeSelection);
+            // animator.SetBool("IsMultiSelected", IsInMarqueeSelection);
+            // animator.SetBool("IsClicked", UIManager.ClickedElement is Note clickedNote && clickedNote==Note);
         }
     }
 
@@ -145,7 +174,7 @@ where C : IEditableNoteContainer<N>
     protected void SelectNoteOrMultiselection(Note note, bool updateEditHistory=true)
     {
         // if this note is in selection group, select the group
-        if (isInMarqueeSelection)
+        if (IsInMarqueeSelection)
         {
             UIManager.SelectElement(UIManager.SelectionGroup, updateEditHistory);
         }
@@ -158,13 +187,18 @@ where C : IEditableNoteContainer<N>
 
     private void OnNoteSelected(object previousNote, object newNote)
     {
-        if (Note != null && newNote == Note) transform.SetAsLastSibling();
+        IsClicked = Note != null && newNote == Note;
+
+        if (IsClicked) 
+        {
+            transform.SetAsLastSibling();
+        }
 
         // handle deselection of previous note/selection group
         if (isBeingDragged)
         {
             // if this note is deselected while in multiselection, deselect all other notes
-            if (isInMarqueeSelection && previousNote==UIManager.SelectionGroup && UIManager.SelectionGroup.eventSenderNote==Note && isReadyToShareEventData)
+            if (IsInMarqueeSelection && previousNote==UIManager.SelectionGroup && UIManager.SelectionGroup.eventSenderNote==Note && isReadyToShareEventData)
             {
                 Debug.Log("passing cancel drag to all selected notes!");
                 isReadyToShareEventData = false;
@@ -255,7 +289,7 @@ where C : IEditableNoteContainer<N>
             UIManager.SelectionGroup.eventSenderNote = Note;
         }
         // if this note is dragged while in multiselection, drag all other notes
-        if (isInMarqueeSelection && UIManager.SelectionGroup.eventSenderNote==Note && isReadyToShareEventData)
+        if (IsInMarqueeSelection && UIManager.SelectionGroup.eventSenderNote==Note && isReadyToShareEventData)
         {
             Debug.Log("passing begin drag to all selected notes!");
             isReadyToShareEventData = false;
@@ -283,7 +317,7 @@ where C : IEditableNoteContainer<N>
         if (!isDragCancelled)
         {
             // if this note is dragged while in multiselection, drag all other notes
-            if (isInMarqueeSelection && UIManager.SelectionGroup.eventSenderNote==Note && isReadyToShareEventData)
+            if (IsInMarqueeSelection && UIManager.SelectionGroup.eventSenderNote==Note && isReadyToShareEventData)
             {
                 Debug.Log("passing drag to all selected notes!");
                 // sender marks flag as false so that they can receive the event data at the correct time
@@ -314,7 +348,7 @@ where C : IEditableNoteContainer<N>
         if (!isDragCancelled && isBeingDragged)
         {
             // if this note is dropped while in multiselection, drop all other notes
-            if (isInMarqueeSelection && UIManager.SelectionGroup.eventSenderNote==Note && isReadyToShareEventData)
+            if (IsInMarqueeSelection && UIManager.SelectionGroup.eventSenderNote==Note && isReadyToShareEventData)
             {
                 Debug.Log("passing end drag to all selected notes!");
                 isReadyToShareEventData = false;
