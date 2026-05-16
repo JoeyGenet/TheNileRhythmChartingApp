@@ -127,8 +127,8 @@ where C : IEditableNoteContainer<N>
 
     protected virtual void Update()
     {
-        // start dragging if we scroll while mouse is held over note
-        if (isBeingPressed && UIManager.Track.IsScrolling)
+        // start dragging if we scroll/enter playback while mouse is held over note
+        if (isBeingPressed && (UIManager.Track.IsScrolling || !PlaybackManager.Instance.IsPaused))
         {
             isBeingPressed = false;
             OnBeginDrag(pointerEventData);
