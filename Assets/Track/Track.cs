@@ -57,6 +57,9 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     public Dictionary<Note, GameObject> noteGameObjectMapping = new Dictionary<Note, GameObject>();
 
     RectTransform rect;
+    private int mouseScrollAmount;
+    private int dragScrollAmount;
+    public int scrollAmount;
 
     // MARK: Track Initialization
     void Awake()
@@ -305,6 +308,23 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
             Debug.LogException(e);
         }
 
+        // track scrolling logic
+        // IsDragScrolling must be set every frame by dragged object to continue calculating dragScrollAmount
+        dragScrollAmount =  IsDragScrolling ? DragScrollTrack() : 0;
+        IsDragScrolling = false;
+        // if scrolling mouse wheel over track, or dragging note/marquee at the edges of the track, keep scrolling
+        if ((IsPointerOverTrack && mouseScrollAmount != 0) || dragScrollAmount!=0)
+        {
+            scrollAmount = (IsPointerOverTrack && mouseScrollAmount != 0) ? mouseScrollAmount+dragScrollAmount : dragScrollAmount;
+            PlaybackManager.Instance.SetTimestamp(PlaybackManager.Instance.MillisecondsInChart + scrollAmount);
+            IsScrolling = true;
+        }
+        else
+        {
+            scrollAmount = 0;
+            IsScrolling = false;
+        }
+
         // Update environment track color ordering
         // FIXME: inefficient
         var trackColors = environmentTrack.GetComponentsInChildren<EnvironmentTrackColor>()
@@ -316,21 +336,12 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         }
     }
 
+    // only process user input in OnGUI
     void OnGUI()
     {
         float scrollDelta = Mathf.Abs(Input.mouseScrollDelta.y) > Mathf.Abs(Input.mouseScrollDelta.x) 
             ? Input.mouseScrollDelta.y : Input.mouseScrollDelta.x;
-        int scrollAmount = (int) (PlaybackManager.Instance.VerticalViewSize * scrollDelta * ScrollSpeed);
-        // if scrolling mouse wheel over track, or if in the middle of a drag scroll, keep scrolling
-        if ((IsPointerOverTrack && scrollAmount != 0) || IsDragScrolling)
-        {
-            PlaybackManager.Instance.SetTimestamp(PlaybackManager.Instance.MillisecondsInChart + scrollAmount);
-            IsScrolling = true;
-        }
-        else
-        {
-            IsScrolling = false;
-        }
+        mouseScrollAmount = (int) (PlaybackManager.Instance.VerticalViewSize * scrollDelta * ScrollSpeed);
     }
 
     // MARK: Drag Scrolling Logic
@@ -347,18 +358,8 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         RectTransformUtility.ScreenPointToLocalPointInRectangle(scrollDownArea, Input.mousePosition, null, out Vector2 localScrollDownPos);
         bool isScrollingDown = localScrollDownPos.y <= scrollDownArea.rect.yMax;
 
-        int scrollAmount = isScrollingUp ? (int) (PlaybackManager.Instance.VerticalViewSize * scrollSpeed) :
-                           isScrollingDown ? (int) (PlaybackManager.Instance.VerticalViewSize * -scrollSpeed) : 0;
-        if (scrollAmount != 0)
-        {
-            PlaybackManager.Instance.SetTimestamp(PlaybackManager.Instance.MillisecondsInChart + scrollAmount);
-            IsDragScrolling = true;
-        }
-        else
-        {
-            IsDragScrolling = false;
-        }
-        return scrollAmount;
+        return isScrollingUp ? (int) (PlaybackManager.Instance.VerticalViewSize * scrollSpeed) :
+               isScrollingDown ? (int) (PlaybackManager.Instance.VerticalViewSize * -scrollSpeed) : 0;
     }
 
     // MARK: Note Adding Logic

@@ -8,7 +8,7 @@ using UnityEngine.UI;
 using System.Linq;
 
 [RequireComponent(typeof(RectTransform))]
-public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     [SerializeField] RectTransform scrollUpArea;
     [SerializeField] RectTransform scrollDownArea;
@@ -39,6 +39,7 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IPointe
         }
     }
 
+    protected bool isBeingPressed = false;
     protected bool isBeingDragged = false;
 
     protected RectTransform rect;
@@ -73,14 +74,19 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IPointe
 
     protected void Update()
     {
-        // scroll the track if you mouse over the scroll areas
-        int scrollAmount = 0;
-        if (PlaybackManager.Instance.IsPaused && isBeingDragged)
+        // start dragging if we scroll while mouse is held on track
+        if (isBeingPressed && UIManager.Track.IsScrolling)
         {
-            scrollAmount = UIManager.Track.DragScrollTrack();
+            isBeingPressed = false;
+            OnBeginDrag(pointerEventData);
         }
-        // drag note if scrolling or in playback
-        if (scrollAmount != 0 || (!PlaybackManager.Instance.IsPaused && isBeingDragged))
+
+        // toggle drag scrolling
+        bool shouldDragScroll = PlaybackManager.Instance.IsPaused && isBeingDragged;
+        UIManager.Track.IsDragScrolling = shouldDragScroll || UIManager.Track.IsDragScrolling;
+        
+        // drag note if track is scrolling or in playback
+        if (shouldDragScroll && UIManager.Track.scrollAmount != 0 || (!PlaybackManager.Instance.IsPaused && isBeingDragged))
         {
             OnDrag(pointerEventData);
         }
@@ -108,11 +114,33 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IPointe
     protected void OnLeftDown()
     {
         // update selection modifiers based on keypresses the moment you click
+        isBeingPressed = true;
         modifyExistingSelection = ModifyExistingSelection;
         addToSelection = AddToSelection;
     }
 
     protected void OnRightDown() {}
+
+    public void OnPointerUp(PointerEventData eventData)
+    {
+        pointerEventData = eventData;
+        switch (eventData.button)
+        {
+            case PointerEventData.InputButton.Left:
+                OnLeftUp();
+                break;
+            case PointerEventData.InputButton.Right:
+                OnRightUp();
+                break;
+        }
+    }
+
+    protected void OnLeftUp()
+    {
+        isBeingPressed = false;
+    }
+
+    protected void OnRightUp() {}
 
     public void OnPointerClick(PointerEventData eventData)
     {
@@ -145,18 +173,24 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IPointe
     // get start timestamp and horizontal position when starting drag
     public void OnBeginDrag(PointerEventData eventData)
     {
-        // do not start selection if you right click or have note type selected
-        if (eventData.button != PointerEventData.InputButton.Left || UIManager.CursorMode != UICursorMode.None) return;
-        
-        // set start drag data
-        pointerEventData = eventData;
-        if (Track.PointerToTrackPosition(eventData.pressPosition, clamp: false) is not var (pos, time)) return;
-        dragStartPointerPos = pos;
-        dragStartPointerTime = time;
+        // OnBeginDrag can be called if we click and scroll the track, so ensure OnBeginDrag()
+        // is only called once per drag by checking if isBeingDragged is true
+        if (!isBeingDragged)
+        {
+            // do not start selection if you right click or have note type selected
+            if (eventData.button != PointerEventData.InputButton.Left || UIManager.CursorMode != UICursorMode.None) return;
+            
+            // set start drag data
+            pointerEventData = eventData;
+            if (Track.PointerToTrackPosition(eventData.pressPosition, clamp: false) is not var (pos, time)) return;
+            dragStartPointerPos = pos;
+            dragStartPointerTime = time;
 
-        Debug.Log("Start drag pos: "+Track.TrackToUIPosition(dragStartPointerPos, dragStartPointerTime));
-        marqueeImage.enabled = true;
-        isBeingDragged = true;
+            Debug.Log("Start drag pos: "+Track.TrackToUIPosition(dragStartPointerPos, dragStartPointerTime));
+            marqueeImage.enabled = true;
+            isBeingDragged = true;
+            isBeingPressed = false;
+        }
     }
     
     // get current timestamp and horizontal pos when dragging
