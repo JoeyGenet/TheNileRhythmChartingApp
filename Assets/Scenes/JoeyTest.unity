@@ -788,6 +788,10 @@ PrefabInstance:
       value: Track
       objectReference: {fileID: 0}
     - target: {fileID: 6758283202821510618, guid: 0064a68c69d3640a8b09fb13341469ce, type: 3}
+      propertyPath: ScrollSpeed
+      value: 0.015
+      objectReference: {fileID: 0}
+    - target: {fileID: 6758283202821510618, guid: 0064a68c69d3640a8b09fb13341469ce, type: 3}
       propertyPath: scrollUpArea
       value: 
       objectReference: {fileID: 1627275832}
