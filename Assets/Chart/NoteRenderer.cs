@@ -251,12 +251,15 @@ where C : IEditableNoteContainer<N>
         {
             case PointerEventData.InputButton.Left:
                 isBeingPressed = false;
-                OnLeftClick();
-                // if we dragged without moving the mouse (i.e. via scrolling or during playback)
-                // we need to manually trigger the OnEndDrag function
-                if (isBeingDragged)
+                if (!isDragCancelled)
                 {
-                    OnEndDrag(eventData);
+                    OnLeftClick();
+                    // if we dragged without moving the mouse (i.e. via scrolling or during playback)
+                    // we need to manually trigger the OnEndDrag function
+                    if (isBeingDragged)
+                    {
+                        OnEndDrag(eventData);
+                    }
                 }
                 break;
             case PointerEventData.InputButton.Right:
