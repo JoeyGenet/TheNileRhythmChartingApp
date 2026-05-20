@@ -71,11 +71,11 @@ public class UIManager : MonoBehaviour
         // so we can commit selection changes to edit history
     }
 
-    bool isDragInprogress;
-    public static bool IsDragInprogress
+    bool isDragInProgress;
+    public static bool IsDragInProgress
     {
-        get => Instance.isDragInprogress;
-        set { Instance.isDragInprogress = value; }
+        get => Instance.isDragInProgress;
+        set { Instance.isDragInProgress = value; }
     }
 
     public static void SelectElement(object newElement, bool updateEditHistory=false)
@@ -268,7 +268,7 @@ public class UIManager : MonoBehaviour
         {
             // if note renderer or env change is currently selected, check if is being dragged, and if so, do not log selection action,
             // just trigger their drag cancel behavior
-            if (!isDragInprogress)
+            if (!isDragInProgress)
             {
                 SelectElement(null, updateEditHistory:true);
             }

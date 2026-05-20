@@ -230,7 +230,7 @@ where C : IEditableNoteContainer<N>
         isReadyToShareEventData = true;
         isDragCancelled = true;
         isBeingDragged = false;
-        UIManager.IsDragInprogress = false;
+        UIManager.IsDragInProgress = false;
         UIManager.SelectionGroup.eventSenderNote = null;
         OnCancelDrag();
     }
@@ -325,7 +325,7 @@ where C : IEditableNoteContainer<N>
                 isBeingPressed = false;
                 isBeingDragged = true;
                 isDragCancelled = false;
-                UIManager.IsDragInprogress = true;
+                UIManager.IsDragInProgress = true;
                 if (eventData.button != PointerEventData.InputButton.Left) return;
                 pointerEventData = eventData;
                 if (Track.PointerToTrackPosition(eventData.pressPosition, clamp: false) is not var (pos, time)) return;
@@ -387,7 +387,7 @@ where C : IEditableNoteContainer<N>
             }
         }
         isBeingDragged = false;
-        UIManager.IsDragInprogress = false;
+        UIManager.IsDragInProgress = false;
         UIManager.SelectionGroup.eventSenderNote = null;
     }
 
