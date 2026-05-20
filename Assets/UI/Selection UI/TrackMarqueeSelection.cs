@@ -61,12 +61,11 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IPointe
     {
         rect = GetComponent<RectTransform>();
         marqueeImage.enabled = false;
-        UIManager.OnElementSelected += OnNoteSelected;
     }
 
     protected void OnDestroy()
     {
-        UIManager.OnElementSelected -= OnNoteSelected;
+
     }
 
     // TODO: create UpdateOnPlayback that is called when the user drags the playback/zoom or during playback
@@ -90,11 +89,6 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IPointe
         {
             OnDrag(pointerEventData);
         }
-    }
-
-    void OnNoteSelected(object previousNote, object newNote)
-    {
-        
     }
 
     public void OnPointerDown(PointerEventData eventData)
