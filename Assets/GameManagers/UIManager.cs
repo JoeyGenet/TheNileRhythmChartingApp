@@ -20,9 +20,11 @@ public enum UICursorMode
 public class UIManager : MonoBehaviour
 {
     public delegate void ElementSelectedEvent(object previousElement, object newElement);
+    public delegate void DragCanceledEvent();
     public delegate void CursorModeChangedEvent(UICursorMode previousMode, UICursorMode newMode);
     
     public static event ElementSelectedEvent OnElementSelected;
+    public static event DragCanceledEvent OnDragCanceled;
     public static event CursorModeChangedEvent OnCursorModeChanged;
 
     public static UIManager Instance;
@@ -54,6 +56,13 @@ public class UIManager : MonoBehaviour
         set { Instance.clickedElement = value; }
     }
 
+    object previousElement;
+    private static object PreviousElement
+    {
+        get => Instance.previousElement;
+        set {Instance.previousElement = value; }
+    }
+
     object selectedElement;
     public static object SelectedElement
     {
@@ -62,14 +71,21 @@ public class UIManager : MonoBehaviour
         // so we can commit selection changes to edit history
     }
 
+    bool isDragInprogress;
+    public static bool IsDragInprogress
+    {
+        get => Instance.isDragInprogress;
+        set { Instance.isDragInprogress = value; }
+    }
+
     public static void SelectElement(object newElement, bool updateEditHistory=false)
     {
+        PreviousElement = Instance.selectedElement;
         if (Instance.selectedElement != newElement)
         {
-            object prevElement = Instance.selectedElement;
             Instance.selectedElement = newElement;
-            OnElementSelected?.Invoke(prevElement, newElement);
-            if (prevElement is TrackMarqueeSelectionGroup prevTrackMarqueeSelectionGroup)
+            OnElementSelected?.Invoke(PreviousElement, newElement);
+            if (PreviousElement is TrackMarqueeSelectionGroup prevTrackMarqueeSelectionGroup)
             {
                 prevTrackMarqueeSelectionGroup.FlagNotes(false);
             }
@@ -80,7 +96,7 @@ public class UIManager : MonoBehaviour
             }
             if (updateEditHistory)
             {
-                SelectElementAction selectElementAction = new SelectElementAction(prevElement, newElement);
+                SelectElementAction selectElementAction = new SelectElementAction(PreviousElement, newElement);
                 selectElementAction.CommitAction();
             }
         }
@@ -250,7 +266,17 @@ public class UIManager : MonoBehaviour
 
         deselectEvent.AddListener(() =>
         {
-            SelectElement(null, updateEditHistory:true);
+            // if note renderer or env change is currently selected, check if is being dragged, and if so, do not log selection action,
+            // just trigger their drag cancel behavior
+            if (!isDragInprogress)
+            {
+                SelectElement(null, updateEditHistory:true);
+            }
+            else
+            {
+                SelectElement(PreviousElement, updateEditHistory:false);
+                OnDragCanceled.Invoke();
+            }
             CursorMode = UICursorMode.None;
         });
 

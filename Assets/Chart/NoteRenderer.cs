@@ -48,7 +48,7 @@ where C : IEditableNoteContainer<N>
 
     // set to true while drag is in progress
     // set to false if note is deselected or drag is completed
-    protected bool isBeingDragged = false;
+    protected bool isBeingDragged {get; private set;} = false;
 
     // set to true when note is deselected while isBeingDragged is true
     private bool isDragCancelled = false;
@@ -105,12 +105,14 @@ where C : IEditableNoteContainer<N>
 
         ChartManager.OnChartChanged += DestroyOnChartChanged;
         UIManager.OnElementSelected += OnNoteSelected;
+        UIManager.OnDragCanceled += OnDragCanceled;
     }
 
     protected virtual void OnDestroy()
     {
         ChartManager.OnChartChanged -= DestroyOnChartChanged;
         UIManager.OnElementSelected -= OnNoteSelected;
+        UIManager.OnDragCanceled -= OnDragCanceled;
         if (Note != null) 
         {
             Track.noteGameObjectMapping.Remove(Note);
@@ -202,20 +204,21 @@ where C : IEditableNoteContainer<N>
         {
             transform.SetAsLastSibling();
         }
+    }
 
+    public void OnDragCanceled()
+    {
         // handle deselection of previous note/selection group
         if (isBeingDragged)
         {
             // if this note is deselected while in multiselection, deselect all other notes
-            if (IsInMarqueeSelection && previousNote==UIManager.SelectionGroup && UIManager.SelectionGroup.eventSenderNote==Note && isReadyToShareEventData)
+            if (IsInMarqueeSelection && UIManager.SelectionGroup.eventSenderNote==Note && isReadyToShareEventData)
             {
                 Debug.Log("passing cancel drag to all selected notes!");
                 isReadyToShareEventData = false;
                 UIManager.SelectionGroup.CancelMultiselectMoveAction();
             }
-            else if (previousNote==Note ||
-                    (Note is EditableWheelTurn turn && turn.Container==previousNote) ||
-                    (Note is EditableLeverNote note && note.Container==previousNote))
+            else
             {
                 CancelDrag();
             }
@@ -227,6 +230,7 @@ where C : IEditableNoteContainer<N>
         isReadyToShareEventData = true;
         isDragCancelled = true;
         isBeingDragged = false;
+        UIManager.IsDragInprogress = false;
         UIManager.SelectionGroup.eventSenderNote = null;
         OnCancelDrag();
     }
@@ -321,6 +325,7 @@ where C : IEditableNoteContainer<N>
                 isBeingPressed = false;
                 isBeingDragged = true;
                 isDragCancelled = false;
+                UIManager.IsDragInprogress = true;
                 if (eventData.button != PointerEventData.InputButton.Left) return;
                 pointerEventData = eventData;
                 if (Track.PointerToTrackPosition(eventData.pressPosition, clamp: false) is not var (pos, time)) return;
@@ -382,6 +387,7 @@ where C : IEditableNoteContainer<N>
             }
         }
         isBeingDragged = false;
+        UIManager.IsDragInprogress = false;
         UIManager.SelectionGroup.eventSenderNote = null;
     }
 
