@@ -115,8 +115,8 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerDownHandler, IPo
 
     private void OnElementSelected(object previousElement, object newElement)
     {
-        static void setAlpha(Image image, float alpha)
-            => image.color = new Color(image.color.r, image.color.g, image.color.b, alpha);
+        // static void setAlpha(Image image, float alpha)
+        //     => image.color = new Color(image.color.r, image.color.g, image.color.b, alpha);
         if (newElement == Event)
         {
             gameObject.SetActive(true);
