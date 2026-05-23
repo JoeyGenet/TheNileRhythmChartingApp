@@ -29,7 +29,8 @@ public class EnvironmentManager : MonoBehaviour
     void Update()
     {
         int currTime = PlaybackManager.Instance.MillisecondsInChart;
-        var environmentChange = ChartManager.SelectedChart.Events.OrderBy(e => e.StartTime).LastOrDefault(e => e.StartTime < currTime);
+        // ignore environment change if it is being dragged
+        var environmentChange = ChartManager.SelectedChart.Events.OrderBy(e => e.StartTime).LastOrDefault(e => e.StartTime < currTime && e is EditableEnvironmentChangeEvent ee && !ee.isBeingDragged);
         if (environmentChange == null)
         {
             camera.backgroundColor = ChartManager.SelectedChart.Environment.Color; // No env change reached. use chart default environment

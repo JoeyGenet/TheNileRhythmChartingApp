@@ -32,11 +32,11 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerDownHandler, IPo
     // set to true in OnPointerDown, false in OnPointerUp
     protected bool isBeingPressed = false;
 
-    // set to true while drag is in progress
+    // Event.isBeingDragged set to true while drag is in progress
     // set to false if note is deselected or drag is completed
-    protected bool isBeingDragged = false;
+    // Event.isDraggingStart/EndHandle set for dragging handles individually or together
 
-    // set to true when note is deselected while isBeingDragged is true
+    // set to true when note is deselected while Event.isBeingDragged is true
     private bool isDragCancelled = false;
 
     public virtual void Init(Track track, EditableEnvironmentChangeEvent evt)
@@ -102,11 +102,11 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerDownHandler, IPo
         }
 
         // toggle drag scrolling
-        bool shouldDragScroll = PlaybackManager.Instance.IsPaused && isBeingDragged;
+        bool shouldDragScroll = PlaybackManager.Instance.IsPaused && Event.isBeingDragged;
         UIManager.Track.IsDragScrolling = shouldDragScroll || UIManager.Track.IsDragScrolling;
         
         // drag note if track is scrolling or in playback
-        if (shouldDragScroll && UIManager.Track.scrollAmount != 0 || (!PlaybackManager.Instance.IsPaused && isBeingDragged))
+        if (shouldDragScroll && UIManager.Track.scrollAmount != 0 || (!PlaybackManager.Instance.IsPaused && Event.isBeingDragged))
         {
             bool isHoldingShift = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
             Drag(pointerEventData, dragStart: Event.isDraggingStartHandle || isHoldingShift, dragEnd: Event.isDraggingEndHandle || isHoldingShift);
@@ -138,7 +138,7 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerDownHandler, IPo
 
     public void OnDragCanceled()
     {
-        if (isBeingDragged)
+        if (Event.isBeingDragged)
         {
             CancelDrag();
         }
@@ -155,7 +155,7 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerDownHandler, IPo
         Event.Environment = oldEnvironment;
         // update flags
         isDragCancelled = true;
-        isBeingDragged = false;
+        Event.isBeingDragged = false;
         UIManager.IsDragInProgress = false;
     }
 
@@ -210,7 +210,7 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerDownHandler, IPo
                 UIManager.SelectElement(Event, updateEditHistory:true);
                 // if we dragged without moving the mouse (i.e. via scrolling or during playback)
                 // we need to manually trigger the OnEndDrag function
-                if (isBeingDragged)
+                if (Event.isBeingDragged)
                 {
                     OnEndDrag(eventData);
                 }
@@ -232,7 +232,7 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerDownHandler, IPo
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        if (!isBeingDragged)
+        if (!Event.isBeingDragged)
         {
             UIManager.SelectElement(Event, updateEditHistory:false);
             if (eventData.button != PointerEventData.InputButton.Left) return;
@@ -244,7 +244,7 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerDownHandler, IPo
             oldDuration = Event.Duration;
             oldEnvironment = Event.Environment;
             isBeingPressed = false;
-            isBeingDragged = true;
+            Event.isBeingDragged = true;
             isDragCancelled = false;
             UIManager.IsDragInProgress = true;
         }
@@ -278,7 +278,7 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerDownHandler, IPo
     }
     public void OnEndDrag(PointerEventData eventData)
     {
-        if (!isDragCancelled && isBeingDragged)
+        if (!isDragCancelled && Event.isBeingDragged)
         {
             if (eventData.button != PointerEventData.InputButton.Left) return;
             int startTimeDelta = Event.StartTime - dragStartStartTime;
@@ -289,7 +289,7 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerDownHandler, IPo
             );
             editEnvironmentChangeAction.CommitAction();
         }
-        isBeingDragged = false;
+        Event.isBeingDragged = false;
         isDragCancelled = false;
         Event.isDraggingStartHandle = false;
         Event.isDraggingEndHandle = false;

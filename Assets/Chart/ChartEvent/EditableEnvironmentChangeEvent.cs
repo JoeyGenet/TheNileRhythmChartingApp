@@ -6,6 +6,7 @@ public class EditableEnvironmentChangeEvent : EnvironmentChangeEvent, IEditable
 {
     public new EditableChart Chart => (EditableChart) base.Chart;
 
+    public bool isBeingDragged = false;
     public bool isDraggingStartHandle = false;
     public bool isDraggingEndHandle = false;
     public bool HasChanges => false;
