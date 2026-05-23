@@ -543,13 +543,13 @@ MonoBehaviour:
             m_StringArgument: 
             m_BoolArgument: 0
           m_CallState: 2
-  - eventID: 4
+  - eventID: 14
     callback:
       m_PersistentCalls:
         m_Calls:
         - m_Target: {fileID: 941025365830513672}
           m_TargetAssemblyTypeName: EnvironmentChangeRenderer, Assembly-CSharp
-          m_MethodName: OnHandlePointerClick
+          m_MethodName: OnHandleEndDrag
           m_Mode: 0
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
@@ -559,13 +559,29 @@ MonoBehaviour:
             m_StringArgument: 
             m_BoolArgument: 0
           m_CallState: 2
-  - eventID: 14
+  - eventID: 2
     callback:
       m_PersistentCalls:
         m_Calls:
         - m_Target: {fileID: 941025365830513672}
           m_TargetAssemblyTypeName: EnvironmentChangeRenderer, Assembly-CSharp
-          m_MethodName: OnHandleEndDrag
+          m_MethodName: OnEndHandlePointerDown
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+  - eventID: 3
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 941025365830513672}
+          m_TargetAssemblyTypeName: EnvironmentChangeRenderer, Assembly-CSharp
+          m_MethodName: OnHandlePointerUp
           m_Mode: 0
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
@@ -658,13 +674,13 @@ MonoBehaviour:
             m_StringArgument: 
             m_BoolArgument: 0
           m_CallState: 2
-  - eventID: 4
+  - eventID: 14
     callback:
       m_PersistentCalls:
         m_Calls:
         - m_Target: {fileID: 941025365830513672}
           m_TargetAssemblyTypeName: EnvironmentChangeRenderer, Assembly-CSharp
-          m_MethodName: OnHandlePointerClick
+          m_MethodName: OnHandleEndDrag
           m_Mode: 0
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
@@ -674,13 +690,29 @@ MonoBehaviour:
             m_StringArgument: 
             m_BoolArgument: 0
           m_CallState: 2
-  - eventID: 14
+  - eventID: 2
     callback:
       m_PersistentCalls:
         m_Calls:
         - m_Target: {fileID: 941025365830513672}
           m_TargetAssemblyTypeName: EnvironmentChangeRenderer, Assembly-CSharp
-          m_MethodName: OnHandleEndDrag
+          m_MethodName: OnStartHandlePointerDown
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+  - eventID: 3
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 941025365830513672}
+          m_TargetAssemblyTypeName: EnvironmentChangeRenderer, Assembly-CSharp
+          m_MethodName: OnHandlePointerUp
           m_Mode: 0
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
