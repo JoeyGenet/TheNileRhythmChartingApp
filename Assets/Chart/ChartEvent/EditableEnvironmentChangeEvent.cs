@@ -6,13 +6,15 @@ public class EditableEnvironmentChangeEvent : EnvironmentChangeEvent, IEditable
 {
     public new EditableChart Chart => (EditableChart) base.Chart;
 
+    public bool isDraggingStartHandle = false;
+    public bool isDraggingEndHandle = false;
     public bool HasChanges => false;
     public void SetChanged() => Chart.SetChanged();
 
     public virtual new int StartTime
     {
         get => base.StartTime;
-        set => this.RegisterChange(ref startTime, Math.Clamp(value, 0, EndTime), onChanged: () =>
+        set => this.RegisterChange(ref startTime, Math.Clamp(value, 0, isDraggingStartHandle ? EndTime : (int) Chart.Package.SongLength), onChanged: () =>
         {
             // Update linked list
             
@@ -35,7 +37,7 @@ public class EditableEnvironmentChangeEvent : EnvironmentChangeEvent, IEditable
     public virtual new int EndTime
     {
         get => base.EndTime;
-        set => this.RegisterChange(ref endTime, Math.Clamp(value, StartTime, (int) Chart.Package.SongLength));
+        set => this.RegisterChange(ref endTime, Math.Clamp(value, isDraggingEndHandle ? StartTime : 0, (int) Chart.Package.SongLength));
     }
     public virtual new Environment Environment
     {

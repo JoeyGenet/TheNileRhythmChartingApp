@@ -35,8 +35,6 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerDownHandler, IPo
     // set to true while drag is in progress
     // set to false if note is deselected or drag is completed
     protected bool isBeingDragged = false;
-    private bool isDraggingStartHandle = false;
-    private bool isDraggingEndHandle = false;
 
     // set to true when note is deselected while isBeingDragged is true
     private bool isDragCancelled = false;
@@ -111,7 +109,7 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerDownHandler, IPo
         if (shouldDragScroll && UIManager.Track.scrollAmount != 0 || (!PlaybackManager.Instance.IsPaused && isBeingDragged))
         {
             bool isHoldingShift = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
-            Drag(pointerEventData, dragStart: isDraggingStartHandle || isHoldingShift, dragEnd: isDraggingEndHandle || isHoldingShift);
+            Drag(pointerEventData, dragStart: Event.isDraggingStartHandle || isHoldingShift, dragEnd: Event.isDraggingEndHandle || isHoldingShift);
         }
     }
 
@@ -184,8 +182,8 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerDownHandler, IPo
     public void PointerDown(PointerEventData eventData, bool dragStart, bool dragEnd)
     {
         pointerEventData = eventData;
-        isDraggingStartHandle = dragStart;
-        isDraggingEndHandle = dragEnd;
+        Event.isDraggingStartHandle = dragStart;
+        Event.isDraggingEndHandle = dragEnd;
         switch (eventData.button)
         {
             case PointerEventData.InputButton.Left:
@@ -292,8 +290,8 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerDownHandler, IPo
         }
         isBeingDragged = false;
         isDragCancelled = false;
-        isDraggingStartHandle = false;
-        isDraggingEndHandle = false;
+        Event.isDraggingStartHandle = false;
+        Event.isDraggingEndHandle = false;
         UIManager.IsDragInProgress = false;
     }
     // the following functions are called from EventTrigger components on the the EnvironmentChange prefab
