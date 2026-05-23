@@ -234,6 +234,7 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerDownHandler, IPo
     {
         if (!isBeingDragged)
         {
+            UIManager.SelectElement(Event, updateEditHistory:false);
             if (eventData.button != PointerEventData.InputButton.Left) return;
             if (Track.PointerToTrackPosition(eventData.pressPosition, clamp: false) is not var (pos, time)) return;
             dragStartTimestamp = PlaybackManager.Instance.MillisecondsInChart;
