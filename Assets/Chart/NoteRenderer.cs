@@ -390,6 +390,7 @@ where C : IEditableNoteContainer<N>
             }
         }
         isBeingDragged = false;
+        isDragCancelled = false;
         UIManager.IsDragInProgress = false;
         UIManager.SelectionGroup.eventSenderNote = null;
     }
