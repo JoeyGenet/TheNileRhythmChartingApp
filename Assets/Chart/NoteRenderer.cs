@@ -29,6 +29,7 @@ where C : IEditableNoteContainer<N>
 
     // drag UI fields
     protected PointerEventData pointerEventData { get; private set; }
+    protected int dragStartTimestamp { get; private set; }
     protected int dragStartPointerPos { get; private set; }
     protected int dragStartPointerTime { get; private set; }
     protected int dragPos { get; private set; }
@@ -232,6 +233,7 @@ where C : IEditableNoteContainer<N>
         isBeingDragged = false;
         UIManager.IsDragInProgress = false;
         UIManager.SelectionGroup.eventSenderNote = null;
+        PlaybackManager.Instance.SetTimestamp(dragStartTimestamp);
         OnCancelDrag();
     }
 
@@ -329,6 +331,7 @@ where C : IEditableNoteContainer<N>
                 if (eventData.button != PointerEventData.InputButton.Left) return;
                 pointerEventData = eventData;
                 if (Track.PointerToTrackPosition(eventData.pressPosition, clamp: false) is not var (pos, time)) return;
+                dragStartTimestamp = PlaybackManager.Instance.MillisecondsInChart;
                 dragStartPointerPos = pos;
                 dragStartPointerTime = time;
                 lastDragPos = pos;
