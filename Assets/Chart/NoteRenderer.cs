@@ -137,12 +137,14 @@ where C : IEditableNoteContainer<N>
             OnBeginDrag(pointerEventData);
         }
 
-        // toggle drag scrolling
+        // toggle drag scrolling if playback is not active
+        // this tells the Track to calculate additional scroll amount if the mouse hovers
+        // over the top or bottom of the track
         bool shouldDragScroll = PlaybackManager.Instance.IsPaused && isBeingDragged && UIManager.SelectionGroup.eventSenderNote==Note;
         UIManager.Track.IsDragScrolling = shouldDragScroll || UIManager.Track.IsDragScrolling;
         
-        // drag note if track is scrolling or in playback
-        if (shouldDragScroll && UIManager.Track.scrollAmount != 0 || (!PlaybackManager.Instance.IsPaused && isBeingDragged))
+        // manually call OnDrag if track is scrolling or in playback
+        if (isBeingDragged && UIManager.SelectionGroup.eventSenderNote==Note && (UIManager.Track.scrollAmount != 0 || !PlaybackManager.Instance.IsPaused))
         {
             OnDrag(pointerEventData);
         }
@@ -151,12 +153,6 @@ where C : IEditableNoteContainer<N>
         if (!PlaybackManager.Instance.IsPaused && !isBeingDragged && !Track.IsScrolling && prevTime < Note.StartTime && currTime >= Note.StartTime) OnNoteStarted();
         if (!PlaybackManager.Instance.IsPaused && !isBeingDragged && !Track.IsScrolling && prevTime < Note.EndTime && currTime >= Note.EndTime) OnNoteStarted();
         prevTime = currTime;
-
-        if (animator != null)
-        {
-            // animator.SetBool("IsMultiSelected", IsInMarqueeSelection);
-            // animator.SetBool("IsClicked", UIManager.ClickedElement is Note clickedNote && clickedNote==Note);
-        }
     }
 
     protected void AddOrSubtractNoteFromSelection(Note note, Note sequenceContainer=null)

@@ -118,11 +118,13 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerDownHandler, IPo
         }
 
         // toggle drag scrolling
+        // this tells the Track to calculate additional scroll amount if the mouse hovers
+        // over the top or bottom of the track
         bool shouldDragScroll = PlaybackManager.Instance.IsPaused && Event.isBeingDragged;
         UIManager.Track.IsDragScrolling = shouldDragScroll || UIManager.Track.IsDragScrolling;
         
-        // drag note if track is scrolling or in playback
-        if (shouldDragScroll && UIManager.Track.scrollAmount != 0 || (!PlaybackManager.Instance.IsPaused && Event.isBeingDragged))
+        // manually call OnDrag if track is scrolling or in playback
+        if (Event.isBeingDragged && (UIManager.Track.scrollAmount != 0 || !PlaybackManager.Instance.IsPaused))
         {
             bool isHoldingShift = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
             Drag(pointerEventData, dragStart: Event.isDraggingStartHandle || isHoldingShift, dragEnd: Event.isDraggingEndHandle || isHoldingShift);
