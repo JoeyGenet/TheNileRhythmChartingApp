@@ -262,6 +262,7 @@ GameObject:
   m_Component:
   - component: {fileID: 369001091355921359}
   - component: {fileID: 941025365830513672}
+  - component: {fileID: 7139377165507592314}
   m_Layer: 5
   m_Name: EnvironmentChange
   m_TagString: Untagged
@@ -304,12 +305,34 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 13741143788b84e2a8792e2bc8449f12, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  animator: {fileID: 7139377165507592314}
   gradientStartColor: {fileID: 1854327529863081503}
   gradientEndColor: {fileID: 2173712638659262579}
   startHandleColor: {fileID: 2227406492277360196}
   endHandleColor: {fileID: 1718374688736937130}
   startHandle: {fileID: 2525794779718731692}
   endHandle: {fileID: 8924666918853378624}
+--- !u!95 &7139377165507592314
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2734197323850630172}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 22100000, guid: 713f526193a14fc43bc44400b73c0259, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &4010391077756263931
 GameObject:
   m_ObjectHideFlags: 0

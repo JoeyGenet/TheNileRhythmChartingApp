@@ -11,6 +11,7 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerDownHandler, IPo
 
     RectTransform rect;
 
+    [SerializeField] protected Animator animator;
     [SerializeField] Image gradientStartColor;
     [SerializeField] Image gradientEndColor;
     [SerializeField] Image startHandleColor;
@@ -38,6 +39,21 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerDownHandler, IPo
 
     // set to true when note is deselected while Event.isBeingDragged is true
     private bool isDragCancelled = false;
+
+    // selection fields and properties
+    private bool isClicked;
+    public bool IsClicked
+    {
+        get { return isClicked; }
+        set 
+        {
+            isClicked = value;
+            if (animator != null)
+            {
+                animator.SetBool("IsClicked", isClicked);
+            }
+        }
+    }
 
     public virtual void Init(Track track, EditableEnvironmentChangeEvent evt)
     {
@@ -125,9 +141,11 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerDownHandler, IPo
             // startHandle.gameObject.SetActive(true);
             // endHandle.gameObject.SetActive(true);
             transform.SetAsLastSibling();
+            IsClicked = true;
         }
         else
         {
+            IsClicked = false;
             gameObject.SetActive(false);
             // setAlpha(gradientStartColor, 0);
             // setAlpha(gradientEndColor, 0);
