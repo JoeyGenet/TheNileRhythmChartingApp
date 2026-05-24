@@ -272,10 +272,12 @@ public class UIManager : MonoBehaviour
             {
                 SelectElement(null, updateEditHistory:true);
             }
+            // cancel drag
             else
             {
                 SelectElement(PreviousElement, updateEditHistory:false);
                 OnDragCanceled.Invoke();
+                PlaybackManager.Instance.Pause();
             }
             CursorMode = UICursorMode.None;
         });
