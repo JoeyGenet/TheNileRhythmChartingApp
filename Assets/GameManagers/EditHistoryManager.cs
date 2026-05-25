@@ -810,8 +810,21 @@ public class MultiselectMoveAction : GroupUndoRedoAction
         PlaybackManager.Instance.SetTimestamp(timestamp);
         if (UIManager.SelectionGroup != null && UIManager.SelectionGroup.notes.Count != 0)
         {
+            List<int> changedTimes = new List<int>();
             // use end time for wheel turns, start time for everything else
-            PlaybackManager.Instance.SnapToTimestamp(UIManager.SelectionGroup.notes.Select(note => note is EditableWheelTurn ? note.EndTime : note.StartTime).ToList());
+            // do not include wheel sequences--the starting note will be considered if it is multiselected
+            foreach (Note note in UIManager.SelectionGroup.notes)
+            {
+                if (note is EditableWheelTurn)
+                {
+                    changedTimes.Add(note.EndTime);
+                }
+                else if (note is not EditableWheelSequence)
+                {
+                    changedTimes.Add(note.StartTime);
+                }
+            }
+            PlaybackManager.Instance.SnapToTimestamp(changedTimes);
         }
     }
 
@@ -823,8 +836,21 @@ public class MultiselectMoveAction : GroupUndoRedoAction
         PlaybackManager.Instance.SetTimestamp(timestamp);
         if (UIManager.SelectionGroup != null && UIManager.SelectionGroup.notes.Count != 0)
         {
+            List<int> changedTimes = new List<int>();
             // use end time for wheel turns, start time for everything else
-            PlaybackManager.Instance.SnapToTimestamp(UIManager.SelectionGroup.notes.Select(note => note is EditableWheelTurn ? note.EndTime : note.StartTime).ToList());
+            // do not include wheel sequences--the starting note will be considered if it is multiselected
+            foreach (Note note in UIManager.SelectionGroup.notes)
+            {
+                if (note is EditableWheelTurn)
+                {
+                    changedTimes.Add(note.EndTime);
+                }
+                else if (note is not EditableWheelSequence)
+                {
+                    changedTimes.Add(note.StartTime);
+                }
+            }
+            PlaybackManager.Instance.SnapToTimestamp(changedTimes);
         }
     }
 }
@@ -849,8 +875,21 @@ public class MultiselectPasteAction : GroupUndoRedoAction
         PlaybackManager.Instance.SetTimestamp(timestamp);
         if (pastedNotes != null && pastedNotes.Count != 0)
         {
+            List<int> changedTimes = new List<int>();
             // use end time for wheel turns, start time for everything else
-            PlaybackManager.Instance.SnapToTimestamp(pastedNotes.Select(note => note is EditableWheelTurn ? note.EndTime : note.StartTime).ToList());
+            // do not include wheel sequences--the starting note will be considered if it is multiselected
+            foreach (Note note in pastedNotes)
+            {
+                if (note is EditableWheelTurn)
+                {
+                    changedTimes.Add(note.EndTime);
+                }
+                else if (note is not EditableWheelSequence)
+                {
+                    changedTimes.Add(note.StartTime);
+                }
+            }
+            PlaybackManager.Instance.SnapToTimestamp(changedTimes);
         }
     }
 
@@ -862,8 +901,21 @@ public class MultiselectPasteAction : GroupUndoRedoAction
         PlaybackManager.Instance.SetTimestamp(timestamp);
         if (pastedNotes != null && pastedNotes.Count != 0)
         {
+            List<int> changedTimes = new List<int>();
             // use end time for wheel turns, start time for everything else
-            PlaybackManager.Instance.SnapToTimestamp(pastedNotes.Select(note => note is EditableWheelTurn ? note.EndTime : note.StartTime).ToList());
+            // do not include wheel sequences--the starting note will be considered if it is multiselected
+            foreach (Note note in pastedNotes)
+            {
+                if (note is EditableWheelTurn)
+                {
+                    changedTimes.Add(note.EndTime);
+                }
+                else if (note is not EditableWheelSequence)
+                {
+                    changedTimes.Add(note.StartTime);
+                }
+            }
+            PlaybackManager.Instance.SnapToTimestamp(changedTimes);
         }
     }
 }
@@ -890,8 +942,21 @@ public class MultiselectRemoveAction : GroupUndoRedoAction
         PlaybackManager.Instance.SetTimestamp(timestamp);
         if (UIManager.SelectionGroup != null && UIManager.SelectionGroup.notes.Count != 0)
         {
+            List<int> changedTimes = new List<int>();
             // use end time for wheel turns, start time for everything else
-            PlaybackManager.Instance.SnapToTimestamp(UIManager.SelectionGroup.notes.Select(note => note is EditableWheelTurn ? note.EndTime : note.StartTime).ToList());
+            // do not include wheel sequences--the starting note will be considered if it is multiselected
+            foreach (Note note in UIManager.SelectionGroup.notes)
+            {
+                if (note is EditableWheelTurn)
+                {
+                    changedTimes.Add(note.EndTime);
+                }
+                else if (note is not EditableWheelSequence)
+                {
+                    changedTimes.Add(note.StartTime);
+                }
+            }
+            PlaybackManager.Instance.SnapToTimestamp(changedTimes);
         }
     }
 
@@ -903,8 +968,21 @@ public class MultiselectRemoveAction : GroupUndoRedoAction
         PlaybackManager.Instance.SetTimestamp(timestamp);
         if (UIManager.SelectionGroup != null && UIManager.SelectionGroup.notes.Count != 0)
         {
+            List<int> changedTimes = new List<int>();
             // use end time for wheel turns, start time for everything else
-            PlaybackManager.Instance.SnapToTimestamp(UIManager.SelectionGroup.notes.Select(note => note is EditableWheelTurn ? note.EndTime : note.StartTime).ToList());
+            // do not include wheel sequences--the starting note will be considered if it is multiselected
+            foreach (Note note in UIManager.SelectionGroup.notes)
+            {
+                if (note is EditableWheelTurn)
+                {
+                    changedTimes.Add(note.EndTime);
+                }
+                else if (note is not EditableWheelSequence)
+                {
+                    changedTimes.Add(note.StartTime);
+                }
+            }
+            PlaybackManager.Instance.SnapToTimestamp(changedTimes);
         }
     }
 }
@@ -931,8 +1009,21 @@ public class MultiselectMirrorAction : GroupUndoRedoAction
         PlaybackManager.Instance.SetTimestamp(timestamp);
         if (UIManager.SelectionGroup != null && UIManager.SelectionGroup.notes.Count != 0)
         {
+            List<int> changedTimes = new List<int>();
             // use end time for wheel turns, start time for everything else
-            PlaybackManager.Instance.SnapToTimestamp(UIManager.SelectionGroup.notes.Select(note => note is EditableWheelTurn ? note.EndTime : note.StartTime).ToList());
+            // do not include wheel sequences--the starting note will be considered if it is multiselected
+            foreach (Note note in UIManager.SelectionGroup.notes)
+            {
+                if (note is EditableWheelTurn)
+                {
+                    changedTimes.Add(note.EndTime);
+                }
+                else if (note is not EditableWheelSequence)
+                {
+                    changedTimes.Add(note.StartTime);
+                }
+            }
+            PlaybackManager.Instance.SnapToTimestamp(changedTimes);
         }
     }
 
@@ -944,8 +1035,21 @@ public class MultiselectMirrorAction : GroupUndoRedoAction
         PlaybackManager.Instance.SetTimestamp(timestamp);
         if (UIManager.SelectionGroup != null && UIManager.SelectionGroup.notes.Count != 0)
         {
+            List<int> changedTimes = new List<int>();
             // use end time for wheel turns, start time for everything else
-            PlaybackManager.Instance.SnapToTimestamp(UIManager.SelectionGroup.notes.Select(note => note is EditableWheelTurn ? note.EndTime : note.StartTime).ToList());
+            // do not include wheel sequences--the starting note will be considered if it is multiselected
+            foreach (Note note in UIManager.SelectionGroup.notes)
+            {
+                if (note is EditableWheelTurn)
+                {
+                    changedTimes.Add(note.EndTime);
+                }
+                else if (note is not EditableWheelSequence)
+                {
+                    changedTimes.Add(note.StartTime);
+                }
+            }
+            PlaybackManager.Instance.SnapToTimestamp(changedTimes);
         }
     }
 }

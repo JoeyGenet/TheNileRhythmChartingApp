@@ -76,7 +76,11 @@ public class EditableWheelSequence : WheelSequence, IEditableNote<EditableChart,
     public new int StartTime
 	{
 		get => time;
-		set => this.RegisterSortingChange(Container, ref time, value);
+		set
+		{
+			startingNote.EndTime = value;
+			this.RegisterSortingChange(Container, ref time, value);
+		} 
 	}
 	public new int Pos
 	{
@@ -238,7 +242,19 @@ public class EditableWheelTurn : WheelTurn, IEditableNote<EditableWheelSequence,
 	public new int EndTime
 	{
 		get => endTime;
-        set => this.RegisterSortingChange(Container, ref endTime, value);
+		// the starting vertex of the sequence is not in the sequence's list of notes,
+		// so just directly set the end time
+        set
+		{
+			if (Container.startingNote == this)
+			{
+				endTime = value;
+			}
+			else
+			{
+				this.RegisterSortingChange(Container, ref endTime, value);
+			}
+		}
 	}
 
 	public new int DeltaAngle
