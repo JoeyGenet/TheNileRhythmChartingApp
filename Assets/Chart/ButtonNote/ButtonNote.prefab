@@ -53,11 +53,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a42371771828747f5bbda6f26178fcf3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isInMarqueeSelection: 0
+  animator: {fileID: 2484925381454186745}
+  modifyExistingSelection: 0
+  addToSelection: 0
   leftNote: {fileID: 5530116138108950745}
   rightNote: {fileID: 7801171543076866202}
   line: {fileID: 8229435769244426716}
-  animator: {fileID: 2484925381454186745}
 --- !u!82 &6376125584669144694
 AudioSource:
   m_ObjectHideFlags: 0
