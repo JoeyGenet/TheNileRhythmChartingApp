@@ -38,11 +38,11 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
         }
 
         // toggle drag scrolling
-        bool shouldDragScroll = PlaybackManager.Instance.IsPaused && isBeingDragged && UIManager.SelectionGroup.eventSenderNote==Note;
+        bool shouldDragScroll = PlaybackManager.Instance.IsPaused && IsBeingDragged && UIManager.SelectionGroup.eventSenderNote==Note;
         UIManager.Track.IsDragScrolling = shouldDragScroll || UIManager.Track.IsDragScrolling;
         
         // drag note if track is scrolling or in playback
-        if (shouldDragScroll && UIManager.Track.scrollAmount != 0 || (!PlaybackManager.Instance.IsPaused && isBeingDragged))
+        if (shouldDragScroll && UIManager.Track.scrollAmount != 0 || (!PlaybackManager.Instance.IsPaused && IsBeingDragged))
         {
             OnDrag(pointerEventData);
         }
@@ -66,7 +66,7 @@ public class WheelSequenceVertexRenderer : NoteRenderer<EditableWheelTurn, Edita
 
     protected override void OnLeftClick() 
     {
-        if (!isBeingDragged)
+        if (!IsBeingDragged)
         {
             // if held shift/ctrl/alt when note clicked, either add this note to or remove it from current selection
             if (modifyExistingSelection && UIManager.SelectedElement != null &&

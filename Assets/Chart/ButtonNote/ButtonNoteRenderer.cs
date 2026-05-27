@@ -47,7 +47,7 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
 
     protected override void OnLeftClick() 
     {
-        if (!isBeingDragged)
+        if (!IsBeingDragged)
         {
             // if held shift/ctrl/alt when note clicked, either add this note to or remove it from current selection
             if (modifyExistingSelection && UIManager.SelectedElement != null &&
@@ -81,7 +81,7 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
         int lastRightPos = rightPos;
         // if we delete a paired note while dragging, cancel drag
         // to prevent an UndoRedoAction from being logged when drag is complete
-        if (isBeingDragged)
+        if (IsBeingDragged)
         {
             CancelDrag();
         }

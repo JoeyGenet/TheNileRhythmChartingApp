@@ -49,7 +49,19 @@ where C : IEditableNoteContainer<N>
 
     // set to true while drag is in progress
     // set to false if note is deselected or drag is completed
-    protected bool isBeingDragged {get; private set;} = false;
+    private bool isBeingDragged = false;
+    protected bool IsBeingDragged 
+    {
+        get { return isBeingDragged; }
+        private set
+        {
+            isBeingDragged = value;
+            if (animator != null)
+            {
+                animator.SetBool("IsDragged", isBeingDragged);
+            }
+        }
+    }
 
     // set to true when note is deselected while isBeingDragged is true
     private bool isDragCancelled = false;
@@ -140,18 +152,18 @@ where C : IEditableNoteContainer<N>
         // toggle drag scrolling if playback is not active
         // this tells the Track to calculate additional scroll amount if the mouse hovers
         // over the top or bottom of the track
-        bool shouldDragScroll = PlaybackManager.Instance.IsPaused && isBeingDragged && UIManager.SelectionGroup.eventSenderNote==Note;
+        bool shouldDragScroll = PlaybackManager.Instance.IsPaused && IsBeingDragged && UIManager.SelectionGroup.eventSenderNote==Note;
         UIManager.Track.IsDragScrolling = shouldDragScroll || UIManager.Track.IsDragScrolling;
         
         // manually call OnDrag if track is scrolling or in playback
-        if (isBeingDragged && UIManager.SelectionGroup.eventSenderNote==Note && (UIManager.Track.scrollAmount != 0 || !PlaybackManager.Instance.IsPaused))
+        if (IsBeingDragged && UIManager.SelectionGroup.eventSenderNote==Note && (UIManager.Track.scrollAmount != 0 || !PlaybackManager.Instance.IsPaused))
         {
             OnDrag(pointerEventData);
         }
 
         int currTime = PlaybackManager.Instance.MillisecondsInChart;
-        if (!PlaybackManager.Instance.IsPaused && !isBeingDragged && !Track.IsScrolling && prevTime < Note.StartTime && currTime >= Note.StartTime) OnNoteStarted();
-        if (!PlaybackManager.Instance.IsPaused && !isBeingDragged && !Track.IsScrolling && prevTime < Note.EndTime && currTime >= Note.EndTime) OnNoteStarted();
+        if (!PlaybackManager.Instance.IsPaused && !IsBeingDragged && !Track.IsScrolling && prevTime < Note.StartTime && currTime >= Note.StartTime) OnNoteStarted();
+        if (!PlaybackManager.Instance.IsPaused && !IsBeingDragged && !Track.IsScrolling && prevTime < Note.EndTime && currTime >= Note.EndTime) OnNoteStarted();
         prevTime = currTime;
     }
 
@@ -206,7 +218,7 @@ where C : IEditableNoteContainer<N>
     public void OnDragCanceled()
     {
         // handle deselection of previous note/selection group
-        if (isBeingDragged)
+        if (IsBeingDragged)
         {
             // if this note is deselected while in multiselection, deselect all other notes
             if (IsInMarqueeSelection && UIManager.SelectionGroup.eventSenderNote==Note && isReadyToShareEventData)
@@ -226,7 +238,7 @@ where C : IEditableNoteContainer<N>
     {
         isReadyToShareEventData = true;
         isDragCancelled = true;
-        isBeingDragged = false;
+        IsBeingDragged = false;
         UIManager.IsDragInProgress = false;
         UIManager.SelectionGroup.eventSenderNote = null;
         PlaybackManager.Instance.SetTimestamp(dragStartTimestamp);
@@ -258,7 +270,7 @@ where C : IEditableNoteContainer<N>
                     OnLeftClick();
                     // if we dragged without moving the mouse (i.e. via scrolling or during playback)
                     // we need to manually trigger the OnEndDrag function
-                    if (isBeingDragged)
+                    if (IsBeingDragged)
                     {
                         OnEndDrag(eventData);
                     }
@@ -302,7 +314,7 @@ where C : IEditableNoteContainer<N>
         // OnBeginDrag() can be called from OnPointerDown() to initiate drag during playback, or from Update()
         // to initiate drag from scrolling the track. To prevent this from being called twice during the same
         // drag, check if isBeingDragged is false.
-        if (!isBeingDragged)
+        if (!IsBeingDragged)
         {
             // the first note to be dragged should pass event data to all others
             if (UIManager.SelectionGroup.eventSenderNote==null)
@@ -321,7 +333,7 @@ where C : IEditableNoteContainer<N>
             {
                 isReadyToShareEventData = true;
                 isBeingPressed = false;
-                isBeingDragged = true;
+                IsBeingDragged = true;
                 isDragCancelled = false;
                 UIManager.IsDragInProgress = true;
                 if (eventData.button != PointerEventData.InputButton.Left) return;
@@ -370,7 +382,7 @@ where C : IEditableNoteContainer<N>
 
     public virtual void OnEndDrag(PointerEventData eventData)
     {
-        if (!isDragCancelled && isBeingDragged)
+        if (!isDragCancelled && IsBeingDragged)
         {
             // if this note is dropped while in multiselection, drop all other notes
             if (IsInMarqueeSelection && UIManager.SelectionGroup.eventSenderNote==Note && isReadyToShareEventData)
@@ -385,7 +397,7 @@ where C : IEditableNoteContainer<N>
                 OnEndDrag();
             }
         }
-        isBeingDragged = false;
+        IsBeingDragged = false;
         isDragCancelled = false;
         UIManager.IsDragInProgress = false;
         UIManager.SelectionGroup.eventSenderNote = null;
