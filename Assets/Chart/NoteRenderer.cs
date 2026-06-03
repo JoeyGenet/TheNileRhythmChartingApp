@@ -67,31 +67,22 @@ where C : IEditableNoteContainer<N>
     private bool isDragCancelled = false;
 
     // selection fields and properties
-    private bool isClicked;
-    public bool IsClicked
-    {
-        get { return isClicked; }
-        set 
-        {
-            isClicked = value;
-            if (animator != null)
-            {
-                animator.SetBool("IsClicked", isClicked);
-            }
-        }
-    }
-
     private bool isInMarqueeSelection;
     public bool IsInMarqueeSelection
     {
         get { return isInMarqueeSelection; }
         set 
         {
-            isInMarqueeSelection = value;
             if (animator != null)
             {
-                animator.SetBool("IsMultiSelected", isInMarqueeSelection);
+                // only activate click trigger if value changed
+                if (isInMarqueeSelection != value)
+                {
+                    animator.SetTrigger("IsClicked");
+                }
+                animator.SetBool("IsMultiSelected", value);
             }
+            isInMarqueeSelection = value;
         }
     }
     private bool isReadyToShareEventData;
@@ -207,9 +198,7 @@ where C : IEditableNoteContainer<N>
 
     private void OnNoteSelected(object previousNote, object newNote)
     {
-        IsClicked = Note != null && newNote == Note;
-
-        if (IsClicked) 
+        if (Note != null && newNote == Note) 
         {
             transform.SetAsLastSibling();
         }
@@ -273,6 +262,10 @@ where C : IEditableNoteContainer<N>
                     if (IsBeingDragged)
                     {
                         OnEndDrag(eventData);
+                    }
+                    else
+                    {
+                        animator.SetTrigger("IsClicked");
                     }
                 }
                 break;
