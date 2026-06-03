@@ -49,13 +49,6 @@ public class UIManager : MonoBehaviour
         set { Instance.track = value; }
     }
 
-    object clickedElement;
-    public static object ClickedElement
-    {
-        get => Instance.clickedElement;
-        set { Instance.clickedElement = value; }
-    }
-
     object previousElement;
     private static object PreviousElement
     {

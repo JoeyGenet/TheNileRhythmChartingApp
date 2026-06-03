@@ -57,8 +57,7 @@ public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerUpHa
         if (!IsBeingDragged)
         {
             // if held shift/ctrl/alt when note clicked, either add this note to or remove it from current selection
-            if (modifyExistingSelection && UIManager.SelectedElement != null &&
-                (UIManager.ClickedElement is Note || UIManager.SelectedElement is TrackMarqueeSelectionGroup))
+            if (modifyExistingSelection)
             {
                 AddOrSubtractNoteFromSelection(Note);
             }
@@ -68,9 +67,8 @@ public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerUpHa
                 SelectNoteOrMultiselection(Note);
             }
         }
-
-        UIManager.ClickedElement = Note;
     } 
+    
     protected override void OnRightClick() => Note.RemoveSelf();
 
     protected override void OnDragStart()

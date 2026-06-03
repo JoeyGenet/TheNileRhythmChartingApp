@@ -161,15 +161,6 @@ where C : IEditableNoteContainer<N>
     protected void AddOrSubtractNoteFromSelection(Note note, Note sequenceContainer=null)
     {
         SortedSet<Note> selectedNotes = new SortedSet<Note>();
-        
-        // create new selection from previously selected note
-        // only include it if there is no current selection
-        // and if it wasn't just cleared from a selection
-        if (UIManager.SelectedElement!=null && UIManager.SelectedElement!=UIManager.SelectionGroup && addToSelection && 
-            UIManager.ClickedElement is Note previousNote && !UIManager.SelectionGroup.lastDeselectedNotes.Contains(previousNote))
-        {
-            selectedNotes.Add(previousNote);
-        }
 
         // for sequence notes, add/remove the sequence itself
         if (sequenceContainer != null)
