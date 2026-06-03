@@ -87,12 +87,12 @@ public class UIManager : MonoBehaviour
             OnElementSelected?.Invoke(PreviousElement, newElement);
             if (PreviousElement is TrackMarqueeSelectionGroup prevTrackMarqueeSelectionGroup)
             {
-                prevTrackMarqueeSelectionGroup.FlagNotes(false);
+                Instance.FlagNotes(false, prevTrackMarqueeSelectionGroup.notes.ToList());
             }
             if (newElement is TrackMarqueeSelectionGroup newTrackMarqueeSelectionGroup)
             {
                 SelectionGroup = newTrackMarqueeSelectionGroup;
-                newTrackMarqueeSelectionGroup.FlagNotes(true);
+                Instance.FlagNotes(true, newTrackMarqueeSelectionGroup.notes.ToList());
             }
             if (updateEditHistory)
             {
@@ -155,8 +155,6 @@ public class UIManager : MonoBehaviour
         bool selectionChanged = !newNotes.All(note => oldNotes.Contains(note)) || newNotes.Count!=oldNotes.Count || SelectedElement!=SelectionGroup;
         if (selectionChanged)
         {
-            // unflag all notes to reset before modifying notes list
-            SelectionGroup.FlagNotes(false);
             // if we clear multiselection, treat it like a selection action
             if (newNotes.Count==0)
             {
@@ -176,9 +174,49 @@ public class UIManager : MonoBehaviour
                     modifyMultiselectionAction.CommitAction();
                 }
                 // flag all notes that are now selected
+                Instance.FlagNotes(false,oldNotes.Except(newNotes).ToList());
+                Instance.FlagNotes(true, newNotes.Except(oldNotes).ToList());
+
+                // set notes in selection group and select the group
                 SelectionGroup.notes = newNotes;
                 SelectElement(SelectionGroup, updateEditHistory);
-                SelectionGroup.FlagNotes(true);
+            }
+        }
+    }
+
+    public void FlagNotes(bool addToSelection, List<Note> notes)
+    {
+        if (notes!=null)
+        {
+            foreach(Note note in notes)
+            {
+                // get the object associated with each note
+                if (track.noteGameObjectMapping.TryGetValue(note, out GameObject gameObject) && gameObject!=null)
+                {
+                    // flag all selected notes to change their click/drag/drop behavior
+                    // only the clickable renderers will be added--no WheelSequences or LeverSequences here
+                    switch (note)
+                    {
+                        case EditableButtonNote:
+                            ButtonNoteRenderer buttonNoteRenderer = gameObject.GetComponent<ButtonNoteRenderer>();
+                            buttonNoteRenderer.IsInMarqueeSelection = addToSelection;
+                            break;
+                        case EditableLeverNote:
+                            LeverNoteRenderer leverNoteRenderer = gameObject.GetComponent<LeverNoteRenderer>();
+                            leverNoteRenderer.IsInMarqueeSelection = addToSelection;
+                            break;
+                        case EditableWheelFlick:
+                            WheelFlickRenderer wheelFlickRenderer = gameObject.GetComponent<WheelFlickRenderer>();
+                            wheelFlickRenderer.IsInMarqueeSelection = addToSelection;
+                            break;
+                        case EditableWheelTurn:
+                            WheelSequenceVertexRenderer wheelSequenceVertexRenderer = gameObject.GetComponent<WheelSequenceVertexRenderer>();
+                            wheelSequenceVertexRenderer.IsInMarqueeSelection = addToSelection;
+                            break; 
+                        default:
+                            break;
+                    }
+                }
             }
         }
     }
