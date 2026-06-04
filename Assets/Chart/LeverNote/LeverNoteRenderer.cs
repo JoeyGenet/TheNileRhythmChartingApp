@@ -76,8 +76,7 @@ public class LeverNoteRenderer : NoteRenderer<EditableLeverNote, EditableLeverSe
             LeverPos.Middle => (neutralSprite, neutralOutline, 0, middleColor),
             _ => throw new Exception($"Lever direction {Note.Pos} not supported."),
         };
-        arrow.transform.rotation = Quaternion.Euler(0, 0, angle);
-        outline.transform.rotation = Quaternion.Euler(0, 0, angle);
+        transform.localRotation = Quaternion.Euler(0, 0, angle);
     }
 
     protected override void OnLeftClick() 
