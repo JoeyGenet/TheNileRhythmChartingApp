@@ -602,6 +602,7 @@ MonoBehaviour:
   addEnvironmentChangeEvent: {fileID: 6341110284532119316}
   environmentTrackColorPrefab: {fileID: 3171706260980803092, guid: 85b9640b99ce04034a3876ffa3162c61, type: 3}
   environmentChangePrefab: {fileID: 941025365830513672, guid: 4bda71bb1082c4418bb074df8cd42a2f, type: 3}
+  scrollAmount: 0
 --- !u!222 &5880669670226262933
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1437,6 +1438,26 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1428940645625396443, guid: cb33ab57f4278564faaa55356db47d64, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 8b7bccb9aea56fb45ada0ab9c4135254, type: 3}
+    - target: {fileID: 1428940645625396443, guid: cb33ab57f4278564faaa55356db47d64, type: 3}
+      propertyPath: m_Color.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1428940645625396443, guid: cb33ab57f4278564faaa55356db47d64, type: 3}
+      propertyPath: m_Color.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1428940645625396443, guid: cb33ab57f4278564faaa55356db47d64, type: 3}
+      propertyPath: m_Color.r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3896029065059919175, guid: cb33ab57f4278564faaa55356db47d64, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 8f6d74d5d13ee6a4c91c6e90ab8b9abc, type: 3}
     - target: {fileID: 4791976414602815898, guid: cb33ab57f4278564faaa55356db47d64, type: 3}
       propertyPath: m_Sprite
       value: 
@@ -2771,6 +2792,10 @@ PrefabInstance:
       value: WheelFlick Right Cursor
       objectReference: {fileID: 0}
     - target: {fileID: 1267541038659169147, guid: 16ab57f263ed0384aa3b9fa7dde487f8, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: c913dbe7ae9733f469e4b79e1c9ec257, type: 3}
+    - target: {fileID: 3317060716188895502, guid: 16ab57f263ed0384aa3b9fa7dde487f8, type: 3}
       propertyPath: m_Sprite
       value: 
       objectReference: {fileID: 21300000, guid: c913dbe7ae9733f469e4b79e1c9ec257, type: 3}
