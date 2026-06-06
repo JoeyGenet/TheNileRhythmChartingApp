@@ -36,24 +36,21 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerDownHandler, IPo
     // Event.isBeingDragged set to true while drag is in progress
     // set to false if note is deselected or drag is completed
     // Event.isDraggingStart/EndHandle set for dragging handles individually or together
-
-    // set to true when note is deselected while Event.isBeingDragged is true
-    private bool isDragCancelled = false;
-
-    // selection fields and properties
-    private bool isClicked;
-    public bool IsClicked
+    protected bool IsBeingDragged 
     {
-        get { return isClicked; }
-        set 
+        get { return Event.isBeingDragged; }
+        private set
         {
-            isClicked = value;
+            Event.isBeingDragged = value;
             if (animator != null)
             {
-                animator.SetBool("IsClicked", isClicked);
+                animator.SetBool("IsDragged", Event.isBeingDragged);
             }
         }
     }
+
+    // set to true when note is deselected while Event.isBeingDragged is true
+    private bool isDragCancelled = false;
 
     public virtual void Init(Track track, EditableEnvironmentChangeEvent evt)
     {
@@ -143,11 +140,9 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerDownHandler, IPo
             // startHandle.gameObject.SetActive(true);
             // endHandle.gameObject.SetActive(true);
             transform.SetAsLastSibling();
-            IsClicked = true;
         }
         else
         {
-            IsClicked = false;
             gameObject.SetActive(false);
             // setAlpha(gradientStartColor, 0);
             // setAlpha(gradientEndColor, 0);
@@ -175,7 +170,7 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerDownHandler, IPo
         Event.Environment = oldEnvironment;
         // update flags
         isDragCancelled = true;
-        Event.isBeingDragged = false;
+        IsBeingDragged = false;
         UIManager.IsDragInProgress = false;
     }
 
@@ -234,6 +229,10 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerDownHandler, IPo
                 {
                     OnEndDrag(eventData);
                 }
+                else
+                {
+                    animator.SetTrigger("IsClicked");
+                }
                 break;
             case PointerEventData.InputButton.Right:
                 // track the deletion for undo/redo
@@ -264,7 +263,7 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerDownHandler, IPo
             oldDuration = Event.Duration;
             oldEnvironment = Event.Environment;
             isBeingPressed = false;
-            Event.isBeingDragged = true;
+            IsBeingDragged = true;
             isDragCancelled = false;
             UIManager.IsDragInProgress = true;
         }
@@ -309,7 +308,7 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerDownHandler, IPo
             );
             editEnvironmentChangeAction.CommitAction();
         }
-        Event.isBeingDragged = false;
+        IsBeingDragged = false;
         isDragCancelled = false;
         Event.isDraggingStartHandle = false;
         Event.isDraggingEndHandle = false;
