@@ -33,7 +33,7 @@ public class UILine : MonoBehaviour
         rect.anchorMin = rect.anchorMax = (pos1 + pos2) / 2;
 
         Vector2 parentSize = (rect.parent as RectTransform).rect.size;
-        Vector2 vec = Vector2.Scale(pos1 - pos2, parentSize);
+        Vector2 vec = Vector2.Scale(pos2 - pos1, parentSize);
 
         if (vec != Vector2.zero)
             rect.rotation = Quaternion.Euler(0, 0, Vector2.SignedAngle(Vector2.up, vec));
