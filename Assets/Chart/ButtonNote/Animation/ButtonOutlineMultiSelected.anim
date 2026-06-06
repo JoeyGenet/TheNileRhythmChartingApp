@@ -23,7 +23,7 @@ AnimationClip:
     - time: 0
       value: {fileID: 2100000, guid: 78aa2755bb2085845a520f51aba3c2a4, type: 2}
     attribute: m_Material
-    path: Left Note Outline
+    path: LeftAnimationRoot/Left Note Outline
     classID: 114
     script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
     flags: 2
@@ -32,7 +32,7 @@ AnimationClip:
     - time: 0
       value: {fileID: 2100000, guid: 78aa2755bb2085845a520f51aba3c2a4, type: 2}
     attribute: m_Material
-    path: Right Note Outline
+    path: RightAnimationRoot/Right Note Outline
     classID: 114
     script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
     flags: 2
@@ -44,7 +44,7 @@ AnimationClip:
   m_ClipBindingConstant:
     genericBindings:
     - serializedVersion: 2
-      path: 2099280763
+      path: 3389410542
       attribute: 2324865467
       script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
       typeID: 114
@@ -53,7 +53,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 4075872528
+      path: 60318533
       attribute: 2324865467
       script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
       typeID: 114
