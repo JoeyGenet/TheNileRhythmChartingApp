@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 0527724fecf296b43b0b4744bc7b570c
+guid: a4256f5444dcad749ad5a9e92154a475
 TrueTypeFontImporter:
   externalObjects: {}
   serializedVersion: 4
@@ -9,7 +9,7 @@ TrueTypeFontImporter:
   characterPadding: 1
   includeFontData: 1
   fontNames:
-  - Splatoon2
+  - Skranji
   fallbackFontReferences: []
   customCharacters: 
   fontRenderingMode: 0

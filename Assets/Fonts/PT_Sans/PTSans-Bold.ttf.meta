@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: b65d6989e65069846af9a89181089acd
+guid: 63ab27a69ecf75c48805714e544324ef
 TrueTypeFontImporter:
   externalObjects: {}
   serializedVersion: 4
@@ -9,7 +9,7 @@ TrueTypeFontImporter:
   characterPadding: 1
   includeFontData: 1
   fontNames:
-  - Splatoon1
+  - PT Sans
   fallbackFontReferences: []
   customCharacters: 
   fontRenderingMode: 0
