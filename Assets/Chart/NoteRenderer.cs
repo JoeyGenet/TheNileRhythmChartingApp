@@ -107,9 +107,15 @@ where C : IEditableNoteContainer<N>
     {
         rect = GetComponent<RectTransform>();
 
+        if (animator != null)
+        {
+            animator.SetBool("IsAnimationEnabled", UIManager.EnableAnimation);
+        }
+
         ChartManager.OnChartChanged += DestroyOnChartChanged;
         UIManager.OnElementSelected += OnNoteSelected;
         UIManager.OnDragCanceled += OnDragCanceled;
+        UIManager.OnAnimationToggled += OnAnimationToggled;
     }
 
     protected virtual void OnDestroy()
@@ -117,6 +123,7 @@ where C : IEditableNoteContainer<N>
         ChartManager.OnChartChanged -= DestroyOnChartChanged;
         UIManager.OnElementSelected -= OnNoteSelected;
         UIManager.OnDragCanceled -= OnDragCanceled;
+        UIManager.OnAnimationToggled -= OnAnimationToggled;
         if (Note != null) 
         {
             Track.noteGameObjectMapping.Remove(Note);
@@ -391,4 +398,12 @@ where C : IEditableNoteContainer<N>
     protected virtual void OnDrag() {}
     protected virtual void OnEndDrag() {}
     protected virtual void OnCancelDrag() {}
+
+    public virtual void OnAnimationToggled(bool isAnimationEnabled)
+    {
+        if (animator != null)
+        {
+            animator.SetBool("IsAnimationEnabled", isAnimationEnabled);
+        }
+    }
 }

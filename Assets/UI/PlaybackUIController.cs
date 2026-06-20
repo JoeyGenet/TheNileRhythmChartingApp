@@ -31,6 +31,9 @@ public class PlaybackUIController : MonoBehaviour
     [Header("Environment")]
     [SerializeField] Toggle previewEnvironment;
 
+    [Header("Notes")]
+    [SerializeField] Toggle enableAnimation;
+
     void Start()
     {
         playEvent.AddListener(() => PlaybackManager.Instance.Play());
@@ -76,6 +79,9 @@ public class PlaybackUIController : MonoBehaviour
 
         previewEnvironment.isOn = UIManager.PreviewEnvironment;
         previewEnvironment.onValueChanged.AddListener(preview => UIManager.PreviewEnvironment = preview);
+
+        enableAnimation.isOn = UIManager.EnableAnimation;
+        enableAnimation.onValueChanged.AddListener(enable => UIManager.EnableAnimation = enable);
     }
 
     void Update()

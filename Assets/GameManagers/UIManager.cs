@@ -22,10 +22,13 @@ public class UIManager : MonoBehaviour
     public delegate void ElementSelectedEvent(object previousElement, object newElement);
     public delegate void DragCanceledEvent();
     public delegate void CursorModeChangedEvent(UICursorMode previousMode, UICursorMode newMode);
+    public delegate void AnimationToggledEvent(bool isAnimationEnabled);
     
     public static event ElementSelectedEvent OnElementSelected;
     public static event DragCanceledEvent OnDragCanceled;
     public static event CursorModeChangedEvent OnCursorModeChanged;
+
+    public static event AnimationToggledEvent OnAnimationToggled;
 
     public static UIManager Instance;
 
@@ -255,6 +258,20 @@ public class UIManager : MonoBehaviour
             previewEnvironment = value;
             if (previewEnvironment) Instance.backgroundImage.color = Instance.previewEnvironmentColor;
             else Instance.backgroundImage.color = Instance.backgroundColor;
+        }
+    }
+
+    static bool enableAnimation = true;
+    public static bool EnableAnimation
+    {
+        get => enableAnimation;
+        set 
+        {
+            enableAnimation = value;
+            if (OnAnimationToggled != null)
+            {
+                OnAnimationToggled.Invoke(enableAnimation);
+            }
         }
     }
 
