@@ -2911,6 +2911,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 7636248997960882375}
     m_Modifications:
+    - target: {fileID: 4831648807718122418, guid: 0cca9e0e4784c410faac9aa738a6f55d, type: 3}
+      propertyPath: m_enableWordWrapping
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4934022321263531305, guid: 0cca9e0e4784c410faac9aa738a6f55d, type: 3}
       propertyPath: m_text
       value: Enter artist name...
@@ -2918,6 +2922,10 @@ PrefabInstance:
     - target: {fileID: 4951953812352541170, guid: 0cca9e0e4784c410faac9aa738a6f55d, type: 3}
       propertyPath: m_Name
       value: Artist MultilineInputField
+      objectReference: {fileID: 0}
+    - target: {fileID: 8034312084470954009, guid: 0cca9e0e4784c410faac9aa738a6f55d, type: 3}
+      propertyPath: m_LineType
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8129589445747708703, guid: 0cca9e0e4784c410faac9aa738a6f55d, type: 3}
       propertyPath: m_Pivot.x
@@ -5044,6 +5052,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 7636248997960882375}
     m_Modifications:
+    - target: {fileID: 4831648807718122418, guid: 0cca9e0e4784c410faac9aa738a6f55d, type: 3}
+      propertyPath: m_enableWordWrapping
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4934022321263531305, guid: 0cca9e0e4784c410faac9aa738a6f55d, type: 3}
       propertyPath: m_text
       value: Enter charter name...
@@ -5051,6 +5063,10 @@ PrefabInstance:
     - target: {fileID: 4951953812352541170, guid: 0cca9e0e4784c410faac9aa738a6f55d, type: 3}
       propertyPath: m_Name
       value: Charter MultilineInputField
+      objectReference: {fileID: 0}
+    - target: {fileID: 8034312084470954009, guid: 0cca9e0e4784c410faac9aa738a6f55d, type: 3}
+      propertyPath: m_LineType
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8129589445747708703, guid: 0cca9e0e4784c410faac9aa738a6f55d, type: 3}
       propertyPath: m_Pivot.x
@@ -5161,6 +5177,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 7636248997960882375}
     m_Modifications:
+    - target: {fileID: 4831648807718122418, guid: 0cca9e0e4784c410faac9aa738a6f55d, type: 3}
+      propertyPath: m_enableWordWrapping
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4934022321263531305, guid: 0cca9e0e4784c410faac9aa738a6f55d, type: 3}
       propertyPath: m_text
       value: Enter title...
@@ -5168,6 +5188,10 @@ PrefabInstance:
     - target: {fileID: 4951953812352541170, guid: 0cca9e0e4784c410faac9aa738a6f55d, type: 3}
       propertyPath: m_Name
       value: Title MultilineInputField
+      objectReference: {fileID: 0}
+    - target: {fileID: 8034312084470954009, guid: 0cca9e0e4784c410faac9aa738a6f55d, type: 3}
+      propertyPath: m_LineType
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8129589445747708703, guid: 0cca9e0e4784c410faac9aa738a6f55d, type: 3}
       propertyPath: m_Pivot.x
