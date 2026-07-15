@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -231,7 +232,7 @@ public class BpmChangeRenderer : MonoBehaviour, IPointerDownHandler, IPointerUpH
             if (eventData.button != PointerEventData.InputButton.Left) return;
             if (Track.PointerToTrackPosition(eventData.position, clamp: false) is not var (dragPos, dragTime)) return;
             int dragTimeDiff = dragTime - dragStartPointerTime;
-            Event.StartTime = UIManager.SnapTime(dragStartStartTime + dragTimeDiff);
+            Event.StartTime = SnapTime(dragStartStartTime + dragTimeDiff);
         }
     }
     public void OnDrag(PointerEventData eventData)
@@ -265,5 +266,83 @@ public class BpmChangeRenderer : MonoBehaviour, IPointerDownHandler, IPointerUpH
     {
         if (eventData is not PointerEventData pointerEventData) return;
         OnEndDrag(pointerEventData);
+    }
+
+    // custom snapping functions
+    public int SnapTime(int time)
+    {
+        if (UIManager.Snapping > 0)
+        {
+            float beat = TimeToBeat(time);
+            beat = Mathf.Round(beat * UIManager.Snapping) / UIManager.Snapping;
+            return BeatToTime(beat);
+        }
+        return time;
+    }
+
+    public int BeatToTime(float beat) 
+    {
+        int bpmOffset = ChartManager.ChartPackage.BPMOffset;
+        float startingBpm = ChartManager.ChartPackage.BPM;
+        int time;
+        float beatCount;
+        // there are no BPM changes before this one, use chart's starting BPM
+        if (Event.PreviousBpmChange == null)
+        {
+            time = (int) (beat * 60000f / startingBpm + bpmOffset);
+        }
+        else
+        {
+            time = ChartManager.SelectedChart.BPMChanges.First().StartTime + bpmOffset;
+            beatCount = startingBpm * ChartManager.SelectedChart.BPMChanges.First().StartTime / 60000f;
+            foreach (EditableBpmChangeEvent bpmChange in ChartManager.SelectedChart.BPMChanges)
+            {
+                // sum time durations in all bpm changes before this one
+                if (bpmChange != Event.PreviousBpmChange)
+                {
+                    time += bpmChange.Duration; 
+                    beatCount += bpmChange.BeatCount; 
+                }
+                // use the duration of the last bpm change to determine when this one should occur
+                else
+                {
+                    time += (int)((beat - beatCount) / bpmChange.BeatCount * bpmChange.Duration);
+                    break;
+                }
+            }
+        }
+        return time;
+    }
+
+	public float TimeToBeat(int time)
+    {
+        int bpmOffset = ChartManager.ChartPackage.BPMOffset;
+        float startingBpm = ChartManager.ChartPackage.BPM;
+        int offsetTime = time - bpmOffset;
+        float beatNumber;
+        // there are no BPM changes before this one, use chart's starting BPM
+        if (Event.PreviousBpmChange == null)
+        {
+            beatNumber = offsetTime * startingBpm / 60000f;
+        }
+        else
+        {
+            beatNumber = ChartManager.SelectedChart.BPMChanges.First().StartTime * startingBpm / 60000f;
+            foreach (EditableBpmChangeEvent bpmChange in ChartManager.SelectedChart.BPMChanges)
+            {
+                // count up beats in all bpm changes before this one
+                if (bpmChange != Event.PreviousBpmChange)
+                {
+                    beatNumber += bpmChange.BeatCount; 
+                }
+                // use BPM of previous bpm change to determine final beat
+                else
+                {
+                    beatNumber += bpmChange.BPM * (offsetTime - bpmChange.StartTime) / 60000f;
+                    break;
+                }
+            }
+        }
+        return beatNumber;
     }
 }
