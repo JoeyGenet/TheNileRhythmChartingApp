@@ -17,6 +17,8 @@ public static class ChartManager
     public delegate void NoteRemovedEvent(Note note);
     public delegate void EventAddedEvent(EnvironmentChangeEvent evt);
     public delegate void EventRemovedEvent(EnvironmentChangeEvent evt);
+    public delegate void BpmChangeAddedEvent(BpmChangeEvent evt);
+    public delegate void BpmChangeRemovedEvent(BpmChangeEvent evt);
 
     public static event ChartPackageChangedEvent OnChartPackageChanged;
     public static event ChartChangedEvent OnChartChanged; // When the currently selected chart changes
@@ -26,6 +28,8 @@ public static class ChartManager
 	public static event NoteRemovedEvent OnNoteRemoved; // When a note is removed from the currently selected chart
     public static event EventAddedEvent OnEventAdded;
     public static event EventRemovedEvent OnEventRemoved;
+    public static event BpmChangeAddedEvent OnBpmChangeAdded;
+    public static event BpmChangeRemovedEvent OnBpmChangeRemoved;
 
     public static string ChartPath { get; private set; } = null;
     public static string ChartDir => ChartPath == null ? null : Path.GetDirectoryName(ChartPath);
@@ -90,12 +94,16 @@ public static class ChartManager
                 oldChart.OnNoteRemoved -= SendOnNoteRemoved;
                 oldChart.OnEventAdded -= SendOnEventAdded;
                 oldChart.OnEventRemoved -= SendOnEventRemoved;
+                selectedChart.OnBpmChangeAdded -= SendOnBpmChangeAdded;
+                selectedChart.OnBpmChangeRemoved -= SendOnBpmChangeRemoved;
             }
 
             selectedChart.OnNoteAdded += SendOnNoteAdded;
             selectedChart.OnNoteRemoved += SendOnNoteRemoved;
             selectedChart.OnEventAdded += SendOnEventAdded;
             selectedChart.OnEventRemoved += SendOnEventRemoved;
+            selectedChart.OnBpmChangeAdded += SendOnBpmChangeAdded;
+            selectedChart.OnBpmChangeRemoved += SendOnBpmChangeRemoved;
 
             OnChartChanged?.Invoke(oldChart, selectedChart);
         }
@@ -135,4 +143,6 @@ public static class ChartManager
     static void SendOnNoteRemoved(Note note) => OnNoteRemoved?.Invoke(note);
     static void SendOnEventAdded(EnvironmentChangeEvent evt) => OnEventAdded?.Invoke(evt);
     static void SendOnEventRemoved(EnvironmentChangeEvent evt) => OnEventRemoved?.Invoke(evt);
+    static void SendOnBpmChangeAdded(BpmChangeEvent evt) => OnBpmChangeAdded?.Invoke(evt);
+    static void SendOnBpmChangeRemoved(BpmChangeEvent evt) => OnBpmChangeRemoved?.Invoke(evt);
 }

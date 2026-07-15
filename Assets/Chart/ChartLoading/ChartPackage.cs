@@ -67,8 +67,68 @@ public class ChartPackage
 
     public uint SongLength => SongClip == null ? 10000 : (uint) (SongClip.length * 1000);
 
-	public int BeatToTime(float beat) => (int) (beat * 60000f / BPM + BPMOffset);
-	public float TimeToBeat(int time) => (time - BPMOffset) * BPM / 60000f;
+	public int BeatToTime(float beat) 
+    {
+        int time = 0;
+        float beatCount = 0;
+        // if first bpm change occurs after offset time, or if there are none, use chart's starting BPM
+        if (ChartManager.SelectedChart.BPMChanges.Count == 0 || BPM * ChartManager.SelectedChart.BPMChanges.First().StartTime / 60000f > beat)
+        {
+            time = (int) (beat * 60000f / BPM + BPMOffset);
+        }
+        else
+        {
+            time = ChartManager.SelectedChart.BPMChanges.First().StartTime + BPMOffset;
+            beatCount = BPM * ChartManager.SelectedChart.BPMChanges.First().StartTime / 60000f;
+            foreach (EditableBpmChangeEvent bpmChange in ChartManager.SelectedChart.BPMChanges)
+            {
+                // sum time durations in all bpm changes before the selected beat
+                if (beatCount + bpmChange.BeatCount <= beat)
+                {
+                    time += bpmChange.Duration; 
+                    beatCount += bpmChange.BeatCount; 
+                }
+                // add the time before the selected beat in the current bpm change
+                else
+                {
+                    time += (int)((beat - beatCount) / bpmChange.BeatCount * bpmChange.Duration);
+                    break;
+                }
+            }
+        }
+        return time;
+        // return (int) (beat * 60000f / BPM + BPMOffset);
+    }
+	public float TimeToBeat(int time)
+    {
+        int offsetTime = time - BPMOffset;
+        float beatNumber;
+        // if first bpm change occurs after offset time, or if there are none, use chart's starting BPM
+        if (ChartManager.SelectedChart.BPMChanges.Count == 0 || ChartManager.SelectedChart.BPMChanges.First().StartTime > offsetTime)
+        {
+            beatNumber = offsetTime * BPM / 60000f;
+        }
+        else
+        {
+            beatNumber = ChartManager.SelectedChart.BPMChanges.First().StartTime * BPM / 60000f;
+            foreach (EditableBpmChangeEvent bpmChange in ChartManager.SelectedChart.BPMChanges)
+            {
+                // count up beats in all bpm changes before the offset time
+                if (bpmChange.EndTime <= offsetTime)
+                {
+                    beatNumber += bpmChange.BeatCount; 
+                }
+                // count up beats before the offset time in the current bpm
+                else
+                {
+                    beatNumber += bpmChange.BPM * (offsetTime - bpmChange.StartTime) / 60000f;
+                    break;
+                }
+            }
+        }
+        return beatNumber;
+        // return (time - BPMOffset) * BPM / 60000f;
+    }
     public (int minutes, int seconds, int milliseconds) TimeToReadable(int time) 
         => (time / 60000, time / 1000 % 60, time % 1000);
     public int ReadableToTime(int minutes, int seconds, int milliseconds)

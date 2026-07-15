@@ -39,6 +39,12 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     [SerializeField] int maxMainBeatMarkers = 50;
     [SerializeField] int maxMinorBeatMarkers = 50;
 
+    [Header("BPM Change Event")]
+    [SerializeField] RectTransform bpmTrack;
+    [SerializeField] RectTransform bpmTrackArea;
+    [SerializeField] EventRelay addBpmChangeEvent;
+    [SerializeField] BpmChangeRenderer bpmChangePrefab;
+
     [Header("Environment Change Event")]
     [SerializeField] RectTransform environmentTrack;
     [SerializeField] RectTransform environmentTrackArea;
@@ -67,10 +73,12 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         rect = GetComponent<RectTransform>();
 
         addEnvironmentChangeEvent.AddListener(AddEnvironmentChange);
+        addBpmChangeEvent.AddListener(AddBpmChange);
         
         ChartManager.OnChartChanged += Reload;
         ChartManager.OnNoteAdded += AddChartNote;
         ChartManager.OnEventAdded += AddChartEvent;
+        ChartManager.OnBpmChangeAdded += AddBpmChangeRenderer;
     }
 
     void OnDestroy()
@@ -78,6 +86,7 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         ChartManager.OnChartChanged -= Reload;
         ChartManager.OnNoteAdded -= AddChartNote;
         ChartManager.OnEventAdded -= AddChartEvent;
+        ChartManager.OnBpmChangeAdded -= AddBpmChangeRenderer;
     }
 
     void Start()
@@ -90,6 +99,7 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         foreach (var note in ChartManager.SelectedChart.Notes) AddNote(note);
         foreach (var evt in ChartManager.SelectedChart.Events) AddChartEvent(evt);
+        foreach (var evt in ChartManager.SelectedChart.BPMChanges) AddBpmChangeRenderer(evt);
     }
 
     void ReloadBeatMarkers()
@@ -479,6 +489,24 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
         var trackColor = Instantiate(environmentTrackColorPrefab, environmentTrack);
         trackColor.Init((EditableEnvironmentChangeEvent) evt);
+    }
+
+    // MARK: BPM Changes
+    void AddBpmChange()
+    {
+        var chart = ChartManager.SelectedChart;
+        int startTime = PlaybackManager.ClampTime((int) (PlaybackManager.Instance.MillisecondsInChart + PlaybackManager.Instance.VerticalViewSize / 2));
+        var evt = new EditableBpmChangeEvent(chart, startTime, 120);
+        // track the addition for undo/redo
+        // AddEnvironmentChangeAction editEnvironmentChangeAction = new AddEnvironmentChangeAction(evt, chart);
+        // editEnvironmentChangeAction.CommitAction();
+        chart.AddBpmChange(evt);
+        UIManager.SelectElement(evt, updateEditHistory:false);
+    }
+    void AddBpmChangeRenderer(BpmChangeEvent evt)
+    {
+        var renderer = Instantiate(bpmChangePrefab, bpmTrackArea);
+        renderer.Init(this, (EditableBpmChangeEvent) evt);
     }
 
     public void OnPointerEnter(PointerEventData eventData) => IsPointerOverTrack = true;

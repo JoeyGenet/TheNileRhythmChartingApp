@@ -21,8 +21,12 @@ public class Chart : INoteContainer<Note>, IComparable<Chart>
 	public Environment Environment => environment ?? EnvironmentManager.DefaultEnvironment;
 	// protected EnvironmentChangeEvent firstEnvironmentChange;
 
+	// TODO: store env changes and bpm changes in same "events" list
     protected readonly HashSet<EnvironmentChangeEvent> events = new();
 	public IReadOnlyCollection<EnvironmentChangeEvent> Events => events;
+
+    protected readonly HashSet<BpmChangeEvent> bpmChanges = new();
+	public IReadOnlyCollection<BpmChangeEvent> BPMChanges => bpmChanges;
 
     protected readonly SortedSet<Note> notes = new();
 	public IReadOnlySortedSet<Note> Notes => (ReadOnlySortedSet<Note>) notes;

@@ -13,6 +13,9 @@ public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
 	public delegate void EventAddedEvent(EditableEnvironmentChangeEvent note);
 	public delegate void EventRemovedEvent(EditableEnvironmentChangeEvent note);
 
+	public delegate void BpmChangeAddedEvent(EditableBpmChangeEvent evt);
+	public delegate void BpmChangeRemovedEvent(EditableBpmChangeEvent evt);
+
     public bool HasChanges { get; private set; }
     public void SetChanged() => HasChanges = true;
 
@@ -22,6 +25,9 @@ public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
 
     public event EventAddedEvent OnEventAdded;
     public event EventRemovedEvent OnEventRemoved;
+
+	public event BpmChangeAddedEvent OnBpmChangeAdded;
+	public event BpmChangeRemovedEvent OnBpmChangeRemoved;
 
 	public new EditableChartPackage Package => base.Package as EditableChartPackage;
 
@@ -149,6 +155,44 @@ public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
 			return true;
 		},
 		() => OnEventRemoved?.Invoke(evt)
+	);
+
+	public bool AddBpmChange(EditableBpmChangeEvent evt) => this.RegisterChange(
+		() =>
+		{
+			if (bpmChanges.Contains(evt)) return false;
+
+			// Note will be inserted between these 2 notes:
+            var prevBpmChange = bpmChanges.Where(e => e.StartTime < evt.StartTime).OrderBy(e => e.StartTime).LastOrDefault();
+            var nextBpmChange = prevBpmChange != null ? prevBpmChange.NextBpmChange
+                                            : bpmChanges.OrderBy(e => e.StartTime).FirstOrDefault();
+
+			// Update linked list
+			if (prevBpmChange != null) prevBpmChange.NextBpmChange = evt;
+			if (nextBpmChange != null) nextBpmChange.PreviousBpmChange = evt;
+			evt.PreviousBpmChange = prevBpmChange;
+			evt.NextBpmChange = nextBpmChange;
+
+			Assert.IsTrue(bpmChanges.Add(evt));
+			return true;
+		},
+		() => OnBpmChangeAdded?.Invoke(evt)
+	);
+	public bool RemoveBpmChange(EditableBpmChangeEvent evt) => this.RegisterChange(
+		() =>
+		{
+			if (!bpmChanges.Contains(evt)) return false;
+
+			// Update linked list
+            if (evt.PreviousBpmChange != null) evt.PreviousBpmChange.NextBpmChange = evt.NextBpmChange;
+            if (evt.NextBpmChange != null) evt.NextBpmChange.PreviousBpmChange = evt.PreviousBpmChange;
+
+			evt.PreviousBpmChange = evt.NextBpmChange = null;
+
+			Assert.IsTrue(bpmChanges.Remove(evt));
+			return true;
+		},
+		() => OnBpmChangeRemoved?.Invoke(evt)
 	);
 
 	public void Save(Stream stream)
