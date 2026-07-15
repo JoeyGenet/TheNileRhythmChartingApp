@@ -47,11 +47,10 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
 
     protected override void OnLeftClick() 
     {
-        if (!isBeingDragged)
+        if (!IsBeingDragged)
         {
             // if held shift/ctrl/alt when note clicked, either add this note to or remove it from current selection
-            if (modifyExistingSelection && UIManager.SelectedElement != null &&
-                (UIManager.ClickedElement is Note || UIManager.SelectedElement is TrackMarqueeSelectionGroup))
+            if (modifyExistingSelection)
             {
                 AddOrSubtractNoteFromSelection(Note);
             }
@@ -61,14 +60,12 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
                 SelectNoteOrMultiselection(Note);
             }
         }
-        
-        UIManager.ClickedElement = Note;
     } 
     
     protected override void OnRightClick()
     {
         // If single note or in multiselection, delete entire thing
-        if (Note.RightPos is not int rightPos || isInMarqueeSelection)
+        if (Note.RightPos is not int rightPos || IsInMarqueeSelection)
         {
             Note.RemoveSelf();
             return;
@@ -81,7 +78,7 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
         int lastRightPos = rightPos;
         // if we delete a paired note while dragging, cancel drag
         // to prevent an UndoRedoAction from being logged when drag is complete
-        if (isBeingDragged)
+        if (IsBeingDragged)
         {
             CancelDrag();
         }
@@ -113,7 +110,7 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
 
     protected override void OnDrag()
     {
-        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift) || isInMarqueeSelection)
+        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift) || IsInMarqueeSelection)
         {
             Note.LeftPos = Math.Clamp(dragStartLeftPos + dragPosDiff, 0, 100);
             if (dragStartRightPos is int rightPos) Note.RightPos = Math.Clamp(rightPos + dragPosDiff, 0, 100);
@@ -147,7 +144,7 @@ public class ButtonNoteRenderer : NoteRenderer<EditableButtonNote>
         int startTimeDelta = Note.StartTime - dragStartTime;
         EditButtonNoteAction moveButtonNoteAction = new EditButtonNoteAction(Note, startTimeDelta, dragStartLeftPos, dragStartRightPos, Note.LeftPos, Note.RightPos);
         
-        if (!isInMarqueeSelection)
+        if (!IsInMarqueeSelection)
         {
             moveButtonNoteAction.CommitAction();
         }

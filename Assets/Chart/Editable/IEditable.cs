@@ -83,7 +83,6 @@ public static class IEditableExtensions
 		}
         else
         {
-            UIManager.SelectElement(null, false);
             return note.Container.RemoveNote(note as N);
         }
     }

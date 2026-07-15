@@ -4,13 +4,14 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(RectTransform))]
-public class EnvironmentChangeRenderer : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class EnvironmentChangeRenderer : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     public Track Track { get; private set; }
     public EditableEnvironmentChangeEvent Event { get; private set; }
 
     RectTransform rect;
 
+    [SerializeField] protected Animator animator;
     [SerializeField] Image gradientStartColor;
     [SerializeField] Image gradientEndColor;
     [SerializeField] Image startHandleColor;
@@ -19,11 +20,37 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerClickHandler, IB
     [SerializeField] EventTrigger startHandle;
     [SerializeField] EventTrigger endHandle;
 
+    int dragStartTimestamp;
     int dragStartPointerTime;
     int dragStartStartTime;
     int dragStartEndTime;
     int oldDuration;
     Environment oldEnvironment;
+
+    // drag state fields+properties
+    protected PointerEventData pointerEventData { get; private set; }
+
+    // set to true in OnPointerDown, false in OnPointerUp
+    protected bool isBeingPressed = false;
+
+    // Event.isBeingDragged set to true while drag is in progress
+    // set to false if note is deselected or drag is completed
+    // Event.isDraggingStart/EndHandle set for dragging handles individually or together
+    protected bool IsBeingDragged 
+    {
+        get { return Event.isBeingDragged; }
+        private set
+        {
+            Event.isBeingDragged = value;
+            if (animator != null)
+            {
+                animator.SetBool("IsDragged", Event.isBeingDragged);
+            }
+        }
+    }
+
+    // set to true when note is deselected while Event.isBeingDragged is true
+    private bool isDragCancelled = false;
 
     public virtual void Init(Track track, EditableEnvironmentChangeEvent evt)
     {
@@ -47,6 +74,7 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerClickHandler, IB
 
         ChartManager.OnChartChanged += DestroyOnChartChanged;
         UIManager.OnElementSelected += OnElementSelected;
+        UIManager.OnDragCanceled += OnDragCanceled;
     }
 
     void Start()
@@ -58,6 +86,7 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerClickHandler, IB
     {
         ChartManager.OnChartChanged -= DestroyOnChartChanged;
         UIManager.OnElementSelected -= OnElementSelected;
+        UIManager.OnDragCanceled -= OnDragCanceled;
         if (Event != null) Event.Chart.OnEventRemoved -= DestroyOnNoteRemoved;
     }
 
@@ -76,12 +105,33 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerClickHandler, IB
         setColor(endHandleColor, Event.Environment.Color);
         setColor(gradientStartColor, Event.PreviousEnvironment.Color);
         setColor(startHandleColor, Event.PreviousEnvironment.Color);
+
+        // start dragging if we scroll/enter playback while mouse is held over note
+        // if drag via scroll wheel or playback, call OnDrag with the previous dragstart/end settings
+        if (isBeingPressed && (UIManager.Track.IsScrolling || !PlaybackManager.Instance.IsPaused))
+        {
+            isBeingPressed = false;
+            OnBeginDrag(pointerEventData);
+        }
+
+        // toggle drag scrolling
+        // this tells the Track to calculate additional scroll amount if the mouse hovers
+        // over the top or bottom of the track
+        bool shouldDragScroll = PlaybackManager.Instance.IsPaused && Event.isBeingDragged;
+        UIManager.Track.IsDragScrolling = shouldDragScroll || UIManager.Track.IsDragScrolling;
+        
+        // manually call OnDrag if track is scrolling or in playback
+        if (Event.isBeingDragged && (UIManager.Track.scrollAmount != 0 || !PlaybackManager.Instance.IsPaused))
+        {
+            bool isHoldingShift = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+            Drag(pointerEventData, dragStart: Event.isDraggingStartHandle || isHoldingShift, dragEnd: Event.isDraggingEndHandle || isHoldingShift);
+        }
     }
 
     private void OnElementSelected(object previousElement, object newElement)
     {
-        static void setAlpha(Image image, float alpha)
-            => image.color = new Color(image.color.r, image.color.g, image.color.b, alpha);
+        // static void setAlpha(Image image, float alpha)
+        //     => image.color = new Color(image.color.r, image.color.g, image.color.b, alpha);
         if (newElement == Event)
         {
             gameObject.SetActive(true);
@@ -101,6 +151,29 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerClickHandler, IB
         }
     }
 
+    public void OnDragCanceled()
+    {
+        if (Event.isBeingDragged)
+        {
+            CancelDrag();
+        }
+    }
+
+    public void CancelDrag()
+    {
+        // return to timestamp of drag start
+        PlaybackManager.Instance.SetTimestamp(dragStartTimestamp);
+        // reset env change position
+        Event.EndTime = dragStartEndTime;
+        Event.StartTime = dragStartStartTime;
+        Event.Duration = oldDuration;
+        Event.Environment = oldEnvironment;
+        // update flags
+        isDragCancelled = true;
+        IsBeingDragged = false;
+        UIManager.IsDragInProgress = false;
+    }
+
     void DestroyOnChartChanged(EditableChart prevChart, EditableChart newChart)
     {
         Destroy(gameObject);
@@ -114,12 +187,52 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerClickHandler, IB
         }
     }
 
-    public void OnPointerClick(PointerEventData eventData)
+    // when you click on the middle of the environment transition
+    // drag both the start and end handles
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        PointerDown(eventData, dragStart: true, dragEnd: true);
+    }
+
+    public void PointerDown(PointerEventData eventData, bool dragStart, bool dragEnd)
+    {
+        pointerEventData = eventData;
+        Event.isDraggingStartHandle = dragStart;
+        Event.isDraggingEndHandle = dragEnd;
+        switch (eventData.button)
+        {
+            case PointerEventData.InputButton.Left:
+                isBeingPressed = true;
+
+                // if we drag without moving the mouse (i.e. during playback)
+                // we need to manually trigger the OnBeginDrag function
+                if (!PlaybackManager.Instance.IsPaused)
+                {
+                    OnBeginDrag(eventData);
+                }
+                break;
+            case PointerEventData.InputButton.Right:
+                break;
+        }
+    }
+
+    public void OnPointerUp(PointerEventData eventData)
     {
         switch (eventData.button)
         {
             case PointerEventData.InputButton.Left:
+                isBeingPressed = false;
                 UIManager.SelectElement(Event, updateEditHistory:true);
+                // if we dragged without moving the mouse (i.e. via scrolling or during playback)
+                // we need to manually trigger the OnEndDrag function
+                if (Event.isBeingDragged)
+                {
+                    OnEndDrag(eventData);
+                }
+                else
+                {
+                    animator.SetTrigger("IsClicked");
+                }
                 break;
             case PointerEventData.InputButton.Right:
                 // track the deletion for undo/redo
@@ -130,40 +243,52 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerClickHandler, IB
                 break;
         }
     }
-    public void OnHandlePointerClick(BaseEventData eventData)
+    public void OnHandlePointerUp(BaseEventData eventData)
     {
         if (eventData is not PointerEventData pointerEventData) return;
-        OnPointerClick(pointerEventData);
+        OnPointerUp(pointerEventData);
     }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        if (eventData.button != PointerEventData.InputButton.Left) return;
-        if (Track.PointerToTrackPosition(eventData.pressPosition, clamp: false) is not var (pos, time)) return;
-        dragStartPointerTime = time;
-        dragStartStartTime = Event.StartTime;
-        dragStartEndTime = Event.EndTime;
-        oldDuration = Event.Duration;
-        oldEnvironment = Event.Environment;
+        if (!Event.isBeingDragged)
+        {
+            UIManager.SelectElement(Event, updateEditHistory:false);
+            if (eventData.button != PointerEventData.InputButton.Left) return;
+            if (Track.PointerToTrackPosition(eventData.pressPosition, clamp: false) is not var (pos, time)) return;
+            dragStartTimestamp = PlaybackManager.Instance.MillisecondsInChart;
+            dragStartPointerTime = time;
+            dragStartStartTime = Event.StartTime;
+            dragStartEndTime = Event.EndTime;
+            oldDuration = Event.Duration;
+            oldEnvironment = Event.Environment;
+            isBeingPressed = false;
+            IsBeingDragged = true;
+            isDragCancelled = false;
+            UIManager.IsDragInProgress = true;
+        }
     }
     void Drag(PointerEventData eventData, bool dragStart, bool dragEnd)
     {
-        if (eventData.button != PointerEventData.InputButton.Left) return;
-        if (Track.PointerToTrackPosition(eventData.position, clamp: false) is not var (dragPos, dragTime)) return;
-        int dragTimeDiff = dragTime - dragStartPointerTime;
-        if (dragTimeDiff > 0)
+        if (!isDragCancelled)
         {
-            if (dragEnd) Event.EndTime = UIManager.SnapTime(dragStartEndTime + dragTimeDiff);
-            else Event.EndTime = dragStartEndTime;
-            if (dragStart) Event.StartTime = UIManager.SnapTime(dragStartStartTime + dragTimeDiff);
-            else Event.StartTime = dragStartStartTime;
-        }
-        else if (dragTimeDiff < 0)
-        {
-            if (dragStart) Event.StartTime = UIManager.SnapTime(dragStartStartTime + dragTimeDiff);
-            else Event.StartTime = dragStartStartTime;
-            if (dragEnd) Event.EndTime = UIManager.SnapTime(dragStartEndTime + dragTimeDiff);
-            else Event.EndTime = dragStartEndTime;
+            if (eventData.button != PointerEventData.InputButton.Left) return;
+            if (Track.PointerToTrackPosition(eventData.position, clamp: false) is not var (dragPos, dragTime)) return;
+            int dragTimeDiff = dragTime - dragStartPointerTime;
+            if (dragTimeDiff > 0)
+            {
+                if (dragEnd) Event.EndTime = UIManager.SnapTime(dragStartEndTime + dragTimeDiff);
+                else Event.EndTime = dragStartEndTime;
+                if (dragStart) Event.StartTime = UIManager.SnapTime(dragStartStartTime + dragTimeDiff);
+                else Event.StartTime = dragStartStartTime;
+            }
+            else if (dragTimeDiff < 0)
+            {
+                if (dragStart) Event.StartTime = UIManager.SnapTime(dragStartStartTime + dragTimeDiff);
+                else Event.StartTime = dragStartStartTime;
+                if (dragEnd) Event.EndTime = UIManager.SnapTime(dragStartEndTime + dragTimeDiff);
+                else Event.EndTime = dragStartEndTime;
+            }
         }
     }
     public void OnDrag(PointerEventData eventData)
@@ -172,14 +297,22 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerClickHandler, IB
     }
     public void OnEndDrag(PointerEventData eventData)
     {
-        if (eventData.button != PointerEventData.InputButton.Left) return;
-        int startTimeDelta = Event.StartTime - dragStartStartTime;
-        int endTimeDelta = Event.EndTime - dragStartEndTime;
-        EditEnvironmentChangeAction editEnvironmentChangeAction = new EditEnvironmentChangeAction
-        (
-            Event, startTimeDelta, endTimeDelta, oldEnvironment, Event.Environment
-        );
-        editEnvironmentChangeAction.CommitAction();
+        if (!isDragCancelled && Event.isBeingDragged)
+        {
+            if (eventData.button != PointerEventData.InputButton.Left) return;
+            int startTimeDelta = Event.StartTime - dragStartStartTime;
+            int endTimeDelta = Event.EndTime - dragStartEndTime;
+            EditEnvironmentChangeAction editEnvironmentChangeAction = new EditEnvironmentChangeAction
+            (
+                Event, startTimeDelta, endTimeDelta, oldEnvironment, Event.Environment
+            );
+            editEnvironmentChangeAction.CommitAction();
+        }
+        IsBeingDragged = false;
+        isDragCancelled = false;
+        Event.isDraggingStartHandle = false;
+        Event.isDraggingEndHandle = false;
+        UIManager.IsDragInProgress = false;
     }
     // the following functions are called from EventTrigger components on the the EnvironmentChange prefab
     // so that the separate handles can all trigger drag events
@@ -188,10 +321,20 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerClickHandler, IB
         if (eventData is not PointerEventData pointerEventData) return;
         OnBeginDrag(pointerEventData);
     }
+    public void OnStartHandlePointerDown(BaseEventData eventData)
+    {
+        if (eventData is not PointerEventData pointerEventData) return;
+        PointerDown(pointerEventData, dragStart: true, dragEnd: false);
+    }
     public void OnStartHandleDrag(BaseEventData eventData)
     {
         if (eventData is not PointerEventData pointerEventData) return;
         Drag(pointerEventData, dragStart: true, dragEnd: Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift));
+    }
+    public void OnEndHandlePointerDown(BaseEventData eventData)
+    {
+        if (eventData is not PointerEventData pointerEventData) return;
+        PointerDown(pointerEventData, dragStart: false, dragEnd: true);
     }
     public void OnEndHandleDrag(BaseEventData eventData)
     {

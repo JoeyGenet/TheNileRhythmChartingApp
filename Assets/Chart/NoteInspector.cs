@@ -41,12 +41,14 @@ where ContainerType : Note, IEditableNote<EditableChart, Note>, IEditableNoteCon
                 var note = Note;
                 try
                 {
-                    Note.RemoveSelf();
-
                     // If last note in container, remove the container
-                    if (Container.Note.Notes.Count == 0)
+                    if (Container.Note.Notes.Count <= 1)
                     {
                         Container.Note.RemoveSelf();
+                    }
+                    else
+                    {
+                        Note.RemoveSelf();
                     }
                 }
                 catch (Exception e)

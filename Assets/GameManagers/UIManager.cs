@@ -20,10 +20,15 @@ public enum UICursorMode
 public class UIManager : MonoBehaviour
 {
     public delegate void ElementSelectedEvent(object previousElement, object newElement);
+    public delegate void DragCanceledEvent();
     public delegate void CursorModeChangedEvent(UICursorMode previousMode, UICursorMode newMode);
+    public delegate void AnimationToggledEvent(bool isAnimationEnabled);
     
     public static event ElementSelectedEvent OnElementSelected;
+    public static event DragCanceledEvent OnDragCanceled;
     public static event CursorModeChangedEvent OnCursorModeChanged;
+
+    public static event AnimationToggledEvent OnAnimationToggled;
 
     public static UIManager Instance;
 
@@ -47,11 +52,11 @@ public class UIManager : MonoBehaviour
         set { Instance.track = value; }
     }
 
-    object clickedElement;
-    public static object ClickedElement
+    object previousElement;
+    private static object PreviousElement
     {
-        get => Instance.clickedElement;
-        set { Instance.clickedElement = value; }
+        get => Instance.previousElement;
+        set {Instance.previousElement = value; }
     }
 
     object selectedElement;
@@ -62,25 +67,32 @@ public class UIManager : MonoBehaviour
         // so we can commit selection changes to edit history
     }
 
+    bool isDragInProgress;
+    public static bool IsDragInProgress
+    {
+        get => Instance.isDragInProgress;
+        set { Instance.isDragInProgress = value; }
+    }
+
     public static void SelectElement(object newElement, bool updateEditHistory=false)
     {
+        PreviousElement = Instance.selectedElement;
         if (Instance.selectedElement != newElement)
         {
-            object prevElement = Instance.selectedElement;
             Instance.selectedElement = newElement;
-            OnElementSelected?.Invoke(prevElement, newElement);
-            if (prevElement is TrackMarqueeSelectionGroup prevTrackMarqueeSelectionGroup)
+            OnElementSelected?.Invoke(PreviousElement, newElement);
+            if (PreviousElement is TrackMarqueeSelectionGroup prevTrackMarqueeSelectionGroup)
             {
-                prevTrackMarqueeSelectionGroup.FlagNotes(false);
+                Instance.FlagNotes(false, prevTrackMarqueeSelectionGroup.notes.ToList());
             }
             if (newElement is TrackMarqueeSelectionGroup newTrackMarqueeSelectionGroup)
             {
                 SelectionGroup = newTrackMarqueeSelectionGroup;
-                newTrackMarqueeSelectionGroup.FlagNotes(true);
+                Instance.FlagNotes(true, newTrackMarqueeSelectionGroup.notes.ToList());
             }
             if (updateEditHistory)
             {
-                SelectElementAction selectElementAction = new SelectElementAction(prevElement, newElement);
+                SelectElementAction selectElementAction = new SelectElementAction(PreviousElement, newElement);
                 selectElementAction.CommitAction();
             }
         }
@@ -139,8 +151,6 @@ public class UIManager : MonoBehaviour
         bool selectionChanged = !newNotes.All(note => oldNotes.Contains(note)) || newNotes.Count!=oldNotes.Count || SelectedElement!=SelectionGroup;
         if (selectionChanged)
         {
-            // unflag all notes to reset before modifying notes list
-            SelectionGroup.FlagNotes(false);
             // if we clear multiselection, treat it like a selection action
             if (newNotes.Count==0)
             {
@@ -160,9 +170,49 @@ public class UIManager : MonoBehaviour
                     modifyMultiselectionAction.CommitAction();
                 }
                 // flag all notes that are now selected
+                Instance.FlagNotes(false,oldNotes.Except(newNotes).ToList());
+                Instance.FlagNotes(true, newNotes.Except(oldNotes).ToList());
+
+                // set notes in selection group and select the group
                 SelectionGroup.notes = newNotes;
                 SelectElement(SelectionGroup, updateEditHistory);
-                SelectionGroup.FlagNotes(true);
+            }
+        }
+    }
+
+    public void FlagNotes(bool addToSelection, List<Note> notes)
+    {
+        if (notes!=null)
+        {
+            foreach(Note note in notes)
+            {
+                // get the object associated with each note
+                if (track.noteGameObjectMapping.TryGetValue(note, out GameObject gameObject) && gameObject!=null)
+                {
+                    // flag all selected notes to change their click/drag/drop behavior
+                    // only the clickable renderers will be added--no WheelSequences or LeverSequences here
+                    switch (note)
+                    {
+                        case EditableButtonNote:
+                            ButtonNoteRenderer buttonNoteRenderer = gameObject.GetComponent<ButtonNoteRenderer>();
+                            buttonNoteRenderer.IsInMarqueeSelection = addToSelection;
+                            break;
+                        case EditableLeverNote:
+                            LeverNoteRenderer leverNoteRenderer = gameObject.GetComponent<LeverNoteRenderer>();
+                            leverNoteRenderer.IsInMarqueeSelection = addToSelection;
+                            break;
+                        case EditableWheelFlick:
+                            WheelFlickRenderer wheelFlickRenderer = gameObject.GetComponent<WheelFlickRenderer>();
+                            wheelFlickRenderer.IsInMarqueeSelection = addToSelection;
+                            break;
+                        case EditableWheelTurn:
+                            WheelSequenceVertexRenderer wheelSequenceVertexRenderer = gameObject.GetComponent<WheelSequenceVertexRenderer>();
+                            wheelSequenceVertexRenderer.IsInMarqueeSelection = addToSelection;
+                            break; 
+                        default:
+                            break;
+                    }
+                }
             }
         }
     }
@@ -211,6 +261,20 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    static bool enableAnimation = true;
+    public static bool EnableAnimation
+    {
+        get => enableAnimation;
+        set 
+        {
+            enableAnimation = value;
+            if (OnAnimationToggled != null)
+            {
+                OnAnimationToggled.Invoke(enableAnimation);
+            }
+        }
+    }
+
     public static int SnapTime(int time)
     {
         if (Snapping > 0)
@@ -250,12 +314,24 @@ public class UIManager : MonoBehaviour
 
         deselectEvent.AddListener(() =>
         {
-            SelectElement(null, updateEditHistory:true);
+            // if note renderer or env change is currently selected, check if is being dragged, and if so, do not log selection action,
+            // just trigger their drag cancel behavior
+            if (!isDragInProgress)
+            {
+                SelectElement(null, updateEditHistory:true);
+            }
+            // cancel drag
+            else
+            {
+                SelectElement(PreviousElement, updateEditHistory:false);
+                OnDragCanceled.Invoke();
+                PlaybackManager.Instance.Pause();
+            }
             CursorMode = UICursorMode.None;
         });
 
         ChartManager.OnChartChanged += DeselectOnChartChanged;
-        ChartManager.OnNoteAdded += SelectNoteOnNoteAdded;
+        // ChartManager.OnNoteAdded += SelectNoteOnNoteAdded;
         ChartManager.OnNoteRemoved += DeselectNoteOnNoteRemoved;
         // ChartManager.OnLeverNoteAdded += SelectNoteOnNoteAdded;
         // ChartManager.OnWheelTurnAdded += SelectNoteOnNoteAdded;
@@ -265,7 +341,7 @@ public class UIManager : MonoBehaviour
     void OnDestroy()
     {
         ChartManager.OnChartChanged -= DeselectOnChartChanged;
-        ChartManager.OnNoteAdded -= SelectNoteOnNoteAdded;
+        // ChartManager.OnNoteAdded -= SelectNoteOnNoteAdded;
         ChartManager.OnNoteRemoved -= DeselectNoteOnNoteRemoved;
         // ChartManager.OnLeverNoteAdded -= SelectNoteOnNoteAdded;
         // ChartManager.OnWheelTurnAdded -= SelectNoteOnNoteAdded;

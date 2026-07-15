@@ -1,5 +1,42 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1867438156843458952
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3925334593600500761}
+  m_Layer: 5
+  m_Name: AnimationRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &3925334593600500761
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1867438156843458952}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 8482513362052678373}
+  - {fileID: 8360909838809807162}
+  m_Father: {fileID: 173390665719795606}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &3330890093885991700
 GameObject:
   m_ObjectHideFlags: 0
@@ -30,7 +67,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 173390665719795606}
+  m_Father: {fileID: 3925334593600500761}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -107,8 +144,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 8482513362052678373}
-  - {fileID: 8360909838809807162}
+  - {fileID: 3925334593600500761}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -128,7 +164,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a88c77e6cc1b533489a662f2ce6454cc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isInMarqueeSelection: 0
+  animator: {fileID: 4330481313913881595}
+  modifyExistingSelection: 0
+  addToSelection: 0
   arrow: {fileID: 1428940645625396443}
   outline: {fileID: 3896029065059919175}
   arrowSprite: {fileID: 21300000, guid: 2c010b2906d7f6f4c87498bffd5663e9, type: 3}
@@ -143,7 +181,6 @@ MonoBehaviour:
   leverSideSound: {fileID: 8300000, guid: ec3056fd7ddb34648996ffbf221dd758, type: 3}
   leverPushSound: {fileID: 8300000, guid: ec3056fd7ddb34648996ffbf221dd758, type: 3}
   leverPullSound: {fileID: 8300000, guid: ec3056fd7ddb34648996ffbf221dd758, type: 3}
-  animator: {fileID: 4330481313913881595}
 --- !u!222 &7162591642728866979
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -268,7 +305,7 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 1
 --- !u!1 &7114773131739637536
 GameObject:
   m_ObjectHideFlags: 0
@@ -294,12 +331,12 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7114773131739637536}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 173390665719795606}
+  m_Father: {fileID: 3925334593600500761}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}

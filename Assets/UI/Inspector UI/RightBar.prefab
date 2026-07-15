@@ -68,8 +68,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: '[W]/[3]'
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 6cc6a10ba149f344caf13d5292ef5ab2, type: 2}
-  m_sharedMaterial: {fileID: -7247900286523045943, guid: 6cc6a10ba149f344caf13d5292ef5ab2, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 9420240c6fd554e4c92658e49f389956, type: 2}
+  m_sharedMaterial: {fileID: 4310585910427908829, guid: 9420240c6fd554e4c92658e49f389956, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -402,8 +402,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Right click on note or press [delete]/[backspace] to delete a note
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 6cc6a10ba149f344caf13d5292ef5ab2, type: 2}
-  m_sharedMaterial: {fileID: -7247900286523045943, guid: 6cc6a10ba149f344caf13d5292ef5ab2, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 9420240c6fd554e4c92658e49f389956, type: 2}
+  m_sharedMaterial: {fileID: 4310585910427908829, guid: 9420240c6fd554e4c92658e49f389956, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -640,8 +640,8 @@ MonoBehaviour:
   m_text: Shift+Left click to append wheel turn/lever note to the previous wheel/lever
     sequence
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 6cc6a10ba149f344caf13d5292ef5ab2, type: 2}
-  m_sharedMaterial: {fileID: -7247900286523045943, guid: 6cc6a10ba149f344caf13d5292ef5ab2, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 9420240c6fd554e4c92658e49f389956, type: 2}
+  m_sharedMaterial: {fileID: 4310585910427908829, guid: 9420240c6fd554e4c92658e49f389956, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -815,8 +815,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: '[F]/[2]'
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 6cc6a10ba149f344caf13d5292ef5ab2, type: 2}
-  m_sharedMaterial: {fileID: -7247900286523045943, guid: 6cc6a10ba149f344caf13d5292ef5ab2, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 9420240c6fd554e4c92658e49f389956, type: 2}
+  m_sharedMaterial: {fileID: 4310585910427908829, guid: 9420240c6fd554e4c92658e49f389956, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -970,8 +970,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 'Add Note:'
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 7525b18823c7ee048b540dda4b18f0d4, type: 2}
-  m_sharedMaterial: {fileID: 8582727438335316444, guid: 7525b18823c7ee048b540dda4b18f0d4, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 003fc56f8805c7644933d41b973c18aa, type: 2}
+  m_sharedMaterial: {fileID: -8258350993795814764, guid: 003fc56f8805c7644933d41b973c18aa, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1125,8 +1125,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Note Properties
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 7525b18823c7ee048b540dda4b18f0d4, type: 2}
-  m_sharedMaterial: {fileID: 8582727438335316444, guid: 7525b18823c7ee048b540dda4b18f0d4, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 003fc56f8805c7644933d41b973c18aa, type: 2}
+  m_sharedMaterial: {fileID: -8258350993795814764, guid: 003fc56f8805c7644933d41b973c18aa, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1410,8 +1410,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: '[L]/[4]'
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 6cc6a10ba149f344caf13d5292ef5ab2, type: 2}
-  m_sharedMaterial: {fileID: -7247900286523045943, guid: 6cc6a10ba149f344caf13d5292ef5ab2, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 9420240c6fd554e4c92658e49f389956, type: 2}
+  m_sharedMaterial: {fileID: 4310585910427908829, guid: 9420240c6fd554e4c92658e49f389956, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1692,8 +1692,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Event Properties
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 7525b18823c7ee048b540dda4b18f0d4, type: 2}
-  m_sharedMaterial: {fileID: 8582727438335316444, guid: 7525b18823c7ee048b540dda4b18f0d4, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 003fc56f8805c7644933d41b973c18aa, type: 2}
+  m_sharedMaterial: {fileID: -8258350993795814764, guid: 003fc56f8805c7644933d41b973c18aa, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1847,8 +1847,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: '[B]/[1]'
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 6cc6a10ba149f344caf13d5292ef5ab2, type: 2}
-  m_sharedMaterial: {fileID: -7247900286523045943, guid: 6cc6a10ba149f344caf13d5292ef5ab2, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 9420240c6fd554e4c92658e49f389956, type: 2}
+  m_sharedMaterial: {fileID: 4310585910427908829, guid: 9420240c6fd554e4c92658e49f389956, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -2001,8 +2001,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Select or add a note to begin editing properties
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 6cc6a10ba149f344caf13d5292ef5ab2, type: 2}
-  m_sharedMaterial: {fileID: -7247900286523045943, guid: 6cc6a10ba149f344caf13d5292ef5ab2, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 9420240c6fd554e4c92658e49f389956, type: 2}
+  m_sharedMaterial: {fileID: 4310585910427908829, guid: 9420240c6fd554e4c92658e49f389956, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -4938,10 +4938,6 @@ PrefabInstance:
       value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 7854190221958985489, guid: f53411f556834714daa194f8a87dd7e3, type: 3}
-      propertyPath: m_Pivot.y
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 7854190221958985489, guid: f53411f556834714daa194f8a87dd7e3, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
       objectReference: {fileID: 0}
@@ -4960,10 +4956,6 @@ PrefabInstance:
     - target: {fileID: 7854190221958985489, guid: f53411f556834714daa194f8a87dd7e3, type: 3}
       propertyPath: m_SizeDelta.x
       value: 255
-      objectReference: {fileID: 0}
-    - target: {fileID: 7854190221958985489, guid: f53411f556834714daa194f8a87dd7e3, type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 90.009995
       objectReference: {fileID: 0}
     - target: {fileID: 7854190221958985489, guid: f53411f556834714daa194f8a87dd7e3, type: 3}
       propertyPath: m_LocalPosition.x
@@ -4996,10 +4988,6 @@ PrefabInstance:
     - target: {fileID: 7854190221958985489, guid: f53411f556834714daa194f8a87dd7e3, type: 3}
       propertyPath: m_AnchoredPosition.x
       value: 130.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 7854190221958985489, guid: f53411f556834714daa194f8a87dd7e3, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: -45.004997
       objectReference: {fileID: 0}
     - target: {fileID: 7854190221958985489, guid: f53411f556834714daa194f8a87dd7e3, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x

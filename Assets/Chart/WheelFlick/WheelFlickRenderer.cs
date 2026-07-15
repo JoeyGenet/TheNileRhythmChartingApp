@@ -54,11 +54,10 @@ public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerUpHa
 
     protected override void OnLeftClick() 
     {
-        if (!isBeingDragged)
+        if (!IsBeingDragged)
         {
             // if held shift/ctrl/alt when note clicked, either add this note to or remove it from current selection
-            if (modifyExistingSelection && UIManager.SelectedElement != null &&
-                (UIManager.ClickedElement is Note || UIManager.SelectedElement is TrackMarqueeSelectionGroup))
+            if (modifyExistingSelection)
             {
                 AddOrSubtractNoteFromSelection(Note);
             }
@@ -68,9 +67,8 @@ public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerUpHa
                 SelectNoteOrMultiselection(Note);
             }
         }
-
-        UIManager.ClickedElement = Note;
     } 
+    
     protected override void OnRightClick() => Note.RemoveSelf();
 
     protected override void OnDragStart()
@@ -86,13 +84,13 @@ public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerUpHa
         float dragDirChangePosXDiff = pointerEventData.position.x - dragDirChangePosX;
         bool changeTime = !Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.RightControl);
         
-        if ((!isInMarqueeSelection || !changeTime) &&
+        if ((!IsInMarqueeSelection || !changeTime) &&
             (dragDirChangePosXDiff < -50 || (dragDirChangePosXDiff < -5 && Note.Dir == LeftRight.Left)))
         {
             Note.Dir = LeftRight.Left;
             dragDirChangePosX = pointerEventData.position.x;
         }
-        else if ((!isInMarqueeSelection || !changeTime) &&
+        else if ((!IsInMarqueeSelection || !changeTime) &&
                  (dragDirChangePosXDiff > 50 || (dragDirChangePosXDiff > 5 && Note.Dir == LeftRight.Right)))
         {
             Note.Dir = LeftRight.Right;
@@ -102,7 +100,7 @@ public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerUpHa
         if (changeTime)
         {
             Note.StartTime = PlaybackManager.ClampTime(UIManager.SnapTime(dragStartTime + dragTimeDiff));
-            if (isInMarqueeSelection)
+            if (IsInMarqueeSelection)
             {
                 Note.Dir = oldDir;
             }
@@ -119,7 +117,7 @@ public class WheelFlickRenderer : NoteRenderer<EditableWheelFlick>, IPointerUpHa
         int dirDelta = Note.Dir - oldDir;
         EditWheelFlickAction editWheelFlickAction = new EditWheelFlickAction(Note, startTimeDelta, dirDelta);
         
-        if (!isInMarqueeSelection)
+        if (!IsInMarqueeSelection)
         {
             editWheelFlickAction.CommitAction();
         }

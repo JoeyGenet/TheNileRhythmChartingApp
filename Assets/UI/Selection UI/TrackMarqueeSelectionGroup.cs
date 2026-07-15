@@ -28,43 +28,6 @@ public class TrackMarqueeSelectionGroup
         this.track = track;
     }
 
-    public void FlagNotes(bool addToSelection)
-    {
-        if (notes!=null)
-        {
-            foreach(Note note in notes)
-            {
-                // get the object associated with each note
-                if (track.noteGameObjectMapping.TryGetValue(note, out GameObject gameObject) && gameObject!=null)
-                {
-                    // flag all selected notes to change their click/drag/drop behavior
-                    // only the clickable renderers will be added--no WheelSequences or LeverSequences here
-                    switch (note)
-                    {
-                        case EditableButtonNote:
-                            ButtonNoteRenderer buttonNoteRenderer = gameObject.GetComponent<ButtonNoteRenderer>();
-                            buttonNoteRenderer.isInMarqueeSelection = addToSelection;
-                            break;
-                        case EditableLeverNote:
-                            LeverNoteRenderer leverNoteRenderer = gameObject.GetComponent<LeverNoteRenderer>();
-                            leverNoteRenderer.isInMarqueeSelection = addToSelection;
-                            break;
-                        case EditableWheelFlick:
-                            WheelFlickRenderer wheelFlickRenderer = gameObject.GetComponent<WheelFlickRenderer>();
-                            wheelFlickRenderer.isInMarqueeSelection = addToSelection;
-                            break;
-                        case EditableWheelTurn:
-                            WheelSequenceVertexRenderer wheelSequenceVertexRenderer = gameObject.GetComponent<WheelSequenceVertexRenderer>();
-                            wheelSequenceVertexRenderer.isInMarqueeSelection = addToSelection;
-                            break; 
-                        default:
-                            break;
-                    }
-                }
-            }
-        }
-    }
-
     public void PassEventDataToAllSelectedNotes<T>(BaseEventData eventData, EventFunction<T> functor)
     where T : IEventSystemHandler
     {

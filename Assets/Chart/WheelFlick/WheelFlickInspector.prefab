@@ -142,8 +142,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Wheel Flick
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 6cc6a10ba149f344caf13d5292ef5ab2, type: 2}
-  m_sharedMaterial: {fileID: -7247900286523045943, guid: 6cc6a10ba149f344caf13d5292ef5ab2, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 003fc56f8805c7644933d41b973c18aa, type: 2}
+  m_sharedMaterial: {fileID: -8258350993795814764, guid: 003fc56f8805c7644933d41b973c18aa, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -167,13 +167,13 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 21
-  m_fontSizeBase: 21
+  m_fontSize: 18
+  m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 1
+  m_fontStyle: 0
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 256
   m_textAlignment: 65535
@@ -351,8 +351,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Direction
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 6cc6a10ba149f344caf13d5292ef5ab2, type: 2}
-  m_sharedMaterial: {fileID: -7247900286523045943, guid: 6cc6a10ba149f344caf13d5292ef5ab2, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 9420240c6fd554e4c92658e49f389956, type: 2}
+  m_sharedMaterial: {fileID: 4310585910427908829, guid: 9420240c6fd554e4c92658e49f389956, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -766,7 +766,7 @@ PrefabInstance:
     - target: {fileID: 1001008755973169379, guid: c155e16a3ff5e4b209546d3d9d242100, type: 3}
       propertyPath: m_sharedMaterial
       value: 
-      objectReference: {fileID: 2100000, guid: 440b512b94ad5419f95ed7766525a9b4, type: 2}
+      objectReference: {fileID: 4310585910427908829, guid: 9420240c6fd554e4c92658e49f389956, type: 2}
     - target: {fileID: 1001008755973169379, guid: c155e16a3ff5e4b209546d3d9d242100, type: 3}
       propertyPath: m_fontColor32.rgba
       value: 4294967295
@@ -1184,7 +1184,7 @@ PrefabInstance:
     - target: {fileID: 1001008755973169379, guid: c155e16a3ff5e4b209546d3d9d242100, type: 3}
       propertyPath: m_sharedMaterial
       value: 
-      objectReference: {fileID: 2100000, guid: 440b512b94ad5419f95ed7766525a9b4, type: 2}
+      objectReference: {fileID: 4310585910427908829, guid: 9420240c6fd554e4c92658e49f389956, type: 2}
     - target: {fileID: 1001008755973169379, guid: c155e16a3ff5e4b209546d3d9d242100, type: 3}
       propertyPath: m_fontColor32.rgba
       value: 4294967295

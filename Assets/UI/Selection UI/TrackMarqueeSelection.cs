@@ -8,7 +8,7 @@ using UnityEngine.UI;
 using System.Linq;
 
 [RequireComponent(typeof(RectTransform))]
-public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     [SerializeField] RectTransform scrollUpArea;
     [SerializeField] RectTransform scrollDownArea;
@@ -39,6 +39,7 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IPointe
         }
     }
 
+    protected bool isBeingPressed = false;
     protected bool isBeingDragged = false;
 
     protected RectTransform rect;
@@ -60,12 +61,11 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IPointe
     {
         rect = GetComponent<RectTransform>();
         marqueeImage.enabled = false;
-        UIManager.OnElementSelected += OnNoteSelected;
     }
 
     protected void OnDestroy()
     {
-        UIManager.OnElementSelected -= OnNoteSelected;
+
     }
 
     // TODO: create UpdateOnPlayback that is called when the user drags the playback/zoom or during playback
@@ -73,22 +73,22 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IPointe
 
     protected void Update()
     {
-        // scroll the track if you mouse over the scroll areas
-        int scrollAmount = 0;
-        if (PlaybackManager.Instance.IsPaused && isBeingDragged)
+        // start dragging if we scroll/enter playback while mouse is held over track
+        if (isBeingPressed && (UIManager.Track.IsScrolling || !PlaybackManager.Instance.IsPaused))
         {
-            scrollAmount = UIManager.Track.DragScrollTrack();
+            isBeingPressed = false;
+            OnBeginDrag(pointerEventData);
         }
-        // drag note if scrolling or in playback
-        if (scrollAmount != 0 || (!PlaybackManager.Instance.IsPaused && isBeingDragged))
+
+        // toggle drag scrolling
+        bool shouldDragScroll = PlaybackManager.Instance.IsPaused && isBeingDragged;
+        UIManager.Track.IsDragScrolling = shouldDragScroll || UIManager.Track.IsDragScrolling;
+        
+        // drag note if track is scrolling or in playback
+        if (shouldDragScroll && UIManager.Track.scrollAmount != 0 || (!PlaybackManager.Instance.IsPaused && isBeingDragged))
         {
             OnDrag(pointerEventData);
         }
-    }
-
-    void OnNoteSelected(object previousNote, object newNote)
-    {
-        
     }
 
     public void OnPointerDown(PointerEventData eventData)
@@ -108,55 +108,70 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IPointe
     protected void OnLeftDown()
     {
         // update selection modifiers based on keypresses the moment you click
+        isBeingPressed = true;
         modifyExistingSelection = ModifyExistingSelection;
         addToSelection = AddToSelection;
     }
 
     protected void OnRightDown() {}
 
-    public void OnPointerClick(PointerEventData eventData)
+    public void OnPointerUp(PointerEventData eventData)
     {
         pointerEventData = eventData;
         switch (eventData.button)
         {
             case PointerEventData.InputButton.Left:
-                OnLeftClick();
+                isBeingPressed = false;
+                OnLeftUp();
+
+                // clear selection if we completed click on the track without dragging
+                // don't clear if we started click while holding a key to modify the current selection
+                // and only clear if we don't have a note cursor selected
+                if (!modifyExistingSelection && !isBeingDragged && UIManager.CursorMode==UICursorMode.None)
+                {
+                    UIManager.SelectElement(null, updateEditHistory: true);
+                }
+
+                // if we dragged without moving the mouse (i.e. via scrolling or during playback)
+                // we need to manually trigger the OnEndDrag function
+                if (isBeingDragged)
+                {
+                    OnEndDrag(eventData);
+                }
+
                 break;
             case PointerEventData.InputButton.Right:
-                OnRightClick();
+                OnRightUp();
                 break;
         }
     }
 
-    protected void OnLeftClick() 
-    {
-        // clear selection if we completed click on the track without dragging
-        // don't clear if we started click while holding a key to modify the current selection
-        // and only clear if we don't have a note cursor selected
-        if (!modifyExistingSelection && !isBeingDragged && UIManager.CursorMode==UICursorMode.None)
-        {
-            UIManager.SelectElement(null, updateEditHistory: true);
-        }
-    }
-    
-    protected void OnRightClick() {}
+    protected void OnLeftUp() {}
+
+    protected void OnRightUp() {}
 
 
     // get start timestamp and horizontal position when starting drag
     public void OnBeginDrag(PointerEventData eventData)
     {
-        // do not start selection if you right click or have note type selected
-        if (eventData.button != PointerEventData.InputButton.Left || UIManager.CursorMode != UICursorMode.None) return;
-        
-        // set start drag data
-        pointerEventData = eventData;
-        if (Track.PointerToTrackPosition(eventData.pressPosition, clamp: false) is not var (pos, time)) return;
-        dragStartPointerPos = pos;
-        dragStartPointerTime = time;
+        // OnBeginDrag can be called if we click and scroll the track, so ensure OnBeginDrag()
+        // is only called once per drag by checking if isBeingDragged is true
+        if (!isBeingDragged)
+        {
+            // do not start selection if you right click or have note type selected
+            if (eventData.button != PointerEventData.InputButton.Left || UIManager.CursorMode != UICursorMode.None) return;
+            
+            // set start drag data
+            pointerEventData = eventData;
+            if (Track.PointerToTrackPosition(eventData.pressPosition, clamp: false) is not var (pos, time)) return;
+            dragStartPointerPos = pos;
+            dragStartPointerTime = time;
 
-        Debug.Log("Start drag pos: "+Track.TrackToUIPosition(dragStartPointerPos, dragStartPointerTime));
-        marqueeImage.enabled = true;
-        isBeingDragged = true;
+            Debug.Log("Start drag pos: "+Track.TrackToUIPosition(dragStartPointerPos, dragStartPointerTime));
+            marqueeImage.enabled = true;
+            isBeingDragged = true;
+            isBeingPressed = false;
+        }
     }
     
     // get current timestamp and horizontal pos when dragging
@@ -179,15 +194,18 @@ public class TrackMarqueeSelection : MonoBehaviour, IPointerDownHandler, IPointe
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        // do not end drag if you right click or have note type selected
-        if (eventData.button != PointerEventData.InputButton.Left || UIManager.CursorMode != UICursorMode.None) return;
+        if (isBeingDragged)
+        {
+            // do not end drag if you right click or have note type selected
+            if (eventData.button != PointerEventData.InputButton.Left || UIManager.CursorMode != UICursorMode.None) return;
 
-        Debug.Log("End drag pos: "+Track.TrackToUIPosition(dragPos, dragTime));
-        // this class only detects selected notes. The selected notes are controlled by UIManager.SelectionGroup.
-        SortedSet<Note> selectedNotes = CheckForSelectedNotes(dragStartPointerTime, dragTime, dragStartPointerPos, dragPos); // OFFENDER!!!
-        UIManager.MultiselectElements(addToSelection, selectedNotes, modifyExistingSelection);
-        marqueeImage.enabled = false;
-        isBeingDragged = false;
+            Debug.Log("End drag pos: "+Track.TrackToUIPosition(dragPos, dragTime));
+            // this class only detects selected notes. The selected notes are controlled by UIManager.SelectionGroup.
+            SortedSet<Note> selectedNotes = CheckForSelectedNotes(dragStartPointerTime, dragTime, dragStartPointerPos, dragPos); // OFFENDER!!!
+            UIManager.MultiselectElements(addToSelection, selectedNotes, modifyExistingSelection);
+            marqueeImage.enabled = false;
+            isBeingDragged = false;
+        }
     }
 
     protected void DrawSelectionRectangle() 
