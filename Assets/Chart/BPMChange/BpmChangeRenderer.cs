@@ -60,6 +60,7 @@ public class BpmChangeRenderer : MonoBehaviour, IPointerDownHandler, IPointerUpH
         ChartManager.OnChartChanged += DestroyOnChartChanged;
         UIManager.OnElementSelected += OnElementSelected;
         UIManager.OnDragCanceled += OnDragCanceled;
+        UIManager.OnAnimationToggled += OnAnimationToggled;
     }
 
     void Start()
@@ -73,6 +74,7 @@ public class BpmChangeRenderer : MonoBehaviour, IPointerDownHandler, IPointerUpH
         UIManager.OnElementSelected -= OnElementSelected;
         UIManager.OnDragCanceled -= OnDragCanceled;
         if (Event != null) Event.Chart.OnBpmChangeRemoved -= DestroyOnNoteRemoved;
+        UIManager.OnAnimationToggled -= OnAnimationToggled;
     }
 
     void Update()
@@ -344,5 +346,13 @@ public class BpmChangeRenderer : MonoBehaviour, IPointerDownHandler, IPointerUpH
             }
         }
         return beatNumber;
+    }
+
+    public virtual void OnAnimationToggled(bool isAnimationEnabled)
+    {
+        if (animator != null)
+        {
+            animator.SetBool("IsAnimationEnabled", isAnimationEnabled);
+        }
     }
 }
