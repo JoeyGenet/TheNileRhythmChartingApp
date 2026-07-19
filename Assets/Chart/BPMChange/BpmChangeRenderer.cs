@@ -54,8 +54,6 @@ public class BpmChangeRenderer : MonoBehaviour, IPointerDownHandler, IPointerUpH
     void Awake()
     {
         rect = GetComponent<RectTransform>();
-        
-        gameObject.SetActive(false);
 
         ChartManager.OnChartChanged += DestroyOnChartChanged;
         UIManager.OnElementSelected += OnElementSelected;

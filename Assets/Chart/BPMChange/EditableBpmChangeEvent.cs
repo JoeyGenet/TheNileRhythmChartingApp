@@ -30,7 +30,7 @@ public class EditableBpmChangeEvent : BpmChangeEvent, IEditable
 			PreviousBpmChange = prevBpmChange;
 			NextBpmChange = nextBpmChange;
 
-            Debug.Log($"start time -> {StartTime}\n{Chart.EventsAsString()}");
+            Debug.Log($"start time -> {StartTime}\n{Chart.BpmChangesAsString()}");
         });
     }
 
@@ -58,8 +58,8 @@ public class EditableBpmChangeEvent : BpmChangeEvent, IEditable
     public EditableBpmChangeEvent(Chart chart, int startTime, uint bpm)
         : base(chart, startTime, bpm) {}
 
-	public EditableBpmChangeEvent(EditableChart chart, EditableBpmChangeEvent evt)
-		: base(chart, evt.startTime, evt.BPM) {}
+	public EditableBpmChangeEvent(EditableChart chart, BpmChangeEvent evt)
+		: base(chart, evt.StartTime, evt.BPM) {}
 }
 
 public class ChartBpm : EditableBpmChangeEvent

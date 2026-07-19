@@ -84,7 +84,14 @@ public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
 			events.Add(new EditableEnvironmentChangeEvent(this, evt));
 		}
 		LinkEvents();
-		// Debug.Log(EventsAsString());
+		
+		var nonEditableBpmChanges = new List<BpmChangeEvent>(bpmChanges).OrderBy(e => e.StartTime);
+		bpmChanges.Clear();
+		foreach (var bpmChange in nonEditableBpmChanges)
+		{
+			bpmChanges.Add(new EditableBpmChangeEvent(this, bpmChange));
+		}
+		LinkEvents();
 	}
 
 	public bool AddNote(Note note, bool notify = true, bool updateEditHistory = true)
@@ -124,7 +131,7 @@ public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
 		{
 			if (events.Contains(evt)) return false;
 
-			// Note will be inserted between these 2 notes:
+			// Environment change will be inserted between these 2 notes:
             var prevEnvironmentChange = Events.Where(e => e.StartTime < evt.StartTime).OrderBy(e => e.StartTime).LastOrDefault();
             var nextEnvironmentChange = prevEnvironmentChange != null ? prevEnvironmentChange.NextEnvironmentChange
                                             : Events.OrderBy(e => e.StartTime).FirstOrDefault();
@@ -162,10 +169,10 @@ public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
 		{
 			if (bpmChanges.Contains(evt)) return false;
 
-			// Note will be inserted between these 2 notes:
-            var prevBpmChange = bpmChanges.Where(e => e.StartTime < evt.StartTime).OrderBy(e => e.StartTime).LastOrDefault();
+			// BPM change will be inserted between these 2 notes:
+            var prevBpmChange = BPMChanges.Where(e => e.StartTime < evt.StartTime).OrderBy(e => e.StartTime).LastOrDefault();
             var nextBpmChange = prevBpmChange != null ? prevBpmChange.NextBpmChange
-                                            : bpmChanges.OrderBy(e => e.StartTime).FirstOrDefault();
+                                            : BPMChanges.OrderBy(e => e.StartTime).FirstOrDefault();
 
 			// Update linked list
 			if (prevBpmChange != null) prevBpmChange.NextBpmChange = evt;
@@ -246,6 +253,14 @@ public class EditableChart : Chart, IEditable, IEditableNoteContainer<Note>
 		{
 			writer.WriteLine($"E {evt.StartTime} {evt.EndTime} {evt.Environment.Name}");
 		}
+		writer.WriteLine();
+
+		writer.WriteLine("[BPM Changes]");
+		foreach (var bpmChange in bpmChanges.OrderBy(evt => evt.StartTime))
+		{
+			writer.WriteLine($"B {bpmChange.StartTime} {bpmChange.BPM}");
+		}
+		writer.WriteLine();
 
 		HasChanges = false;
 	}
