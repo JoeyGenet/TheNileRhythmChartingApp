@@ -293,9 +293,10 @@ public class BpmChangeRenderer : MonoBehaviour, IPointerDownHandler, IPointerUpH
         }
         else
         {
-            time = ChartManager.SelectedChart.BPMChanges.First().StartTime + bpmOffset;
-            beatCount = startingBpm * ChartManager.SelectedChart.BPMChanges.First().StartTime / 60000f;
-            foreach (EditableBpmChangeEvent bpmChange in ChartManager.SelectedChart.BPMChanges)
+            var sortedBpmChanges = ChartManager.SelectedChart.BPMChanges.OrderBy(evt => evt.StartTime).ToList();
+            time = sortedBpmChanges.First().StartTime + bpmOffset;
+            beatCount = startingBpm * sortedBpmChanges.First().StartTime / 60000f;
+            foreach (EditableBpmChangeEvent bpmChange in sortedBpmChanges)
             {
                 // sum time durations in all bpm changes before this one
                 if (bpmChange != Event.PreviousBpmChange)
@@ -327,8 +328,9 @@ public class BpmChangeRenderer : MonoBehaviour, IPointerDownHandler, IPointerUpH
         }
         else
         {
-            beatNumber = ChartManager.SelectedChart.BPMChanges.First().StartTime * startingBpm / 60000f;
-            foreach (EditableBpmChangeEvent bpmChange in ChartManager.SelectedChart.BPMChanges)
+            var sortedBpmChanges = ChartManager.SelectedChart.BPMChanges.OrderBy(evt => evt.StartTime).ToList();
+            beatNumber = sortedBpmChanges.First().StartTime * startingBpm / 60000f;
+            foreach (EditableBpmChangeEvent bpmChange in sortedBpmChanges)
             {
                 // count up beats in all bpm changes before this one
                 if (bpmChange != Event.PreviousBpmChange)
