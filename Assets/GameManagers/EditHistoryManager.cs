@@ -1184,6 +1184,112 @@ public class EditEnvironmentChangeAction : UndoRedoAction
     }
 }
 
+// MARK: BPM change actions
+
+public class AddBpmChangeAction : UndoRedoAction
+{
+    public override string Message { get { return "add BPM change"; }}
+    [SerializeField] EditableBpmChangeEvent editableBpmChangeEvent;
+    [SerializeField] EditableChart editableChart;
+
+    public override string ToString()
+    {
+        return $"BPM: {editableBpmChangeEvent.BPM} \n"+
+               $"Start Time: {editableBpmChangeEvent.StartTime} \n"+
+               $"End Time: {editableBpmChangeEvent.EndTime} \n"+
+               $"Duration: {editableBpmChangeEvent.Duration}";
+    }
+
+    public AddBpmChangeAction(EditableBpmChangeEvent editableBpmChangeEvent, EditableChart editableChart)
+    {
+        this.editableBpmChangeEvent = editableBpmChangeEvent;
+        this.editableChart = editableChart;
+        selectedElement = editableBpmChangeEvent;
+    }
+
+    public override void Redo()
+    {
+        editableChart.AddBpmChange(editableBpmChangeEvent);
+        PlaybackManager.Instance.SnapToTimestamp(editableBpmChangeEvent.StartTime);
+    }
+
+    public override void Undo()
+    {
+        editableChart.RemoveBpmChange(editableBpmChangeEvent);
+        PlaybackManager.Instance.SnapToTimestamp(editableBpmChangeEvent.StartTime);
+    }
+}
+
+public class RemoveBpmChangeAction : UndoRedoAction
+{
+    public override string Message { get { return "remove BPM change"; }}
+    [SerializeField] EditableBpmChangeEvent editableBpmChangeEvent;
+    [SerializeField] EditableChart editableChart;
+
+    public override string ToString()
+    {
+        return $"BPM: {editableBpmChangeEvent.BPM} \n"+
+               $"Start Time: {editableBpmChangeEvent.StartTime} \n"+
+               $"End Time: {editableBpmChangeEvent.EndTime} \n"+
+               $"Duration: {editableBpmChangeEvent.Duration}";
+    }
+
+    public RemoveBpmChangeAction(EditableBpmChangeEvent editableBpmChangeEvent, EditableChart editableChart)
+    {
+        this.editableBpmChangeEvent = editableBpmChangeEvent;
+        this.editableChart = editableChart;
+        selectedElement = null;
+    }
+
+    public override void Redo()
+    {
+        editableChart.RemoveBpmChange(editableBpmChangeEvent);
+        PlaybackManager.Instance.SnapToTimestamp(editableBpmChangeEvent.StartTime);
+    }
+
+    public override void Undo()
+    {
+        editableChart.AddBpmChange(editableBpmChangeEvent);
+        PlaybackManager.Instance.SnapToTimestamp(editableBpmChangeEvent.StartTime);
+    }
+}
+
+public class EditBpmChangeAction : UndoRedoAction
+{
+    public override string Message { get { return "edit BPM change"; }}
+    [SerializeField] EditableBpmChangeEvent editableBpmChangeEvent;
+    [SerializeField] public int startTimeDelta;
+    [SerializeField] public uint bpmDelta;
+
+    public override string ToString()
+    {
+        return $"Start Time delta: {startTimeDelta} \n"+
+               $"End Time delta: {bpmDelta} \n";
+    }
+
+    public EditBpmChangeAction(EditableBpmChangeEvent editableBpmChangeEvent, int startTimeDelta, uint bpmDelta)
+    {
+        this.editableBpmChangeEvent = editableBpmChangeEvent;
+        this.startTimeDelta = startTimeDelta;
+        this.bpmDelta = bpmDelta;
+        selectedElement = editableBpmChangeEvent;
+    }
+
+    public override void Redo()
+    {
+        editableBpmChangeEvent.StartTime += startTimeDelta;
+        editableBpmChangeEvent.BPM += bpmDelta;
+        PlaybackManager.Instance.SnapToTimestamp(editableBpmChangeEvent.StartTime);
+    }
+
+    public override void Undo()
+    {
+        editableBpmChangeEvent.StartTime -= startTimeDelta;
+        editableBpmChangeEvent.BPM -= bpmDelta;
+        PlaybackManager.Instance.SnapToTimestamp(editableBpmChangeEvent.StartTime);
+    }
+}
+
 // MARK: Metadata actions
 
 public class EditMetadataAction : UndoRedoAction

@@ -195,8 +195,8 @@ public class BpmChangeRenderer : MonoBehaviour, IPointerDownHandler, IPointerUpH
                 break;
             case PointerEventData.InputButton.Right:
                 // track the deletion for undo/redo
-                // RemoveEnvironmentChangeAction removeEnvironmentChangeAction = new RemoveEnvironmentChangeAction(Event, Event.Chart);
-                // removeEnvironmentChangeAction.CommitAction();
+                RemoveBpmChangeAction removeBpmChangeAction = new RemoveBpmChangeAction(Event, Event.Chart);
+                removeBpmChangeAction.CommitAction();
                 Event.Chart.RemoveBpmChange(Event);
                 UIManager.SelectElement(null); // TODO: find better way to unfocus the event inspector
                 break;
@@ -244,12 +244,10 @@ public class BpmChangeRenderer : MonoBehaviour, IPointerDownHandler, IPointerUpH
         if (!isDragCancelled && Event.isBeingDragged)
         {
             if (eventData.button != PointerEventData.InputButton.Left) return;
-            // int startTimeDelta = Event.StartTime - dragStartStartTime;
-            // EditEnvironmentChangeAction editEnvironmentChangeAction = new EditEnvironmentChangeAction
-            // (
-            //     Event, startTimeDelta, endTimeDelta, oldEnvironment, Event.Environment
-            // );
-            // editEnvironmentChangeAction.CommitAction();
+            int startTimeDelta = Event.StartTime - dragStartStartTime;
+            uint bpmDelta = Event.BPM - oldBpm;
+            EditBpmChangeAction editBpmChangeAction = new EditBpmChangeAction (Event, startTimeDelta, bpmDelta);
+            editBpmChangeAction.CommitAction();
         }
         IsBeingDragged = false;
         isDragCancelled = false;

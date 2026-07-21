@@ -477,8 +477,8 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         int startTime = PlaybackManager.ClampTime((int) (PlaybackManager.Instance.MillisecondsInChart + PlaybackManager.Instance.VerticalViewSize / 2));
         var evt = new EditableEnvironmentChangeEvent(chart, startTime, startTime + chart.Package.BeatToTime(1), EnvironmentManager.DefaultEnvironment);
         // track the addition for undo/redo
-        AddEnvironmentChangeAction editEnvironmentChangeAction = new AddEnvironmentChangeAction(evt, chart);
-        editEnvironmentChangeAction.CommitAction();
+        AddEnvironmentChangeAction addEnvironmentChangeAction = new AddEnvironmentChangeAction(evt, chart);
+        addEnvironmentChangeAction.CommitAction();
         chart.AddEvent(evt);
         UIManager.SelectElement(evt, updateEditHistory:false);
     }
@@ -498,8 +498,8 @@ public class Track : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         int startTime = PlaybackManager.ClampTime((int) (PlaybackManager.Instance.MillisecondsInChart + PlaybackManager.Instance.VerticalViewSize / 2));
         var evt = new EditableBpmChangeEvent(chart, startTime, 120);
         // track the addition for undo/redo
-        // AddEnvironmentChangeAction editEnvironmentChangeAction = new AddEnvironmentChangeAction(evt, chart);
-        // editEnvironmentChangeAction.CommitAction();
+        AddBpmChangeAction addBpmChangeAction = new AddBpmChangeAction(evt, chart);
+        addBpmChangeAction.CommitAction();
         chart.AddBpmChange(evt);
         UIManager.SelectElement(evt, updateEditHistory:false);
     }

@@ -46,12 +46,8 @@ public class BpmChangeInspector : MonoBehaviour
             if (isEditInProgress)
             {
                 int startTimeDelta = Event.StartTime - editStartStartTime;
-                // TODO: undo redo support
-                // EditEnvironmentChangeAction editEnvironmentChangeAction = new EditEnvironmentChangeAction
-                // (
-                //     Event, startTimeDelta, 0, Event.Environment, Event.Environment
-                // );
-                // editEnvironmentChangeAction.CommitAction();
+                EditBpmChangeAction editBpmChangeAction = new EditBpmChangeAction (Event, startTimeDelta, 0);
+                editBpmChangeAction.CommitAction();
                 isEditInProgress = false;
             }
         });
@@ -76,11 +72,8 @@ public class BpmChangeInspector : MonoBehaviour
             if (isEditInProgress)
             {
                 uint bpmDelta = Event.BPM - editStartBpm;
-                // EditEnvironmentChangeAction editEnvironmentChangeAction = new EditEnvironmentChangeAction
-                // (
-                //     Event, 0, endTimeDelta, Event.Environment, Event.Environment
-                // );
-                // editEnvironmentChangeAction.CommitAction();
+                EditBpmChangeAction editBpmChangeAction = new EditBpmChangeAction (Event, 0, bpmDelta);
+                editBpmChangeAction.CommitAction();
                 isEditInProgress = false;
             }
         });
