@@ -61,9 +61,12 @@ public class BpmChangeRenderer : MonoBehaviour, IPointerDownHandler, IPointerUpH
         UIManager.OnAnimationToggled += OnAnimationToggled;
     }
 
-    void Start()
+    void OnEnable()
     {
-
+        if (animator != null)
+        {
+            animator.SetBool("IsAnimationEnabled", UIManager.EnableAnimation);
+        }
     }
 
     void OnDestroy()
