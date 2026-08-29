@@ -17,6 +17,7 @@ public class InspectorsUIController : MonoBehaviour
     [SerializeField] LeverSequenceInspector leverSequenceInspector;
     [SerializeField] SelectionGroupInspector selectionGroupInspector;
     [SerializeField] EnvironmentChangeInspector environmentChangeInspector;
+    [SerializeField] BpmChangeInspector bpmChangeInspector;
     [SerializeField] GameObject noElementSelectedView;
 
     void Awake()
@@ -30,6 +31,7 @@ public class InspectorsUIController : MonoBehaviour
         leverSequenceInspector.gameObject.SetActive(false);
         selectionGroupInspector.gameObject.SetActive(false);
         environmentChangeInspector.gameObject.SetActive(false);
+        bpmChangeInspector.gameObject.SetActive(false);
         noElementSelectedView.SetActive(true);
 
         UIManager.OnElementSelected += OnElementSelected;
@@ -89,6 +91,11 @@ public class InspectorsUIController : MonoBehaviour
                     environmentChangeInspector.gameObject.SetActive(false);
                     noElementSelectedView.SetActive(true);
                     break;
+                case EditableBpmChangeEvent bpmChange:
+                    bpmChangeInspector.Show(null);
+                    bpmChangeInspector.gameObject.SetActive(false);
+                    noElementSelectedView.SetActive(true);
+                    break;
                 case null:
                     noElementSelectedView.SetActive(false);
                     break;
@@ -119,6 +126,13 @@ public class InspectorsUIController : MonoBehaviour
                 case EditableEnvironmentChangeEvent environmentChange:
                     environmentChangeInspector.Show(environmentChange);
                     environmentChangeInspector.gameObject.SetActive(true);
+                    noElementSelectedView.SetActive(false);
+                    noteInspectorHeader.SetActive(false);
+                    eventInspectorHeader.SetActive(true);
+                    break;
+                case EditableBpmChangeEvent bpmChange:
+                    bpmChangeInspector.Show(bpmChange);
+                    bpmChangeInspector.gameObject.SetActive(true);
                     noElementSelectedView.SetActive(false);
                     noteInspectorHeader.SetActive(false);
                     eventInspectorHeader.SetActive(true);

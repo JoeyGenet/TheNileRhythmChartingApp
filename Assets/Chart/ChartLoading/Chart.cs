@@ -21,8 +21,12 @@ public class Chart : INoteContainer<Note>, IComparable<Chart>
 	public Environment Environment => environment ?? EnvironmentManager.DefaultEnvironment;
 	// protected EnvironmentChangeEvent firstEnvironmentChange;
 
+	// TODO: store env changes and bpm changes in same "events" list
     protected readonly HashSet<EnvironmentChangeEvent> events = new();
 	public IReadOnlyCollection<EnvironmentChangeEvent> Events => events;
+
+    protected readonly HashSet<BpmChangeEvent> bpmChanges = new();
+	public IReadOnlyCollection<BpmChangeEvent> BPMChanges => bpmChanges;
 
     protected readonly SortedSet<Note> notes = new();
 	public IReadOnlySortedSet<Note> Notes => (ReadOnlySortedSet<Note>) notes;
@@ -169,15 +173,25 @@ public class Chart : INoteContainer<Note>, IComparable<Chart>
 				events.Add(new EnvironmentChangeEvent(this, startTime, endTime, environment));
 			}
 		});
+
+		parser["Bpm Changes"] = (line, args) => parser.Switch(new()
+		{
+			["B|0"] = () =>
+			{
+				parser.AssertArgCount(3);
+				int startTime = int.Parse(args[1]);
+				uint bpm = uint.Parse(args[2]);
+				bpmChanges.Add(new BpmChangeEvent(this, startTime, bpm));
+			}
+		});		
 		LinkEvents();
 
 		parser.Run(stream);
 	}
 
-	// Sorts and sets up environment change linked list
+	// Sorts and sets up environment/bpm change linked list
 	protected void LinkEvents()
 	{
-		var sortedEvents = new List<EnvironmentChangeEvent>(events).OrderBy(e => e.StartTime);
 		var environmentChanges = events.OrderBy(evt => evt.StartTime).ToList();
 		EnvironmentChangeEvent prevEnvironmentChange = null;
 		foreach (var environmentChange in environmentChanges)
@@ -185,6 +199,14 @@ public class Chart : INoteContainer<Note>, IComparable<Chart>
 			environmentChange.PreviousEnvironmentChange = prevEnvironmentChange;
 			if (prevEnvironmentChange != null) prevEnvironmentChange.NextEnvironmentChange = environmentChange;
 			prevEnvironmentChange = environmentChange;
+		}
+		var sortedBpmChanges = bpmChanges.OrderBy(evt => evt.StartTime).ToList();
+		BpmChangeEvent prevBpmChange = null;
+		foreach (var bpmChange in sortedBpmChanges)
+		{
+			bpmChange.PreviousBpmChange = prevBpmChange;
+			if (prevBpmChange != null) prevBpmChange.NextBpmChange = bpmChange;
+			prevBpmChange = bpmChange;
 		}
 	}
 
@@ -199,6 +221,21 @@ public class Chart : INoteContainer<Note>, IComparable<Chart>
 			if (visited.Contains(currEvent)) throw new Exception($"Cycle in linked list detected!\n{str}");
 			visited.Add(currEvent);
 			currEvent = currEvent.NextEnvironmentChange;
+		}
+		return str;
+	}
+
+	public string BpmChangesAsString() 
+	{
+		string str = "";
+		var currEvent = BPMChanges.OrderBy(e => e.StartTime).FirstOrDefault();
+		HashSet<BpmChangeEvent> visited = new();
+		while (currEvent != null)
+		{
+			str += $"{currEvent.GetHashCode()}: {currEvent.BPM} ({currEvent.PreviousBpmChange?.GetHashCode()} -> {currEvent.NextBpmChange?.GetHashCode()})\n";
+			if (visited.Contains(currEvent)) throw new Exception($"Cycle in linked list detected!\n{str}");
+			visited.Add(currEvent);
+			currEvent = currEvent.NextBpmChange;
 		}
 		return str;
 	}

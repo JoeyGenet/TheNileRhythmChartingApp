@@ -75,11 +75,15 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerDownHandler, IPo
         ChartManager.OnChartChanged += DestroyOnChartChanged;
         UIManager.OnElementSelected += OnElementSelected;
         UIManager.OnDragCanceled += OnDragCanceled;
+        UIManager.OnAnimationToggled += OnAnimationToggled;
     }
 
-    void Start()
+    void OnEnable()
     {
-
+        if (animator != null)
+        {
+            animator.SetBool("IsAnimationEnabled", UIManager.EnableAnimation);
+        }
     }
 
     void OnDestroy()
@@ -88,6 +92,7 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerDownHandler, IPo
         UIManager.OnElementSelected -= OnElementSelected;
         UIManager.OnDragCanceled -= OnDragCanceled;
         if (Event != null) Event.Chart.OnEventRemoved -= DestroyOnNoteRemoved;
+        UIManager.OnAnimationToggled -= OnAnimationToggled;
     }
 
     void Update()
@@ -345,5 +350,13 @@ public class EnvironmentChangeRenderer : MonoBehaviour, IPointerDownHandler, IPo
     {
         if (eventData is not PointerEventData pointerEventData) return;
         OnEndDrag(pointerEventData);
+    }
+
+    public virtual void OnAnimationToggled(bool isAnimationEnabled)
+    {
+        if (animator != null)
+        {
+            animator.SetBool("IsAnimationEnabled", isAnimationEnabled);
+        }
     }
 }

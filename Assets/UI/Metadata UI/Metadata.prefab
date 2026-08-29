@@ -4484,7 +4484,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6897367499556949318, guid: 0a29e7660061d4d5ca6af777bb156e0f, type: 3}
       propertyPath: m_text
-      value: BPM
+      value: Starting BPM
       objectReference: {fileID: 0}
     - target: {fileID: 7384586918196374336, guid: 0a29e7660061d4d5ca6af777bb156e0f, type: 3}
       propertyPath: m_text
