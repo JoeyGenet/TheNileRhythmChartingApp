@@ -12,8 +12,8 @@ PlayerSettings:
   targetDevice: 2
   useOnDemandResources: 0
   accelerometerFrequency: 60
-  companyName: TeamFullCombo
-  productName: TheNileRhythmChartingApp
+  companyName: Team Full Combo
+  productName: The Nile Rhythm Charting App
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.05192594, g: 0.25488374, b: 0.5396226, a: 1}
