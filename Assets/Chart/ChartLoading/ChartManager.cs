@@ -11,7 +11,7 @@ public static class ChartManager
 {
     public delegate void ChartPackageChangedEvent(EditableChartPackage prevPackage, EditableChartPackage newPackage);
     public delegate void ChartChangedEvent(EditableChart prevChart, EditableChart newChart);
-    public delegate void ChartAddedEvent(EditableChart chart);
+    public delegate void ChartAddedEvent(EditableChart chart, bool selectChart);
     public delegate void ChartRemovedEvent(EditableChart chart);
     public delegate void NoteAddedEvent(Note note);
     public delegate void NoteRemovedEvent(Note note);
@@ -137,7 +137,7 @@ public static class ChartManager
         // OnChartSaved?.Invoke(path);
     }
 
-    static void SendOnChartAdded(EditableChart chart) => OnChartAdded?.Invoke(chart);
+    static void SendOnChartAdded(EditableChart chart) => OnChartAdded?.Invoke(chart, true);
     static void SendOnChartRemoved(EditableChart chart) => OnChartRemoved?.Invoke(chart);
     static void SendOnNoteAdded(Note note) => OnNoteAdded?.Invoke(note);
     static void SendOnNoteRemoved(Note note) => OnNoteRemoved?.Invoke(note);

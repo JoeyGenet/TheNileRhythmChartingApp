@@ -402,20 +402,23 @@ public class MetadataUIController : MonoBehaviour
             Destroy(chartInspectorsParent.GetChild(i).gameObject);
         }
         chartInspectors.Clear();
-        foreach (var chart in newPackage.Charts) OnChartAdded(chart);
+        foreach (var chart in newPackage.Charts) OnChartAdded(chart, selectChart: false);
 
         // Select the first chart of the new package
         ChartManager.SelectedChart = newPackage.Charts.First;
         // ChartManager.SelectedChart = newPackage.Charts.OrderBy() chartInspectorsParent.GetChild(0).GetComponent<ChartInspector>().Chart;
     }
 
-    void OnChartAdded(EditableChart chart)
+    void OnChartAdded(EditableChart chart, bool selectChart = true)
     {
         var chartInspector = Instantiate(chartInspectorPrefab, chartInspectorsParent);
         chartInspector.Init(this, chart);
         chartInspectors[chart] = chartInspector;
         UpdateChartInspectorsOrder();
-        ChartManager.SelectedChart = chart;
+        if (selectChart)
+        {
+            ChartManager.SelectedChart = chart;
+        }
     }
 
     void OnChartRemoved(EditableChart chart)
