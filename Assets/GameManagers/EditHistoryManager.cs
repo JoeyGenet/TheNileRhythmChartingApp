@@ -1304,6 +1304,8 @@ public class EditMetadataAction : UndoRedoAction
     [SerializeField] public string newArtist;
     [SerializeField] public string oldCharter;
     [SerializeField] public string newCharter;
+    [SerializeField] public string oldDescription;
+    [SerializeField] public string newDescription;
     [SerializeField] public string oldSongClipPath;
     [SerializeField] public string newSongClipPath;
     [SerializeField] public uint bpmDelta;
@@ -1317,6 +1319,7 @@ public class EditMetadataAction : UndoRedoAction
         return ((oldTitle!=null && newTitle!=null) ? "Old title: "+oldTitle+", new title: "+newTitle+"\n" : "") +
                ((oldArtist!=null && newArtist!=null) ? "Old artist: "+oldArtist+", new artist: "+newArtist+"\n" : "") +
                ((oldCharter!=null && newCharter!=null) ? "Old charter: "+oldCharter+", new charter: "+newCharter+"\n" : "") +
+               ((oldDescription!=null && newDescription!=null) ? "Old description: "+oldDescription+", new description: "+newDescription+"\n" : "") +
                ((oldSongClipPath!=null || newSongClipPath!=null) ? "Old song clip: "+oldSongClipPath+", new song clip: "+newSongClipPath+"\n" : "") +
                ((oldCoverImagePath!=null || newCoverImagePath!=null) ? "Old cover image: "+oldCoverImagePath+", new cover image: "+newCoverImagePath+"\n" : "") +
                ((bpmDelta!=0) ? "BPM delta: "+bpmDelta+"\n" : "") +
@@ -1328,8 +1331,9 @@ public class EditMetadataAction : UndoRedoAction
 
     public EditMetadataAction(EditableChartPackage editableChartPackage, string oldCoverImagePath=null, string newCoverImagePath=null,
                               string oldTitle=null, string newTitle=null, string oldArtist=null, string newArtist=null,
-                              string oldCharter=null, string newCharter=null, string oldSongPath=null, string newSongPath=null,
-                              uint bpmDelta=0, int bpmOffsetDelta=0, float gainDelta=0, uint previewStartDelta=0, uint previewDurationDelta=0)
+                              string oldCharter=null, string newCharter=null, string oldDescription=null, string newDescription=null,
+                              string oldSongPath=null, string newSongPath=null, uint bpmDelta=0, int bpmOffsetDelta=0,
+                              float gainDelta=0, uint previewStartDelta=0, uint previewDurationDelta=0)
     {
         this.editableChartPackage = editableChartPackage;
         this.oldTitle = oldTitle;
@@ -1338,6 +1342,8 @@ public class EditMetadataAction : UndoRedoAction
         this.newArtist = newArtist;
         this.oldCharter = oldCharter;
         this.newCharter = newCharter;
+        this.oldDescription = oldDescription;
+        this.newDescription = newDescription;
         this.oldCoverImagePath = oldCoverImagePath;
         this.newCoverImagePath = newCoverImagePath;
         this.oldSongClipPath = oldSongPath;
@@ -1354,6 +1360,7 @@ public class EditMetadataAction : UndoRedoAction
         editableChartPackage.Title = newTitle ?? editableChartPackage.Title;
         editableChartPackage.Artist = newArtist ?? editableChartPackage.Artist;
         editableChartPackage.Charter = newCharter ?? editableChartPackage.Charter;
+        editableChartPackage.Description = newDescription ?? editableChartPackage.Description;
         editableChartPackage.BPM += bpmDelta;
         editableChartPackage.BPMOffset += bpmOffsetDelta;
         editableChartPackage.Gain += gainDelta;
@@ -1386,6 +1393,7 @@ public class EditMetadataAction : UndoRedoAction
         editableChartPackage.Title = oldTitle ?? editableChartPackage.Title;
         editableChartPackage.Artist = oldArtist ?? editableChartPackage.Artist;
         editableChartPackage.Charter = oldCharter ?? editableChartPackage.Charter;
+        editableChartPackage.Description = oldDescription ?? editableChartPackage.Description;
         editableChartPackage.BPM -= bpmDelta;
         editableChartPackage.BPMOffset -= bpmOffsetDelta;
         editableChartPackage.Gain -= gainDelta;

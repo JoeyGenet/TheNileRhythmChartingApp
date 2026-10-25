@@ -32,12 +32,14 @@ public class ChartPackage
     protected string title = "No Title";
     protected string artist = "Unknown";
     protected string charter = "Unknown";
+    protected string description = "";
     protected Texture2D coverImage = null;
     protected string coverImagePath = "";
 
     public string Title => title.Trim();
     public string Artist => artist.Trim();
     public string Charter => charter.Trim();
+    public string Description => description.Trim();
     public Texture2D CoverImage => coverImage;
     public string CoverImagePath => coverImagePath;
 
@@ -192,6 +194,7 @@ public class ChartPackage
                 ["Title"] = val => title = val,
                 ["Artist"] = val => artist = val,
                 ["Charter"] = val => charter = val,
+                ["Description"] = val => description = val.Replace("\\n", "\n"),
                 ["CoverImage"] = filepath => coverImagePath = filepath,
             });
 

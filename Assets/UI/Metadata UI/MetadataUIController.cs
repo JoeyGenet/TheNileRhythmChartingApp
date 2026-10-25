@@ -27,6 +27,9 @@ public class MetadataUIController : MonoBehaviour
     [SerializeField] TMP_InputField artistInputField;
     [SerializeField] TMP_InputField charterInputField;
 
+    [Header("Description")]
+    [SerializeField] TMP_InputField descriptionInputField;
+
     [Header("Charts")]
     [SerializeField] RectTransform chartInspectorsParent;
     [SerializeField] ChartInspector chartInspectorPrefab;
@@ -124,6 +127,28 @@ public class MetadataUIController : MonoBehaviour
             }
         });
 
+        descriptionInputField.onValidateInput += (text, _, c) => c;
+        descriptionInputField.onValueChanged.AddListener(description =>
+        {
+            // track starting value of edit
+            if (!isEditInProgress)
+            {
+                editMetadataAction = new EditMetadataAction(ChartManager.ChartPackage);
+                editMetadataAction.oldDescription = ChartManager.ChartPackage.Description;
+                isEditInProgress = true;
+            }
+            // process new value
+            ChartManager.ChartPackage.Description = descriptionInputField.text = description;
+        });
+        descriptionInputField.onEndEdit.AddListener(_ =>
+        {
+            if (isEditInProgress)
+            {
+                editMetadataAction.newDescription = ChartManager.ChartPackage.Description;
+                editMetadataAction.CommitAction();
+                isEditInProgress = false;
+            }
+        });
 
         addChartButton.onClick.AddListener(() => ChartManager.ChartPackage.AddChart());
         
@@ -315,6 +340,7 @@ public class MetadataUIController : MonoBehaviour
         if (!titleInputField.isFocused) titleInputField.SetTextWithoutNotify($"{pkg.Title}");
         if (!artistInputField.isFocused) artistInputField.SetTextWithoutNotify($"{pkg.Artist}");
         if (!charterInputField.isFocused) charterInputField.SetTextWithoutNotify($"{pkg.Charter}");
+        if (!descriptionInputField.isFocused) descriptionInputField.SetTextWithoutNotify($"{pkg.Description}");
 
         if (!bpmInputField.isFocused) bpmInputField.SetTextWithoutNotify($"{pkg.BPM}");
         if (!bpmOffsetInputField.isFocused) bpmOffsetInputField.SetTextWithoutNotify($"{pkg.BPMOffset}");
