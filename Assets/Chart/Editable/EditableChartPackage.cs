@@ -249,7 +249,7 @@ public class EditableChartPackage : ChartPackage, IEditable
             writer.WriteLine($"Title: {Title}");
             writer.WriteLine($"Artist: {Artist}");
             writer.WriteLine($"Charter: {Charter}");
-            writer.WriteLine($"Description: {Description.Replace("\n", "\\n")}");
+            if (!string.IsNullOrEmpty(Description)) writer.WriteLine($"Description: {Description.Replace("\n", "\\n")}");
             if (imageEntry != null) writer.WriteLine($"CoverImage: {imageEntry.Name}");
             writer.WriteLine();
 
